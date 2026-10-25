@@ -1,0 +1,2181 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>B9 神解 3D 模型</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@600&display=swap">
+<style>
+/* Layout: full-bleed 3D stage; layer list on the left, section bench on the right (both become bottom sheets on phones). */
+:root {
+  --bg: #e7ecee; --panel: #f6f8f9; --stage: #dde4e7; --ink: #1b2327; --mute: #5b6a72; --line: #cdd7db;
+  --accent: #0d7480; --accent-ink: #ffffff; --bone: #85692c; --chip: #e9eff1; --warn: #a3541b; --ok: #2f7d4a;
+  --kg: #f6dd8a; --kg-ink: #6a4a00;
+  --f-display: "Noto Serif TC", "Songti TC", serif;
+  --f-body: "Noto Sans TC", -apple-system, "PingFang TC", sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #101518; --panel: #172024; --stage: #0c1114; --ink: #e4ecef; --mute: #8d9ea6; --line: #29363c;
+  --accent: #4cbcc6; --accent-ink: #062225; --bone: #dcc890; --chip: #1f2b30; --warn: #e0965a; --ok: #6cc28a; --kg: #5a4a14; --kg-ink: #f6dd8a; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #101518; --panel: #172024; --stage: #0c1114; --ink: #e4ecef; --mute: #8d9ea6; --line: #29363c;
+  --accent: #4cbcc6; --accent-ink: #062225; --bone: #dcc890; --chip: #1f2b30; --warn: #e0965a; --ok: #6cc28a; --kg: #5a4a14; --kg-ink: #f6dd8a; color-scheme: dark; }
+html, body { height: 100%; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 14px/1.55 var(--f-body); overflow: hidden; }
+button, input { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+#app { height: 100%; display: grid; --lw: 290px; --bw: 360px; grid-template-columns: var(--lw) minmax(0,1fr) var(--bw); grid-template-rows: auto minmax(0,1fr); }
+/* 桌機：左右面板可收合（header 的「圖層」「切面」按鈕）；切面面板預設收起 */
+@media (min-width: 821px) {
+  #layers { grid-column: 1; } #stage { grid-column: 2; } #bench { grid-column: 3; }
+  #app.hide-layers { --lw: 0px; } #app.hide-layers #layers { display: none; }
+  #app.hide-bench { --bw: 0px; } #app.hide-bench #bench { display: none; }
+  #app.wide-bench:not(.hide-bench) { --bw: min(480px, 42vw); }
+}
+header { grid-column: 1 / -1; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 8px 16px; background: var(--panel); border-bottom: 1px solid var(--line); }
+header h1 { font: 600 18px/1.2 var(--f-display); margin: 0; letter-spacing: .02em; }
+header .sub { color: var(--mute); font-size: 12px; }
+header .sp { flex: 1; }
+/* 作者署名：桌面在最右；手機排到標題同一行的右邊（同 3D_神經發育模型） */
+#author { display: flex; flex-direction: column; align-items: flex-end; font-size: 12px; line-height: 1.25; color: var(--ink); font-weight: 600; letter-spacing: .02em; white-space: nowrap; }
+#author small { font-size: 10.5px; font-weight: 400; color: var(--mute); }
+.btn { border: 1px solid var(--line); background: var(--panel); border-radius: 6px; padding: 4px 10px; font-size: 13px; }
+.btn[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.mobile-only { display: none; }
+aside { background: var(--panel); overflow-y: auto; min-width: 0; padding-block: 10px; }
+#layers { border-right: 1px solid var(--line); padding-inline: 14px; }
+#bench { border-left: 1px solid var(--line); padding-inline: 14px; }
+.lbl { font-size: 11px; letter-spacing: .08em; color: var(--mute); text-transform: uppercase; margin: 12px 0 6px; }
+#search { width: 100%; box-sizing: border-box; padding: 6px 9px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { border: 1px solid var(--line); background: var(--chip); border-radius: 999px; padding: 2px 10px; font-size: 12px; }
+.chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+details.grp { border-top: 1px solid var(--line); padding-top: 4px; margin-top: 4px; }
+details.grp > summary { list-style: none; display: flex; align-items: center; gap: 8px; font-weight: 700; padding: 4px 0; cursor: pointer; }
+details.grp > summary::-webkit-details-marker { display: none; }
+details.grp > summary .n { color: var(--mute); font-weight: 400; font-size: 12px; font-family: var(--f-mono); }
+details.grp > summary .tgs { margin-left: auto; display: flex; gap: 8px; }
+details.grp > summary .tg { font-size: 12px; font-weight: 400; color: var(--accent); background: none; border: 0; padding: 0 2px; }
+.subh { font-size: 12px; color: var(--mute); margin: 6px 0 2px; display: flex; gap: 6px; align-items: center; }
+details.subgrp > summary.subh { list-style: none; cursor: pointer; }
+.row[hidden] { display: none; }
+.subh .tg, details.grp > summary .tg { white-space: nowrap; }
+.subh .n { flex: none; }
+details.subgrp > summary.subh::-webkit-details-marker { display: none; }
+details.subgrp > summary.subh::before { content: "▸"; font-size: 10px; width: 10px; color: var(--mute); transition: transform .15s; }
+details.subgrp[open] > summary.subh::before { transform: rotate(90deg); }
+.subh .n { font-family: var(--f-mono); font-size: 11px; }
+.subh .sw { width: 10px; height: 10px; border-radius: 2px; }
+.subh .tgs { margin-left: auto; display: flex; gap: 8px; }
+.subh .tg { font-size: 11.5px; color: var(--accent); background: none; border: 0; padding: 0 2px; }
+.row { display: grid; grid-template-columns: 18px 12px minmax(0,1fr) auto; align-items: center; gap: 6px; padding: 2px 0; font-size: 13px; }
+.row input { margin: 0; }
+.row .sw { width: 12px; height: 12px; border-radius: 3px; border: 1px solid rgba(0,0,0,.15); }
+.row .nm { cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.row .nm:hover { color: var(--accent); }
+.row.sel .nm { color: var(--accent); font-weight: 700; }
+.tag { font-size: 10px; font-family: var(--f-mono); border-radius: 3px; padding: 0 4px; border: 1px solid var(--line); color: var(--mute); }
+.tag.custom { border-color: var(--warn); color: var(--warn); }
+.row .tgs2 { display: flex; gap: 3px; }
+.row .tag.lec[hidden] { display: none; }
+.row.other .nm { color: var(--mute); opacity: .75; }
+.chips .chipnote { font-size: 11.5px; color: var(--mute); align-self: center; }
+.note { font-size: 12px; color: var(--mute); line-height: 1.5; }
+#stage { position: relative; min-width: 0; background: var(--stage); overflow: hidden; touch-action: none; }
+#stage canvas.main { display: block; width: 100%; height: 100%; }
+#tags { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+#labels { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+#labels span { pointer-events: auto; cursor: pointer; position: absolute; transform: translate(-50%, -50%); font-size: 11px; line-height: 15px; padding: 0 4px; border-radius: 3px; white-space: nowrap;
+  background: color-mix(in srgb, var(--panel) 82%, transparent); border-left: 3px solid var(--c); color: var(--ink); }
+#labels span b { font: 600 10px var(--f-mono); color: var(--kg-ink); background: var(--kg); border-radius: 3px; padding: 0 4px; margin-left: 4px; }
+.resetrow { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 8px; }
+.resetrow .wide { grid-column: 1 / -1; }
+.modes { display: grid; gap: 6px; margin-top: 8px; }
+.modesel { display: grid; grid-template-columns: 70px minmax(0,1fr); gap: 8px; align-items: center; font-size: 12px; color: var(--mute); }
+.modesel select { min-width: 0; border: 1px solid var(--line); background: var(--panel); color: var(--ink); border-radius: 6px; padding: 4px 6px; font-size: 13px; }
+.modesel.on select { border-color: var(--accent); box-shadow: inset 3px 0 0 var(--accent); }
+#loading, #glLost { position: absolute; inset: 0; z-index: 5; display: grid; place-content: center; gap: 10px; justify-items: center; background: var(--stage); color: var(--mute); text-align: center; padding-inline: 16px; }
+#loading .bar { width: min(260px, 70vw); height: 4px; border-radius: 2px; background: var(--line); overflow: hidden; }
+#loading .bar i { display: block; height: 100%; width: 0; background: var(--accent); transition: width .2s; }
+#loading b, #glLost b { color: var(--ink); font-weight: 500; }
+#loading .num { font-family: var(--f-mono); font-size: 12px; font-variant-numeric: tabular-nums; }
+#errBox { position: absolute; left: 8px; right: 8px; bottom: 8px; z-index: 6; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--accent); background: var(--panel); color: var(--ink); font-size: 12px; overflow-wrap: anywhere; cursor: pointer; }
+.t3 { position: absolute; transform: translate(-50%, -50%); white-space: nowrap; font-size: 11px; padding: 0 4px; border-radius: 3px; background: color-mix(in srgb, var(--panel) 78%, transparent); color: var(--ink); }
+.t3.region { font: 600 13px var(--f-display); background: none; color: var(--mute); }
+.t3.div { font-size: 10px; color: var(--mute); background: none; }
+.t3.bone { font-size: 10.5px; color: var(--bone); background: none; font-weight: 500; }
+.t3.lvl { font: 500 11px var(--f-mono); background: var(--accent); color: var(--accent-ink); border-radius: 50%; width: 18px; height: 18px; line-height: 18px; text-align: center; padding: 0; pointer-events: auto; cursor: pointer; }
+.t3.pin { font-size: 10.5px; }
+.t3.sul { font-size: 11px; font-weight: 600; background: color-mix(in srgb, var(--panel) 88%, transparent); border: 1px solid var(--line); pointer-events: auto; cursor: pointer; }
+.t3 i { display: block; font-style: normal; font-size: 9.5px; color: var(--mute); text-align: center; }
+#info .cmp { display: block; margin-top: 6px; font-size: 12.5px; color: var(--mute); }
+#views { position: absolute; top: 10px; left: 10px; display: flex; flex-wrap: wrap; gap: 4px; max-width: calc(100% - 20px); }
+#views .btn { padding: 2px 8px; font-size: 12px; background: color-mix(in srgb, var(--panel) 88%, transparent); }
+#views .btn[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
+#vcams { display: flex; gap: 4px; align-items: center; margin-left: 6px; font-size: 12px; color: var(--mute); }
+#vcams[hidden] { display: none; }
+#gizmo { position: absolute; left: 8px; bottom: 8px; width: 112px; height: 112px; pointer-events: none; }
+#legend { position: absolute; left: 128px; bottom: 8px; display: flex; gap: 8px; font-size: 11.5px; pointer-events: none; }
+#legend[hidden], #offbar[hidden], #offbar button[hidden] { display: none; }
+#legend > div { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 5px 8px; display: grid; gap: 2px; }
+#legend b { font-size: 11px; color: var(--mute); font-weight: 600; }
+#legend i { display: inline-block; width: 18px; height: 5px; border-radius: 1px; margin-right: 5px; vertical-align: middle; }
+#hint { position: absolute; right: 10px; bottom: 8px; font-size: 11px; color: var(--mute); text-align: right; }
+#info { position: absolute; top: 46px; right: 10px; width: min(340px, calc(100% - 20px)); max-height: calc(100% - 64px); overflow-y: auto; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; box-shadow: 0 6px 24px rgba(0,0,0,.18); box-sizing: border-box; }
+#info h2 { font: 600 17px/1.3 var(--f-display); margin: 0 18px 2px 0; text-wrap: balance; }
+#info .en { color: var(--mute); font-size: 12.5px; margin-bottom: 8px; }
+#info .offbtn { width: 100%; margin-top: 8px; }
+#offbar { position: absolute; left: 50%; bottom: 10px; transform: translateX(-50%); display: flex; align-items: center; gap: 8px; max-width: calc(100% - 20px);
+  background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; font-size: 12.5px; box-shadow: 0 4px 16px rgba(0,0,0,.18); z-index: 3; }
+#legend:not([hidden]) ~ #offbar { bottom: 96px; }
+#offbar .msg { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#offbar button { border: 0; background: none; color: var(--accent); font-size: 12.5px; padding: 2px 4px; white-space: nowrap; }
+#info .x { position: absolute; top: 6px; right: 8px; border: 0; background: none; font-size: 18px; color: var(--mute); }
+#info .meta { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+#info .pill { font-size: 11.5px; border-radius: 999px; padding: 1px 8px; background: var(--chip); }
+#info p { margin: 6px 0; }
+#info .rank { font-size: 13px; background: var(--chip); border-radius: 6px; padding: 5px 8px; margin: 8px 0; }
+#info .rank b { color: var(--accent); }
+#info .pairs { display: grid; gap: 4px; margin: 6px 0; }
+#info .rank .pairs { margin: 6px 0 2px; }
+#info .pairs .lbl { margin: 0; }
+#info .pairs .pr { display: grid; grid-template-columns: auto 52px minmax(0,1fr); gap: 6px; align-items: start; font-size: 12.5px; }
+#info .pairs .pr b { font: 600 11px var(--f-mono); padding-top: 3px; }
+#info .pairs .pr span { color: var(--mute); }
+#info .pairs button, .w button.gl { border: 1px solid var(--line); background: var(--chip); color: inherit; border-radius: 999px; padding: 1px 8px; font-size: 12px; display: inline-flex; gap: 5px; align-items: center; white-space: nowrap; cursor: pointer; }
+#info .pairs button i, .w button.gl i, .secchips button i { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+.w button.gl { padding: 0 6px; margin: 0 2px; vertical-align: baseline; }
+.tabs { display: grid; grid-template-columns: 1fr 1fr auto auto; gap: 4px; margin-bottom: 8px; }
+.tabs .tabx { padding-inline: 9px; color: var(--mute); }
+#paneGuide h3 { margin: 2px 0 4px; font: 600 15px/1.3 var(--f-display); }
+#paneGuide .en { color: var(--mute); font-size: 12.5px; margin: -2px 0 6px; }
+#paneGuide .gnote { font-size: 12.5px; color: var(--mute); margin: 0 0 8px; }
+#paneGuide .ptabw { margin: 0 0 8px; }
+#paneGuide .ptabw > div { overflow-x: auto; }
+#paneGuide .ptab { width: 100%; border-collapse: collapse; font-size: 12px; line-height: 1.4; }
+#paneGuide .ptab th, #paneGuide .ptab td { border-bottom: 1px solid var(--line); padding: 3px 5px; text-align: left; vertical-align: top; }
+#paneGuide .ptab th { color: var(--mute); font-weight: 600; white-space: nowrap; }
+#paneGuide .ptab td:first-child { white-space: nowrap; }
+#paneGuide .ptab tr.on td { background: var(--chip); font-weight: 600; }
+#paneGuide .pg { color: var(--mute); }
+.pathsvg { width: 100%; box-sizing: border-box; height: auto; display: block; border: 1px solid var(--line); border-radius: 6px; background: var(--stage); }
+.pathsvg .nd { cursor: pointer; }
+.pathsvg .nd.txt { cursor: default; }
+.gctl { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; margin: 8px 0 6px; }
+.steps { margin: 0; padding: 0; list-style: none; display: grid; gap: 3px; counter-reset: st; }
+.steps button { width: 100%; text-align: left; border: 1px solid var(--line); background: var(--panel); border-radius: 6px; padding: 4px 8px 4px 28px; font-size: 12.5px; position: relative; counter-increment: st; }
+.steps button::before { content: counter(st); position: absolute; left: 7px; top: 4px; font: 600 11px var(--f-mono); color: var(--mute); }
+.steps button[aria-pressed="true"] { border-color: var(--accent); background: var(--chip); }
+.lesbar { display: flex; flex-wrap: wrap; gap: 4px; margin: 8px 0 4px; }
+.lesbar .btn { font-size: 12px; padding: 3px 8px; }
+.lesbar .btn[aria-pressed="true"] { background: var(--warn); border-color: var(--warn); color: #1b1206; }
+.lesfx { border-left: 3px solid var(--warn); padding: 4px 8px; font-size: 13px; background: var(--chip); border-radius: 0 6px 6px 0; }
+.cnlist { display: grid; gap: 5px; margin: 6px 0; }
+.cnlist .it { display: grid; grid-template-columns: 52px auto minmax(0,1fr); gap: 6px; align-items: start; font-size: 12.5px; }
+.cnlist .it b { font: 600 11px var(--f-mono); padding-top: 2px; }
+.cnlist .it button, .secchips button { border: 1px solid var(--line); background: var(--chip); border-radius: 999px; padding: 1px 8px; font-size: 12px; display: inline-flex; gap: 5px; align-items: center; white-space: nowrap; }
+.cnlist .it button i { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+.cnlist .it .w { color: var(--mute); }
+.dpbox { margin-top: 6px; border: 1px solid var(--line); border-radius: 8px; background: var(--stage); padding: 3px; } .dp-svg { width: 100%; height: auto; display: block; }
+.dp-frame { fill: var(--stage); } .dp-cross { stroke: var(--line); stroke-dasharray: 3 4; } .dp-true { fill: var(--ink); } .dp-false { fill: var(--warn); fill-opacity: .35; stroke: var(--warn); stroke-width: 1.4; stroke-dasharray: 3 2; }
+.dp-t { fill: var(--ink); font-size: 11px; font-weight: 650; } .dp-s { fill: var(--mute); font-size: 9.5px; } .dp-f { fill: var(--warn); font-size: 9.5px; }
+.dp-cell rect { fill: var(--chip); stroke: var(--line); } .dp-cell { cursor: pointer; } .dp-cell.on rect { stroke: var(--accent); stroke-width: 2; }
+.dpcap { margin: 5px 0 0; font-size: 12.5px; color: var(--warn); } .dpdet { margin-top: 6px; font-size: 12.5px; } .dpdet summary { cursor: pointer; } .dp-rules { margin: 5px 0 0; padding-left: 18px; line-height: 1.6; } .dp-rules b { color: var(--warn); }
+.leslist { margin: 4px 0; padding-left: 18px; font-size: 13px; display: grid; gap: 3px; }
+.secchips { display: flex; flex-wrap: wrap; gap: 5px; }
+.fcgrid { display: grid; grid-template-columns: 34px repeat(4, minmax(0,1fr)) 6px repeat(4, minmax(0,1fr)); align-items: center; font-size: 11px; }
+.fcgrid .gh { text-align: center; color: var(--mute); font-size: 10.5px; padding: 2px 0; border-bottom: 1px solid var(--line); }
+.fcgrid .ch { text-align: center; font: 600 10.5px var(--f-mono); padding: 3px 0; }
+.fcgrid .cn { border: 0; background: none; text-align: left; font: 600 11.5px var(--f-mono); padding: 4px 2px; color: var(--ink); }
+.fcgrid .cn[aria-pressed="true"] { color: var(--accent); }
+.fcgrid .cell { display: grid; place-items: center; height: 26px; border-top: 1px solid var(--line); }
+.fcgrid .row-out .cell, .fcgrid .row-out.cn { opacity: .75; }
+.fcgrid .dot { width: 16px; height: 16px; border-radius: 50%; border: 2px solid transparent; padding: 0; font: 600 9px var(--f-mono); color: #111; display: grid; place-items: center; }
+.fcgrid .dot.out { background: transparent !important; border-style: dashed; }
+.fcgrid .dot[aria-pressed="true"] { outline: 2px solid var(--accent); outline-offset: 2px; }
+.fcgrid .sp { height: 100%; }
+#fcdetail { margin-top: 10px; display: grid; gap: 6px; }
+#fcdetail .it { display: grid; grid-template-columns: auto minmax(0,1fr); gap: 2px 8px; align-items: start; font-size: 12.5px; }
+#fcdetail .it button { border: 1px solid var(--line); background: var(--chip); border-radius: 999px; padding: 1px 8px; font-size: 12px; display: inline-flex; gap: 5px; align-items: center; white-space: nowrap; }
+#fcdetail .it button i { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+#fcdetail .it .w { color: var(--mute); }
+#fcdetail h3 { margin: 0; font-size: 13px; }
+#info .warnbox { border-left: 3px solid var(--warn); padding-left: 8px; font-size: 12.5px; color: var(--mute); }
+#info .meta .tag { align-self: center; }
+#info h2 .tag { margin-left: 6px; vertical-align: middle; font-weight: 400; }
+/* 收成一行、點開才列（對照表、神經節配對、fn 第二段以後、附註） */
+.fold { margin: 6px 0; font-size: 12.5px; }
+.fold > summary { cursor: pointer; color: var(--mute); }
+.fold[open] > summary { margin-bottom: 3px; }
+#info .fold > .cmp { margin-top: 0; }
+#info .fold > .warnbox { margin: 0; }
+#info details.rank { font-size: 13px; }
+#info details.rank > summary { color: inherit; }
+.pg { font-family: var(--f-mono); font-size: 11.5px; }
+.seclist { display: grid; grid-template-columns: 1fr; gap: 4px; }
+.secbtn { display: grid; grid-template-columns: 22px minmax(0,1fr) auto; gap: 8px; align-items: center; text-align: left; border: 1px solid var(--line); background: var(--panel); border-radius: 6px; padding: 4px 8px; }
+.secbtn .num { font: 500 12px var(--f-mono); min-width: 20px; padding: 0 3px; box-sizing: border-box; height: 20px; border-radius: 10px; display: grid; place-items: center; background: var(--chip); }
+.secbtn[aria-pressed="true"] { border-color: var(--accent); }
+.secbtn[aria-pressed="true"] .num { background: var(--accent); color: var(--accent-ink); }
+#bench.active .seclist { grid-template-columns: repeat(9, minmax(0,1fr)); }
+#bench.active .secbtn { grid-template-columns: 1fr; padding: 3px 0; justify-items: center; }
+#bench.active .secbtn > span:not(.num) { display: none; }
+#secview[hidden] + * { }
+.ctl { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+.seg { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; }
+.seg .btn { padding: 4px 2px; font-size: 12px; white-space: nowrap; }
+#svgwrap { border: 1px solid var(--line); border-radius: 6px; background: var(--stage); overflow: hidden; position: relative; }
+#svgwrap svg { display: block; width: 100%; height: auto; }
+#svgwrap .selp { stroke: var(--accent) !important; stroke-width: 2.4 !important; stroke-opacity: 1 !important; fill-opacity: 1 !important; animation: selp 1s ease-in-out infinite alternate; }
+@keyframes selp { from { stroke-width: 1.4; } to { stroke-width: 3.2; } }
+#svgwrap .o { position: absolute; font: 500 10.5px var(--f-mono); color: var(--mute); }
+.hitlist { display: flex; flex-wrap: wrap; gap: 4px; }
+.hit { font-size: 12px; border-radius: 4px; padding: 1px 6px; border: 1px solid var(--line); background: var(--panel); display: inline-flex; gap: 5px; align-items: center; }
+.hit .sw { width: 9px; height: 9px; border-radius: 2px; }
+.hit.miss { border-style: dashed; color: var(--mute); }
+.hit.on { border-color: var(--accent); color: var(--accent); }
+/* 國考標記（開關 K）：徽章、步驟／病灶 ×N、收合清單、題目彈窗 */
+.kgb, .kgx, #info details.kq summary i { font: 600 11px var(--f-mono); color: var(--kg-ink); background: var(--kg); border-radius: 3px; padding: 0 5px; font-style: normal; white-space: nowrap; }
+.kgb { border: 0; margin-left: 6px; vertical-align: 2px; }
+.kgx { margin-left: 6px; font-size: 10.5px; padding: 0 4px; }
+.kgl { display: grid; gap: 4px; margin: 2px 0 8px; }
+.kgg { border-left: 3px solid var(--kg); padding: 2px 0 2px 8px; display: grid; justify-items: start; }
+.kgg.on { background: var(--chip); }
+.kgh { border: 0; background: none; padding: 0; font-size: 11px; font-weight: 600; color: var(--mute); }
+button.kgh { color: var(--accent); }
+.kgr { border: 0; background: none; padding: 1px 0; text-align: left; font-size: 12.5px; line-height: 1.45; }
+.kgr:hover { color: var(--accent); }
+#info details.kq { border-top: 1px solid var(--line); margin-top: 8px; padding-top: 4px; }
+#info details.kq summary { cursor: pointer; list-style: none; }
+#info details.kq summary::-webkit-details-marker { display: none; }
+#info details.kq > div { display: grid; justify-items: start; margin-top: 2px; }
+#info .kgvia { font-size: 12.5px; color: var(--mute); margin-top: 6px; }
+#info .kgvia button { border: 1px solid var(--line); background: var(--chip); border-radius: 999px; padding: 0 8px; font-size: 12px; margin: 2px 4px 0 0; }
+#kgTodo { border-top: 1px solid var(--line); margin-top: 8px; padding-top: 4px; font-size: 12.5px; }
+#kgTodo summary { cursor: pointer; font-weight: 700; padding: 2px 0; }
+#kgTodo .kgg { margin-top: 4px; }
+#kgDlg section + section { border-top: 1px solid var(--line); margin-top: 10px; padding-top: 8px; }
+#kgDlg .kqh { font: 500 11.5px var(--f-mono); color: var(--mute); }
+#kgDlg p { margin: 4px 0 6px; }
+#kgDlg img { display: block; max-width: 100%; height: auto; margin: 6px 0; border: 1px solid var(--line); border-radius: 4px; background: #fff; }
+#kgDlg ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+#kgDlg ol b { font-family: var(--f-mono); margin-right: 6px; }
+#kgDlg li.ok { font-weight: 700; color: var(--accent); }
+#kgDlg .meta { margin-top: 6px; font-size: 12px; color: var(--mute); }
+dialog { max-width: min(640px, calc(100% - 32px)); border: 1px solid var(--line); border-radius: 10px; background: var(--panel); color: var(--ink); padding: 18px 20px; }
+dialog h2 { font: 600 18px var(--f-display); margin: 0 0 8px; }
+dialog table { border-collapse: collapse; font-size: 12.5px; font-variant-numeric: tabular-nums; }
+dialog td, dialog th { border-bottom: 1px solid var(--line); padding: 3px 8px; text-align: left; }
+dialog::backdrop { background: rgba(0,0,0,.35); }
+input[type=range] { width: 100%; accent-color: var(--accent); }
+@media (max-width: 1180px) and (min-width: 821px) { #app { --lw: 250px; --bw: 310px; } }
+@media (max-width: 820px) {
+  #app { grid-template-columns: minmax(0,1fr); grid-template-rows: auto minmax(0,1fr); }
+  .mobile-only { display: inline-block; }
+  header .sub { display: none; }
+  #author { order: -2; margin-left: auto; } header h1 { order: -2; } header .sp { order: -1; flex-basis: 100%; }
+  aside { position: fixed; left: 0; right: 0; bottom: 0; max-height: 62%; z-index: 20; border: 0; border-top: 1px solid var(--line); box-shadow: 0 -8px 24px rgba(0,0,0,.2); padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px)); border-radius: 12px 12px 0 0; }
+  #layers, #bench { padding-inline: 16px; }
+  aside:not(.open) { display: none; }
+  #info { top: auto; bottom: 8px; max-height: 45%; }
+  #hint { display: none; }
+  #gizmo { width: 88px; height: 88px; }
+  #legend { left: 96px; flex-direction: column; gap: 4px; font-size: 10.5px; }
+  #legend:not([hidden]) ~ #offbar { bottom: 190px; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+</head>
+<body>
+<div id="app" class="hide-bench">
+  <header>
+    <h1>B9 神解 3D 模型</h1>
+    <span class="sub">腦幹、顱神經核與傳導束</span>
+    <span class="sp"></span>
+    <button class="btn" id="bLayers" aria-pressed="false" title="顯示／收起圖層面板">圖層</button>
+    <button class="btn" id="bBench" aria-pressed="false" title="顯示／收起切面面板">切面</button>
+    <button class="btn" id="bFc" aria-pressed="false" title="顯示／收起顱神經 × 功能成分對照表">對照表</button>
+    <button class="btn" id="bTags" aria-pressed="false" title="顯示地標名稱">地標名稱</button>
+    <button class="btn" id="bLab" aria-pressed="false" title="在模型上標出看得到的構造名稱（快捷鍵 N）">圖上名稱</button>
+    <button class="btn" id="bKg" aria-pressed="false" title="國考標記（快捷鍵 K）">國考</button>
+    <button class="btn" id="bShare" hidden title="複製本頁網址">分享</button>
+    <button class="btn" id="bAbout">資料來源</button>
+    <div id="author"><small>作者</small>INMU_KING_2026</div>
+  </header>
+
+  <aside id="layers" aria-label="圖層">
+    <input id="search" type="search" placeholder="搜尋構造（中／英）" autocomplete="off">
+    <div class="lbl">課程</div>
+    <div class="chips" id="lecChips"></div>
+    <div class="lbl">外形殼透明度</div>
+    <input type="range" id="shellOp" min="0" max="100" value="100" aria-label="外形殼透明度">
+    <div class="lbl">選取方式（3D 上點大腦皮質）</div>
+    <div class="seg" id="unitSeg"><button class="btn" data-u="1">整塊（腦葉）</button><button class="btn" data-u="0">細分（各腦迴）</button></div>
+    <div class="resetrow">
+      <button class="btn" id="bReset" title="構造開關、視角都回到開啟時的樣子，並關掉切面">回到預設</button>
+      <button class="btn" id="bSag" aria-pressed="false" title="沿正中矢狀面切開，移除病人左半、從左側看切面（可與一般顯示或腦幹外觀並用；核團圖會先關閉）">矢狀切面</button>
+    </div>
+    <div class="modes">
+      <label class="modesel"><span>課本視角</span>
+        <select id="modeSel" aria-label="課本視角">
+          <option value="">一般顯示</option>
+          <option value="solid" data-lec="L01" title="只留腦幹與周圍構造和顱神經，外殼不透明、小腦關閉">腦幹外觀（前面觀）</option>
+          <option value="back" data-lec="L01" title="拿掉小腦，核團透視投影到第四腦室底；左半運動核、右半感覺核">背面核團圖（Moore）</option>
+          <option value="side" data-lec="L01" title="從病人左側看，只留左半的顱神經核，看上下排列">側面核團圖</option>
+          <option value="gang" data-lec="L01" title="顱神經節與它們在腦幹內配對的核（一級在外、二級在內）">顱神經節與中樞核</option>
+        </select></label>
+      <label class="modesel"><span>路徑與反射</span><select id="pathSel" aria-label="路徑與反射"><option value="">—</option></select></label>
+      <label class="modesel"><span>單一顱神經</span><select id="cnSel" aria-label="單一顱神經"><option value="">—</option></select></label>
+    </div>
+    <div class="note" style="margin-top:6px"><span class="tag custom">示意</span> 依解剖位置建模</div>
+    <div id="groups"></div>
+  </aside>
+
+  <main id="stage">
+    <canvas class="main" id="cv"></canvas>
+    <div id="labels"></div>
+    <div id="tags"></div>
+    <div id="loading"><b>載入模型資料中…</b><div class="bar"><i></i></div><div class="num">0.0 MB</div></div>
+    <div id="views">
+      <button class="btn" data-v="front">前（腹側）</button>
+      <button class="btn" data-v="back">後（背側）</button>
+      <button class="btn" data-v="left">左側</button>
+      <button class="btn" data-v="right">右側</button>
+      <button class="btn" data-v="top">由上往下</button>
+      <button class="btn" data-v="oblique">斜前方</button>
+      <div id="vcams" hidden><span>鏡頭：</span><button class="btn" data-c="oblique">前斜</button><button class="btn" data-c="front">前面</button><button class="btn" data-c="left">外側</button><button class="btn" data-c="top">上面</button><button class="btn" data-c="medial">內側</button><button class="btn" data-c="bottom">底面</button><button class="btn" data-c="back">後面</button></div>
+    </div>
+    <canvas id="gizmo" width="224" height="224"></canvas>
+    <div id="hint">拖曳旋轉 · 右鍵／雙指平移 · 滾輪／捏合縮放 · 點構造看名稱</div>
+    <div id="info" hidden></div>
+    <div id="legend" hidden></div>
+    <div id="offbar" hidden><span class="msg"></span><button id="bUndoOff">復原</button><button id="bAllOff">全部打開</button><button id="bOffX" aria-label="關閉提示">×</button></div>
+  </main>
+
+  <aside id="bench" aria-label="切面與核團對照表">
+    <div class="tabs" role="tablist"><button class="btn" data-tab="sec" aria-pressed="true">切面</button><button class="btn" data-tab="fc" aria-pressed="false">核團對照表</button><button class="btn" data-tab="guide" aria-pressed="false">導覽</button><button class="btn tabx" id="bBenchX" aria-label="收起右側面板" title="收起右側面板">✕</button></div>
+    <div id="paneGuide" hidden></div>
+    <div id="paneFc" hidden>
+      <div class="note">感覺核是二級（一級神經元在外面的神經節），運動核是一級。點圓點看是哪個核、一級在哪／支配誰，再點名稱到 3D 上找；點左邊 CN 看整列。虛線圓＝不在腦幹。</div>
+      <div id="fcgrid" class="fcgrid" style="margin-top:8px"></div>
+      <div id="fcdetail"></div>
+    </div>
+    <div id="paneSec">
+    <div id="seclist"></div>
+    <div id="secview" hidden>
+      <div class="ctl">
+        <button class="btn" id="bClip" aria-pressed="true">切開</button>
+        <button class="btn" id="bKeep" aria-pressed="false">改看上半段</button>
+        <button class="btn" id="bFace">轉到切面</button>
+        <button class="btn" id="bSvgLab" aria-pressed="true" title="切面圖上的構造名稱">切面圖名稱</button>
+        <button class="btn" id="bSecOff">關閉切面</button>
+      </div>
+      <div id="svgwrap"></div>
+      <div class="note" id="secnote" style="margin:6px 0"></div>
+      <div class="lbl">這層切到（點名稱看說明）</div>
+      <div class="hitlist" id="hits"></div>
+      <div class="lbl">投影片這頁有標示的構造</div>
+      <div class="hitlist" id="slideLabs"></div>
+    </div>
+    <div class="note" id="secIntro" style="margin-top:10px">選一層：模型會從那個平面切開，切面上以各構造的顏色填色；小圖可以直接對照投影片（畫面右邊＝病人左側）。腦幹橫切面是背側在上、從吻側往下看；大腦冠狀切片是從前面看。</div>
+    </div>
+  </aside>
+</div>
+
+<dialog id="about">
+  <h2>資料來源與做法</h2>
+  <div id="aboutBody" class="note"></div>
+  <form method="dialog" style="margin-top:12px"><button class="btn">關閉</button></form>
+</dialog>
+
+<dialog id="kgDlg">
+  <div id="kgBody"></div>
+  <form method="dialog" style="margin-top:12px"><button class="btn">關閉</button></form>
+</dialog>
+
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/",
+  "three-mesh-bvh": "https://cdn.jsdelivr.net/npm/three-mesh-bvh@0.8.3/build/index.module.js"
+} }
+</script>
+<script>
+// Start downloading the model data right away (in parallel with three.js).
+// data.txt = base64( gzip( "NEU3" + Uint32 JSON length + JSON + pad to 4 + meshopt part buffers ) )；格式見 tools/geom.py MeshPack。
+window.__neuroData = (async () => {
+  const num = document.querySelector("#loading .num"), bar = document.querySelector("#loading .bar i");
+  const res = await fetch("data.txt", { cache: "no-cache" });   // revalidate so a republished model is never stale
+  if (!res.ok) throw new Error("data.txt " + res.status);
+  const total = +res.headers.get("content-length") || 0, reader = res.body.getReader(), parts = [];
+  let got = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    parts.push(value); got += value.length;
+    num.textContent = (got / 1e6).toFixed(1) + " MB";
+    if (total >= got) bar.style.width = (100 * got / total).toFixed(0) + "%";
+  }
+  bar.style.width = "100%"; num.textContent = "解壓縮中…";
+  const b64 = new TextDecoder().decode(await new Blob(parts).arrayBuffer()), bin = atob(b64.trim());
+  const u8 = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
+  const buf = await new Response(new Blob([u8]).stream().pipeThrough(new DecompressionStream("gzip"))).arrayBuffer();
+  if (new TextDecoder().decode(new Uint8Array(buf, 0, 4)) !== "NEU3") throw new Error("data.txt 格式不符（舊版快取？請重新載入）");
+  const n = new DataView(buf).getUint32(4, true), D = JSON.parse(new TextDecoder().decode(new Uint8Array(buf, 8, n)));
+  D.M = new Uint8Array(buf, 8 + n + (-n & 3));   // meshopt 編碼的 part（vo／io＝位元組偏移）
+  // 切面輪廓存成整數差分（單位 cutq mm）：還原成 [u0, v0, u1, v1, …] mm
+  const cq = D.meta.cutq, unpack = cuts => { for (const id in cuts) cuts[id] = cuts[id].map(L => {
+    const out = new Float32Array(L.length); let u = 0, v = 0;
+    for (let i = 0; i < L.length; i += 2) { u += L[i]; v += L[i + 1]; out[i] = u * cq; out[i + 1] = v * cq; }
+    return out; }); };
+  for (const sec of D.sections) unpack(sec.cuts); unpack(D.sagittal.cuts);
+  num.textContent = "建立模型中…";
+  return D;
+})();
+</script>
+<script type="module">
+import * as THREE from "three";
+import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
+
+let D;
+try { D = await window.__neuroData; }
+catch (e) {
+  document.querySelector("#loading").innerHTML = "<b>模型資料載入失敗</b><div class=num>" + e.message + "</div><button class=btn onclick=location.reload()>重新載入</button>";
+  throw e;
+}
+await MeshoptDecoder.ready;
+await new Promise(r => setTimeout(r, 30));   // let "建立模型中…" paint before the synchronous mesh build
+const Q = D.meta.quant;
+const $ = s => document.querySelector(s);
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const SRC_TAG = s => s.source.startsWith("自建") ? ["示意", "custom"] : ["", ""];
+const byId = Object.fromEntries(D.structures.map(s => [s.id, s]));
+const lecById = Object.fromEntries(D.lectures.map(l => [l.id, l]));
+
+// ---------- decode ----------
+function b64(s, T) { const bin = atob(s), u8 = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i); return new T(u8.buffer); }
+// p = {vo, vb, io, ib, nv, ni[, sh]}: meshopt vertex buffer (4 × Int16 = xyz in Q mm + shade 0–255) and index buffer at byte offsets of D.M;
+// {mir: k[, rev: 1]} = x-mirror of part k (same shade; rev = 三角形繞向相反)
+function partOf(p, prev) {
+  let pos, f, sh = null;
+  if (p.mir != null) {
+    const q = prev[p.mir]; pos = q.pos.slice(); f = q.f; sh = q.sh;
+    for (let i = 0; i < pos.length; i += 3) pos[i] = -pos[i];
+    if (p.rev) { f = f.slice(); for (let i = 0; i < f.length; i += 3) { const t = f[i + 1]; f[i + 1] = f[i + 2]; f[i + 2] = t; } }
+  } else {
+    const W = new Int16Array(p.nv * 4), I = new Uint32Array(p.ni);
+    if (p.nv) { MeshoptDecoder.decodeVertexBuffer(new Uint8Array(W.buffer), p.nv, 8, D.M.subarray(p.vo, p.vo + p.vb));
+                MeshoptDecoder.decodeIndexBuffer(new Uint8Array(I.buffer), p.ni, 4, D.M.subarray(p.io, p.io + p.ib)); }
+    pos = new Float32Array(p.nv * 3);
+    for (let i = 0, j = 0; j < W.length; i += 3, j += 4) { pos[i] = W[j] * Q; pos[i + 1] = W[j + 1] * Q; pos[i + 2] = W[j + 2] * Q; }
+    f = p.nv < 65536 ? new Uint16Array(I) : I;
+    if (p.sh) { sh = new Uint8Array(p.nv); for (let i = 0; i < p.nv; i++) sh[i] = W[i * 4 + 3]; }
+  }
+  return { pos, f, sh };
+}
+const shaded = s => s.parts.some(p => p.sh);
+// 一個構造的所有 part 合併成一個 geometry：繪製次數少很多（part 之間不共用頂點，法向量和分開算一樣）
+// lobe：切成兩塊的腦迴（plobe）只取屬於這一葉的 part
+function structGeom(s, lobe) {
+  const all = []; for (const p of s.parts) all.push(partOf(p, all));
+  const ps = lobe ? all.filter((_, k) => s.plobe[k] === lobe) : all;
+  const nv = ps.reduce((a, q) => a + q.pos.length / 3, 0), ni = ps.reduce((a, q) => a + q.f.length, 0);
+  const pos = new Float32Array(nv * 3), f = new (nv < 65536 ? Uint16Array : Uint32Array)(ni);
+  let vo = 0, io = 0;
+  for (const q of ps) { pos.set(q.pos, vo * 3); for (let i = 0; i < q.f.length; i++) f[io + i] = q.f[i] + vo; vo += q.pos.length / 3; io += q.f.length; }
+  const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+  g.setIndex(new THREE.BufferAttribute(f, 1)); g.computeVertexNormals(); g.computeBoundingSphere();
+  if (shaded(s)) {   // 腦迴：溝的地方暗（頂點色乘到材質顏色上）
+    const c = new Float32Array(nv * 3); let k = 0;
+    for (const q of ps) for (let i = 0, n = q.pos.length / 3; i < n; i++, k += 3) c[k] = c[k + 1] = c[k + 2] = q.sh ? q.sh[i] / 255 : 1;
+    g.setAttribute("color", new THREE.BufferAttribute(c, 3));
+  }
+  return g;
+}
+function lineOf(s) { const v = b64(s, Int16Array), pos = new Float32Array(v.length); for (let i = 0; i < v.length; i++) pos[i] = v[i] * Q; return pos; }
+
+// ---------- renderer ----------
+const stage = $("#stage"), canvas = $("#cv");
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
+// 手機、平板（觸控或窄螢幕）解析度上限 1.5：像素少約 44%，畫起來比較順；桌機維持 2
+const DPR = () => Math.min(devicePixelRatio, matchMedia("(pointer: coarse)").matches || innerWidth < 768 ? 1.5 : 2);
+renderer.setPixelRatio(DPR()); renderer.localClippingEnabled = true;
+// WebGL 斷線（手機記憶體不足、切到背景太久）：顯示提示；瀏覽器還回來就繼續畫，5 秒沒回來給重新載入
+canvas.addEventListener("webglcontextlost", e => {
+  e.preventDefault(); console.warn("webglcontextlost");
+  const d = document.createElement("div"); d.id = "glLost";
+  d.innerHTML = "<b>畫面暫停：裝置記憶體不足</b><div class=num>正在恢復…</div>";
+  $("#stage").append(d);
+  d.timer = setTimeout(() => { d.querySelector(".num").outerHTML = "<button class=btn onclick=location.reload()>重新載入</button>"; }, 5000);
+});
+canvas.addEventListener("webglcontextrestored", () => {
+  const d = $("#glLost"); if (d) { clearTimeout(d.timer); d.remove(); }
+  labDirty = true; invalidate();
+});
+// 程式錯誤顯示在畫面上（iPad 看不到主控台，回報時才知道錯在哪）：只顯示第一個，點一下關掉
+function showErr(msg) { if (!msg || $("#errBox")) return; const d = document.createElement("div"); d.id = "errBox";
+  d.textContent = "程式錯誤：" + msg + "（點一下關閉）"; d.onclick = () => d.remove(); $("#stage").append(d); }
+addEventListener("error", e => showErr(e.message));
+addEventListener("unhandledrejection", e => showErr(String(e.reason?.message ?? e.reason)));
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(32, 1, 1, 3000);   // far、maxDistance 給 L04 脊髓全長（約 66 cm）
+const controls = new OrbitControls(camera, canvas);
+controls.enableDamping = true; controls.dampingFactor = 0.12; controls.target.set(0, 4, 0);
+controls.minDistance = 4; controls.maxDistance = 1500; controls.zoomToCursor = true;
+// three r160 的 update() 每格把 target 做 clampLength(0, Infinity)：除以長度再乘回去有捨入誤差，target 每格差 1e-15，
+// 而它判斷「有動」用的是 > 0 → 鏡頭靜止也每格回報 change，畫面每秒重畫 60 次停不下來、圖上名稱等不到重挑（iPad 主執行緒被佔滿、面板點不動）。
+// 沒用到 target 半徑限制，直接讓這一步不做事。
+controls.target.clampLength = function () { return this; };
+// Pinch zoom: a touch pinch follows finger distance 1:1 by default, which needs many pinches to get close;
+// raise the exponent for touch only (mouse wheel keeps the normal step).
+const PINCH_GAIN = 2.6;
+$("#stage").addEventListener("pointerdown", e => { controls.zoomSpeed = e.pointerType === "touch" ? PINCH_GAIN : 1; }, true);
+// Trackpad pinch arrives as ctrl+wheel; OrbitControls would apply a fixed 5% per event regardless of how far
+// the fingers moved, so scale by the actual delta instead.
+$("#stage").addEventListener("wheel", e => {
+  if (!e.ctrlKey) return;
+  e.preventDefault(); e.stopPropagation();
+  const off = camera.position.clone().sub(controls.target);
+  const d = THREE.MathUtils.clamp(off.length() * Math.exp(e.deltaY * 0.025), controls.minDistance, controls.maxDistance);
+  camera.position.copy(controls.target).add(off.setLength(d));
+}, { capture: true, passive: false });
+scene.add(new THREE.HemisphereLight(0xffffff, 0x8a8f99, 1.6));
+const key = new THREE.DirectionalLight(0xffffff, 1.4); scene.add(key);
+let dirty = 3, labDirty = true; function invalidate() { dirty = Math.max(dirty, 3); labDirty = true; }   // labDirty：圖上名稱要重挑
+function applyTheme() { scene.background = new THREE.Color(css("--stage")); invalidate(); }
+applyTheme();
+const onTheme = () => { applyTheme(); if (focus && focus.kind === "path") renderGuide(); };   // 路徑圖畫的時候用 css() 寫死顏色，換主題要重畫
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", onTheme);
+new MutationObserver(onTheme).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+
+const clipPlane = new THREE.Plane(new THREE.Vector3(0, -1, 0), 1e6);  // inactive = far away
+const clipArr = [clipPlane];
+
+// ---------- build structures ----------
+const OBJ = {};              // id -> {s, root, mats[], meshes[], pins[], userOn}
+const pickables = [];
+const pinGeo = new THREE.SphereGeometry(0.45, 14, 10), EMPTY = new THREE.BufferGeometry();
+// 溝口細帶：深色描邊＋白色中線（貼在任何顏色的腦迴上都看得到；不用黃色，和島葉 #e8cc62 分不開）。避開紅、藍（動脈、靜脈的慣用色；
+// 之後腦血管那堂的中大腦動脈走在側溝裡）。橫向 6 列頂點：RIM_F＝在兩緣之間的位置，RIM_C＝1 亮、0 暗
+const RIM_MAT = new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -4, clippingPlanes: clipArr });
+const RIM_F = [0, 0.24, 0.24, 0.76, 0.76, 1], RIM_C = [0, 0, 1, 1, 0, 0], RIM_LO = new THREE.Color(0x1b1b1b), RIM_HI = new THREE.Color(0xffffff);
+function ensureGeom(o) { for (const b of o.bodies) if (b.geometry === EMPTY) b.geometry = structGeom(o.s, o.s.plobe ? o.lobes[b.userData.part] : null); }
+// 腦葉（整塊模式）：大腦皮質的腦迴屬它的 sub、葉內的溝屬 s.lobe；跨兩葉的腦迴（plobe）每一葉各一個 mesh（第 0 塊＝前、第 1 塊＝後）
+const LOBE_IDS = new Set((D.lobes || []).map(l => l.id));
+const lobesOf = s => s.overlay ? null : s.plobe ? [...new Set(s.plobe)] : s.group === "cortex" && LOBE_IDS.has(s.sub) ? [s.sub] : s.lobe ? [s.lobe] : null;   // overlay（Wernicke 區）疊在腦迴上，不算進哪一葉
+// 外形殼：外形殼、間腦，以及小腦（整體）與小腦腳；蚓部各小葉、小腦半球是分葉版，不算外殼
+const shellIds = new Set(D.structures.filter(s => s.group === "skeleton" && (s.sub === "shell" || s.sub === "diencephalon" ||
+  (s.sub === "cerebellum" && !s.id.startsWith("vermis_") && s.id !== "cereb_hemi"))).map(s => s.id));
+let shellScale = 1;
+for (const s of D.structures) {
+  // userOn：構造的開關；partOff：切成兩塊的腦迴關掉的那一塊（整塊模式關掉一葉時），任何地方改 userOn 都會清掉
+  const root = new THREE.Group(); root.name = s.id;
+  const o = { s, root, mats: [], meshes: [], pins: [], bodies: [], lobes: lobesOf(s), _on: false, partOff: new Set(),
+              get userOn() { return this._on; }, set userOn(v) { this._on = v; this.partOff.clear(); } };
+  const op = s.opacity ?? 1, col = new THREE.Color(s.color || "#999");
+  // 切成兩塊的腦迴：每一塊用所屬葉的顏色（旁中央小葉後塊＝頂葉色、梭狀迴後塊＝枕葉色）
+  o.pieceCol = s.plobe ? o.lobes.map(l => ((D.lobes || []).find(x => x.id === l) || {}).color || s.color) : null;
+  for (let i = 0; s.parts.length && i < (s.plobe ? o.lobes.length : 1); i++) {   // geometry 等第一次顯示才建（ensureGeom）：預設關閉的構造不必在開頁時解碼
+    const m = new THREE.MeshStandardMaterial({ color: o.pieceCol ? new THREE.Color(o.pieceCol[i]) : col, roughness: 0.62, metalness: 0.0, side: THREE.DoubleSide, vertexColors: shaded(s),
+      transparent: op < 1, opacity: op, depthWrite: op >= 0.6, clippingPlanes: clipArr, emissive: 0x000000 });
+    m.userData = { op0: op, em0: 0x000000, part: s.plobe ? i : null };
+    const mesh = new THREE.Mesh(EMPTY, m); mesh.userData.sid = s.id; mesh.userData.part = i;
+    if (op < 1) mesh.renderOrder = 2;
+    root.add(mesh); o.mats.push(m); o.meshes.push(mesh); pickables.push(mesh); o.bodies.push(mesh);
+  }
+  for (const q of s.pins) {
+    const m = new THREE.MeshStandardMaterial({ color: new THREE.Color(s.color || "#fff"), emissive: 0x222222, clippingPlanes: clipArr });
+    m.userData = { op0: 1, em0: 0x222222 };
+    const mesh = new THREE.Mesh(pinGeo, m); mesh.position.set(...q); mesh.userData.sid = s.id; mesh.userData.pin = true;
+    root.add(mesh); o.mats.push(m); o.meshes.push(mesh); o.pins.push(mesh); pickables.push(mesh);
+  }
+  if (s.lines.length) {
+    const lm = new THREE.LineBasicMaterial({ color: s.id === "level_ticks" ? css("--accent") : s.id === "bony_levels" ? css("--bone") : css("--mute"), transparent: true, opacity: 0.85, clippingPlanes: clipArr });
+    for (const l of s.lines) { const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.BufferAttribute(lineOf(l), 3)); root.add(new THREE.Line(g, lm)); }
+    o.lineMat = lm;
+  }
+  if (s.rim && s.rim.length) {   // 腦溝：選到時（或課本視角「腦溝（整顆）」）才顯示的溝口細帶（平貼在腦表面、不受光，沒有立體感）
+    const g = new THREE.Group(); g.visible = false;
+    for (const [a, b] of s.rim) {
+      const A = lineOf(a), B = lineOf(b), n = A.length / 3, pos = new Float32Array(n * 18), col = new Float32Array(n * 18), idx = [];
+      for (let i = 0; i < n; i++) for (let j = 0; j < 6; j++) {
+        const k = (i * 6 + j) * 3, c = RIM_C[j] ? RIM_HI : RIM_LO;
+        for (let d = 0; d < 3; d++) pos[k + d] = A[i * 3 + d] + (B[i * 3 + d] - A[i * 3 + d]) * RIM_F[j];
+        col[k] = c.r; col[k + 1] = c.g; col[k + 2] = c.b;
+        if (i && j % 2 === 0) { const u = (i - 1) * 6 + j, v = i * 6 + j; idx.push(u, u + 1, v, u + 1, v + 1, v); }
+      }
+      const geo = new THREE.BufferGeometry(); geo.setAttribute("position", new THREE.BufferAttribute(pos, 3)); geo.setAttribute("color", new THREE.BufferAttribute(col, 3)); geo.setIndex(idx);
+      const mesh = new THREE.Mesh(geo, RIM_MAT); mesh.renderOrder = 3; g.add(mesh);
+    }
+    root.add(g); o.rim = g;
+  }
+  scene.add(root); OBJ[s.id] = o;
+}
+// LOBE_ITEMS[葉]＝[[構造 id, 第幾塊]]；一塊＝piece（沒切塊的構造只有第 0 塊）
+const LOBE_ITEMS = {}; for (const id in OBJ) (OBJ[id].lobes || []).forEach((l, i) => (LOBE_ITEMS[l] ||= []).push([id, i]));
+const pieceOn = (id, i) => OBJ[id].userOn && !(OBJ[id].s.plobe && OBJ[id].partOff.has(i));
+function pieceOff(id, i) {
+  const o = OBJ[id]; if (!o.s.plobe) { o.userOn = false; return; }
+  o.partOff.add(i); if (o.partOff.size >= o.lobes.length) o.userOn = false;
+}
+function pieceRestore(id, i) {
+  const o = OBJ[id]; if (!o.s.plobe) { o.userOn = true; return; }
+  if (o.userOn) o.partOff.delete(i); else { o.userOn = true; o.lobes.forEach((_, k) => k !== i && o.partOff.add(k)); }
+}
+// 切成兩塊的腦迴：一點（模型座標）屬第幾塊（右側鏡像）
+const pieceAt = (s, x, y, z) => { const p = s.split.p, n = s.split.n; return (Math.abs(x) - p[0]) * n[0] + (y - p[1]) * n[1] + (z - p[2]) * n[2] > 0 ? 1 : 0; };
+// 開關的快照（課本視角、腦幹外觀、核團圖、路徑離開時還原）：連關掉的那一塊一起記
+const snapOn = () => Object.fromEntries(Object.keys(OBJ).map(id => [id, OBJ[id].partOff.size ? [OBJ[id].userOn, [...OBJ[id].partOff]] : OBJ[id].userOn]));
+function restoreOn(S) { for (const id in OBJ) { const v = S[id]; if (Array.isArray(v)) { OBJ[id].userOn = v[0]; v[1].forEach(i => OBJ[id].partOff.add(i)); } else OBJ[id].userOn = v; } }
+
+// ---------- visibility ----------
+// 目前課程：預設只開最新的一堂（大體構造 L00 永遠顯示）；選擇記在這台瀏覽器。出現上次沒看過的新一堂時，改成只開新的那堂。
+// 課程全部按掉＝全部構造打開（頭骨、外形殼除外）；不記成開啟時的模式（重新整理時退回最後一堂）
+// 存的格式 {on, known}；舊版只存 on 的陣列，當作 known＝on
+const LEC_KEY = "b9neuro.lecOn";
+const LEC_IDS = D.lectures.map(l => l.id).filter(i => i !== "L00");
+const lecOn = (() => {
+  try {
+    const s = JSON.parse(localStorage.getItem(LEC_KEY) || "null");
+    const on = Array.isArray(s) ? s : s && s.on, known = Array.isArray(s) ? s : s && s.known;
+    if (Array.isArray(on) && Array.isArray(known) && LEC_IDS.every(i => known.includes(i)) && on.some(i => LEC_IDS.includes(i)))
+      return new Set(on.filter(i => LEC_IDS.includes(i)));
+  } catch (e) {}
+  return new Set(LEC_IDS.slice(-1));
+})();
+function saveLec() { try { localStorage.setItem(LEC_KEY, JSON.stringify({ on: [...lecOn], known: LEC_IDS })); } catch (e) {} }
+saveLec();
+// 預設開關依課程：每堂課在 lectures/L*.py 寫 DEFAULT_ON（build 成 lectures[].on），開多堂時取聯集；切換課程時回到預設
+const LEC_DEF = Object.fromEntries(D.lectures.map(l => [l.id, new Set(l.on || [])]));
+const ALL_OFF = id => { const s = OBJ[id].s; return (s.group === "skeleton" && s.sub === "shell") || (s.group === "bone" && s.sub === "skull"); };
+const defOn = id => lecOn.size ? [...lecOn].some(l => LEC_DEF[l] && LEC_DEF[l].has(id)) : !ALL_OFF(id);
+const lecAny = l => !lecOn.size || lecOn.has(l);   // 沒選課程＝全部課程
+for (const id in OBJ) OBJ[id].userOn = defOn(id);
+// 兩位老師都講到的內容：在 lectures/L*.py 加 also=["L0x"]，屬於多堂課，開任一堂都顯示
+// 別堂的構造照樣列在清單（灰字＋老師名）、預設關，勾選或點名稱就顯示
+const lecsOf = x => [x.lec, ...(x.also || [])];
+const inLec = x => x.lec === "L00" || lecsOf(x).some(lecAny);
+const isOn = id => OBJ[id].userOn;
+function refreshVis() {
+  for (const id in OBJ) { const v = shown(id); if (v) ensureGeom(OBJ[id]); OBJ[id].root.visible = v; rimVis(id); }
+  applyOpacity();
+  document.querySelectorAll(".row").forEach(r => { const o = OBJ[r.dataset.id], other = !inLec(o.s);
+    r.querySelector("input").checked = o.userOn; r.hidden = !matchesSearch(r.dataset.id);
+    r.classList.toggle("other", other && !o.userOn); r.querySelector(".lec").hidden = !other; });
+  if (sagOn) drawCaps(D.sagittal, 1); else if (activeSec) drawCaps(activeSec);
+  buildTags();
+}
+
+// 選取時的畫面模式：all 全部顯示｜dim 其他變淡｜skel 只留大體構造＋選中｜only 只留選中（沒有選取時一律照常顯示）
+let viewMode = "all";
+function shown(id) {
+  if (!isOn(id)) return false;
+  if (!selId || inSel(id)) return true;
+  if (viewMode === "only") return false;
+  if (viewMode === "skel") return OBJ[id].s.group === "skeleton";
+  return true;
+}
+// 腦幹外觀：像課本的腦幹外觀圖——只留腦幹與周圍構造、顱神經，外殼不透明、小腦不開；關掉時還原進入前的開關
+const SOLID = new Set(["midbrain", "pons", "medulla", "cord", "thalamus", "pulvinar", "lgb", "mgb", "pineal",
+  "chiasm", "optic", "peduncle", "pyramid", "inf_olive", "sup_coll", "inf_coll",
+  // 背面觀（投影片 pg.7）：菱形窩、四腦室底標記、薄束／楔束結節、上下丘臂、小腦上腳（中、下腳是 MNI 纖維束形狀，不透明時會蓋住菱形窩）
+  "rhomboid_fossa", "brachium_sc", "brachium_ic", "gracile_tub", "cuneate_tub", "obex_pin", "facial_coll", "hypoglossal_tri", "vagal_tri",
+  "striae", "sulcus_lim", "vest_area", "median_sulcus", "scp_shell",
+  // 正中矢狀切面（投影片 pg.8）；小腦整個不開（蚓部、半球、絨球都要看時從清單打開）
+  "corpus_callosum", "fornix", "septum_pell", "ant_comm", "hippo_comm", "post_comm", "hypothal", "mamillary", "epithalamus", "infundibulum",
+  "adenohyp", "neurohyp", "interthal", "sup_med_velum",
+  "aqueduct", "third_vent", "fourth_vent", "choroid",
+  ...D.structures.filter(s => s.group === "nerve" && s.sub === "cn").map(s => s.id)].filter(id => OBJ[id]));
+// 埋在顏面丘底下的外旋神經核與顏面神經內膝：腦幹外觀下用透視（不被外殼遮住）畫出來，對照投影片 pg.7 的顏面丘
+const SOLID_XRAY = new Set(["n_VI", "facial_genu"].filter(id => OBJ[id]));
+SOLID_XRAY.forEach(id => SOLID.add(id));
+// 開啟但維持原本的半透明：小腦上腳會蓋住菱形窩上半；胼胝體、穹窿、透明中隔、下視丘、腦下垂體、腦室會擋住腦幹正面與內側
+const SOLID_SOFT = new Set(["scp_shell", "corpus_callosum", "fornix", "septum_pell", "hippo_comm", "hypothal", "epithalamus", "adenohyp", "neurohyp",
+  "aqueduct", "third_vent", "fourth_vent", "choroid"]);
+let solidMode = false, solidSaved = null;
+function setSolid(on) {
+  if (on === solidMode) return;
+  if (on && preset) setPreset(null);
+  if (on && dorsMode) setDors(false);
+  if (on && focus) setFocus(null);
+  solidMode = on; syncModeSel();
+  if (on) { solidSaved = snapOn(); for (const id in OBJ) OBJ[id].userOn = SOLID.has(id);
+            if (!activeSec) $('#views [data-v="front"]').click(); }
+  else if (solidSaved) { restoreOn(solidSaved); solidSaved = null; }
+  refreshVis();
+}
+// 背面核團圖（課本 Moore「Cranial nuclei and functional components」背面觀）：拿掉小腦，外殼不透明，顱神經核透視畫在上面；
+// 病人左半（背面看在畫面左邊）只留運動核、右半只留感覺核
+const MOTOR = new Set(["GSE", "SVE", "GVE", "SE"]);
+const DORS = new Set(["midbrain", "pons", "medulla", "cord", "sup_coll", "inf_coll", "scp_shell", "rhomboid_fossa",
+  "sulcus_lim", "median_sulcus", "striae", ...D.structures.filter(s => s.group === "cn_nucleus").map(s => s.id)].filter(id => OBJ[id]));
+// 小腦中、下腳是 MNI 纖維束形狀，不透明時會蓋住核團，所以不開
+const DORS_SOFT = new Set(["scp_shell"]);
+const halfL = new THREE.Plane(new THREE.Vector3(1, 0, 0), 0), halfR = new THREE.Plane(new THREE.Vector3(-1, 0, 0), 0);
+const clipMotor = [clipPlane, halfL], clipSens = [clipPlane, halfR];
+// 側面核團圖（投影片 pg.18 左圖）：從病人左側看，只留左半的核團，運動核（偏內側）與感覺核（偏外側）都畫，看各核的上下排列
+let dorsMode = false, dorsSaved = null, nucView = "back";
+function setDors(on, view) {
+  view = view || nucView;
+  if (on === dorsMode && (!on || view === nucView)) return;
+  if (on && solidMode) setSolid(false);
+  if (on && focus) setFocus(null);
+  if (on && preset) setPreset(null);
+  if (on && !dorsMode) { dorsSaved = snapOn(); for (const id in OBJ) OBJ[id].userOn = DORS.has(id);
+                         if (sagOn) setSag(false); }
+  else if (!on && dorsSaved) { restoreOn(dorsSaved); dorsSaved = null; }
+  dorsMode = on; nucView = view;
+  syncModeSel();
+  if (on && !activeSec) flyTo(HOME.clone(), new THREE.Vector3(...(view === "side" ? VIEWS.left : VIEWS.back)), 200 * Math.max(1, 0.75 / camera.aspect));
+  for (const s of D.structures) if (s.group === "cn_nucleus")
+    for (const m of OBJ[s.id].mats) { m.clippingPlanes = !on ? clipArr : view === "side" || MOTOR.has(s.comp) ? clipMotor : clipSens; m.needsUpdate = true; }
+  buildLegend(); $("#legend").hidden = !on;
+  refreshVis();
+}
+// 課本視角（各堂課在 lectures/L*.py 的 VIEWS 宣告）：開指定構造、外殼透明度、地標名稱與鏡頭；離開時還原進入前的開關
+let preset = null, presetSaved = null, tagSide = 0;   // tagSide：側面視角只標朝向鏡頭那一側（+1 病人左）
+const presetV = () => preset ? (D.views || []).find(v => v.id === preset) : null;
+// 視角換色（V117.4）：V.paint {id: 色，切兩塊的腦迴給 [前塊, 後塊]}，離開時換回原色；V.legend 色塊說明；
+// V.labs 圖上名稱只標這幾個（進視角時自動打開圖上名稱，離開還原）；V.vtags 沒有 3D 的位置名稱（底視丘），跟著圖上名稱
+let painted = [];
+const paintOf = (id, pc) => { const c = ((presetV() || {}).paint || {})[id]; return Array.isArray(c) ? c[pc || 0] : c; };
+function paintView(V) {
+  for (const [m, c] of painted) m.color.copy(c);
+  painted = [];
+  for (const id in (V && V.paint) || {}) { const o = OBJ[id]; if (!o) continue;
+    for (const m of o.mats) { const c = V.paint[id]; painted.push([m, m.color.clone()]); m.color.set(Array.isArray(c) ? c[m.userData.part || 0] : c); } }
+}
+function setPreset(id) {
+  const V = id ? (D.views || []).find(v => v.id === id) : null, P0 = presetV() || {}, hadLeg = !!P0.legend;
+  if (vcam) { vcam = null; $("#vcams").hidden = true; if (vcamSag && sagOn) setSag(false); vcamSag = false; }
+  if (V && solidMode) setSolid(false);
+  if (V && dorsMode) setDors(false);
+  if (V && focus) setFocus(null);
+  if (V && !preset) presetSaved = { on: snapOn(), shell: shellScale, tags: showPinTags, lab: labOn };
+  // 有 labs 的視角打開圖上名稱；換到別的視角或離開時回到進視角前的狀態（不寫進 localStorage）
+  const lab = V && V.labs ? true : P0.labs && presetSaved ? presetSaved.lab : null;
+  if (!V && preset && presetSaved) {
+    restoreOn(presetSaved.on);
+    setShell(presetSaved.shell); setPinTags(presetSaved.tags);
+    presetSaved = null;
+  }
+  preset = V ? V.id : null;
+  paintView(V);
+  if (lab != null && lab !== labOn) { labOn = lab; $("#bLab").setAttribute("aria-pressed", labOn); if (!labOn) clearLabs(); }
+  if (V && V.legend) { $("#legend").innerHTML = `<div><b>${V.zh}</b>${V.legend.map(([c, t]) => `<span><i style="background:${c}"></i>${t}</span>`).join("")}</div>`; $("#legend").hidden = false; }
+  else if (hadLeg) $("#legend").hidden = true;
+  if (V) { const on = new Set(V.ids); for (const i in OBJ) OBJ[i].userOn = on.has(i); setShell(V.shell); setPinTags(V.tags); if (sagOn) setSag(false); }
+  syncModeSel(); refreshVis();
+  tagSide = V ? ({ left: 1, right: -1 }[V.cam] || 0) : 0;
+  if (V && V.cams) { const vc = $("#vcams"); vc.hidden = V.cams.length < 2; vc.querySelectorAll("[data-c]").forEach(b => b.hidden = !V.cams.includes(b.dataset.c)); setVcam(V.cams[0]); }
+  else if (V && !activeSec) requestAnimationFrame(() => flyToDir(V.fit, VIEWS[V.cam], V.fity, V.pad));
+}
+const sulTags = () => vcam && (presetV() || {}).rims;   // 腦溝名稱：只在「腦溝（整顆）」這類有溝口細帶的多鏡頭視角標
+// 課本視角「腦溝（整顆）」的四個鏡頭：[鏡頭方向, 標名稱的半球（+1 病人左）]。內側＝正中矢狀切開（保留病人右半），從左側看右半球內側面
+const VCAM = { left: ["left", 1], top: ["top", 1], medial: ["left", -1], bottom: ["bottom", 1], oblique: ["oblique", 1], front: ["front", 1], back: ["back", 1] };   // oblique：基底核視角（V119.2）；front：L05 中腦視角（V120）；back：L06 硬膜竇（V122）
+let vcam = null, vcamSag = false;
+function setVcam(k) {
+  const V = presetV(); if (!V || !V.cams) return;
+  vcam = k; tagSide = 0;
+  document.querySelectorAll("#vcams [data-c]").forEach(b => b.setAttribute("aria-pressed", b.dataset.c === k));
+  const sag = k === "medial";
+  if (sag !== sagOn) setSag(sag);
+  vcamSag = sag;
+  buildTags(); invalidate();
+  if (!activeSec) requestAnimationFrame(() => flyToDir(V.fit, VIEWS[VCAM[k][0]], V.fity, V.pad));
+}
+document.querySelectorAll("#vcams [data-c]").forEach(b => b.onclick = () => setVcam(b.dataset.c));
+// 腦溝名稱的位置：該半球的溝口細帶中線上、朝向鏡頭（細帶法向量和鏡頭方向的內積 > 0.3）而且沒被腦迴擋住（從鏡頭方向打射線）
+// 最長的一段的中點。
+// 朝向鏡頭的部分不到這條溝的 1/4 就不標（例如扣帶溝的緣支在外側面只露出頂端）。名稱有兩條（額上溝、額下溝）時取最長的兩段，
+// 只有一段（兩條溝的細帶接成一條）就依高度分成上下兩群；上面的配第一個名稱
+const _stag = {};
+// 標名稱的半球（+1 病人左）：那半球被切面切掉（矢狀切面保留病人右）而對側還在，就改標留下的那半球——從左看＝右半球內側面
+const _hc = new THREE.Vector3();
+const keptSide = side => side && clipPlane.distanceToPoint(_hc.set(side * 35, 40, 5)) < 0 && clipPlane.distanceToPoint(_hc.set(-side * 35, 40, 5)) >= 0 ? -side : side;
+function sulcusTags(s, k) {
+  const side = keptSide(VCAM[k][1]), key = s.id + ":" + k + ":" + side; if (_stag[key]) return _stag[key];
+  const dir = VCAM[k][0], d = new THREE.Vector3(...VIEWS[dir]).normalize(), runs = [];
+  const C = new THREE.Vector3(side * 35, 40, 5);   // 半球中心附近（法向量朝外的判斷用）
+  const occ = pickables.filter(m => m.visible && m.parent.visible && m.material.visible !== false && !m.userData.pin && OBJ[m.userData.sid].s.group === "cortex");
+  if (BVH) occ.forEach(m => !m.geometry.boundsTree && m.geometry.computeBoundsTree());
+  const back = d.clone().negate(), seen = p => { ray.set(p.clone().addScaledVector(d, 400), back);
+    const h = ray.intersectObjects(occ, false).find(h => clipPlane.distanceToPoint(h.point) >= 0); return !h || h.distance > 396; };
+  let total = 0;
+  for (const [a, b] of s.rim) {
+    const A = lineOf(a), B = lineOf(b), n = A.length / 3, P = [];
+    for (let i = 0; i < n; i++) P.push(new THREE.Vector3((A[3 * i] + B[3 * i]) / 2, (A[3 * i + 1] + B[3 * i + 1]) / 2, (A[3 * i + 2] + B[3 * i + 2]) / 2));
+    if (n < 3 || Math.sign(P.reduce((x, p) => x + p.x, 0)) !== side) continue;
+    let run = [], len = 0;
+    const flush = () => { if (run.length > 2) runs.push({ len, pts: run }); run = []; len = 0; };
+    for (let i = 0; i < n; i++) {
+      if (i) total += P[i].distanceTo(P[i - 1]);
+      const T = P[Math.min(n - 1, i + 1)].clone().sub(P[Math.max(0, i - 1)]);
+      const W = new THREE.Vector3(B[3 * i] - A[3 * i], B[3 * i + 1] - A[3 * i + 1], B[3 * i + 2] - A[3 * i + 2]);
+      const N = T.cross(W).normalize(); if (N.dot(P[i].clone().sub(C)) < 0) N.negate();
+      if (N.dot(d) > 0.3 && (i % 3 && run.length || seen(P[i]))) { if (run.length) len += P[i].distanceTo(run[run.length - 1]); run.push(P[i]); } else flush();
+    }
+    flush();
+  }
+  const names = s.zh.replace(/（.*?）/g, "").split("、"), mid = pts => pts[pts.length >> 1];
+  const rs = runs.filter(r => r.len >= 10).sort((x, y) => y.len - x.len);
+  let out = [];
+  if (rs.length && rs.reduce((x, r) => x + r.len, 0) >= Math.max(10, total / 4)) {
+    if (names.length === 1) out = [[names[0], mid(rs[0].pts)]];
+    else if (rs.length >= 2) out = rs.slice(0, 2).sort((x, y) => mid(y.pts).y - mid(x.pts).y).map((r, i) => [names[i], mid(r.pts)]);
+    else {   // 兩條溝接成一段：依高度 2-means 分上下
+      const pts = rs[0].pts; let hi = Math.max(...pts.map(p => p.y)), lo = Math.min(...pts.map(p => p.y));
+      for (let it = 0; it < 8; it++) { const m = (hi + lo) / 2, U = pts.filter(p => p.y >= m), L = pts.filter(p => p.y < m);
+        if (!U.length || !L.length) break; hi = U.reduce((x, p) => x + p.y, 0) / U.length; lo = L.reduce((x, p) => x + p.y, 0) / L.length; }
+      const m = (hi + lo) / 2, U = pts.filter(p => p.y >= m), L = pts.filter(p => p.y < m);
+      out = hi - lo > 6 && U.length > 2 && L.length > 2 ? [[names[0], mid(U)], [names[1], mid(L)]] : [[names.join("、"), mid(pts)]];
+    }
+  }
+  return _stag[key] = out.map(([n, p]) => [n, p.toArray()]);
+}
+
+function setShell(k) { shellScale = k; $("#shellOp").value = Math.round(k * 100); }
+function setPinTags(on) { showPinTags = on; $("#bTags").setAttribute("aria-pressed", on); }
+function flyToDir(ids, dir, fy, pad = 1) {
+  const box = new THREE.Box3();
+  ids.forEach(id => { const o = OBJ[id]; if (o && o.root.visible) box.expandByObject(o.root); });
+  if (box.isEmpty()) return;
+  let ctr = null;
+  if (fy) {   // 視角 fity：只框這段高度；中心只算這段的頂點（脊髓有彎曲，整條的中心會讓頸段偏到畫面一邊），距離照原本的框
+    box.min.y = Math.max(box.min.y, fy[0]); box.max.y = Math.min(box.max.y, fy[1]);
+    const seg = new THREE.Box3(), v = new THREE.Vector3();
+    ids.forEach(id => { const o = OBJ[id]; if (!o || !o.root.visible) return; o.root.updateWorldMatrix(true, true);
+      o.root.traverse(m => { const p = m.geometry && m.geometry.attributes.position; if (!p) return;
+        for (let i = 0; i < p.count; i++) { v.fromBufferAttribute(p, i).applyMatrix4(m.matrixWorld); if (v.y >= fy[0] && v.y <= fy[1]) seg.expandByPoint(v); } }); });
+    if (!seg.isEmpty()) ctr = seg.getCenter(new THREE.Vector3());
+  }
+  const sz = box.getSize(new THREE.Vector3()), tall = sz.y * 0.62 / Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));   // 脊髓全長（L04）這種細長的，照高度算才框得進
+  flyTo(ctr || box.getCenter(new THREE.Vector3()), new THREE.Vector3(...dir), pad * Math.max(60, tall, sz.length() * 1.6 * Math.max(1, 0.75 / camera.aspect)));   // pad：視角拉遠倍數（近端切口離畫面上緣太近時用）
+}
+function buildLegend() {
+  const name = { GSE: "GSE 一般軀體運動", SVE: "SVE 鰓弓運動", GVE: "GVE 內臟運動（副交感）", SE: "SE 副神經脊髓根（頸髓）", GVA: "GVA／SVA 內臟感覺、味覺", SSA: "SSA 特殊感覺（聽、平衡）", GSA: "GSA 一般軀體感覺" };
+  const col = c => (D.structures.find(s => s.comp === c) || {}).color;
+  const box = (h, cs) => `<div><b>${h}</b>${cs.map(c => `<span><i style="background:${col(c === "GVA" ? "GVA-SVA" : c)}"></i>${name[c]}</span>`).join("")}</div>`;
+  const side = nucView === "side";
+  $("#legend").innerHTML = box(side ? "運動核（偏內側，界溝內側）" : "運動核（畫面左＝病人左）", ["GSE", "SVE", "GVE", "SE"]) + box(side ? "感覺核（偏外側，界溝外側）" : "感覺核（畫面右＝病人右）", ["GVA", "SSA", "GSA"]);
+}
+buildLegend();
+
+// 核團對照表（投影片 pg.18）
+function pick(id) {
+  if (!OBJ[id]) return;
+  if (!OBJ[id].userOn) { OBJ[id].userOn = true; refreshVis(); }
+  if (!isDesk() && $("#bench").classList.contains("open")) openSheet("");   // 手機：收起抽屜才看得到 3D
+  select(id, null, true);
+}
+// 神經節名稱（對照表、單一顱神經的說明文字裡）換成可點的按鈕
+const gName = id => OBJ[id].s.zh.replace(/（.*?）/g, "");
+function linkG(w, gs) {
+  let h = esc(w);
+  for (const g of gs || []) if (OBJ[g]) { const n = gName(g); h = h.replace(esc(n), `<button class="gl" data-id="${g}"><i style="background:${OBJ[g].s.color}"></i>${esc(n)}</button>`); }
+  return h;
+}
+function buildFc() {
+  const T = (D.tables || []).find(t => t.id === "fc"); if (!T) { $("#bFc").hidden = true; return; }
+  const col = c => (D.structures.find(s => s.comp === c) || {}).color || "#999";
+  const g = $("#fcgrid"); let h = `<span></span><span class="gh" style="grid-column:span 4">感覺（二級核）</span><span></span><span class="gh" style="grid-column:span 4">運動（一級核）</span>`;
+  h += `<span class="ch">CN</span>` + T.cols.map((c, i) => (i === 4 ? `<span></span>` : "") + `<span class="ch" style="color:${col(c[1])}">${c[0]}</span>`).join("");
+  T.rows.forEach((r, ri) => {
+    h += `<button class="cn${r.out ? " row-out" : ""}" data-r="${ri}" aria-pressed="false" title="看 CN ${r.cn} 整列">${r.cn}</button>`;
+    T.cols.forEach((c, ci) => {
+      if (ci === 4) h += `<span class="sp"></span>`;
+      const es = r.cells[c[0]];
+      h += `<span class="cell${r.out ? " row-out" : ""}">` + (es ? `<button class="dot${r.out ? " out" : ""}" data-r="${ri}" data-c="${c[0]}" aria-pressed="false" aria-label="CN ${r.cn} ${c[0]}" style="background:${col(c[1])};border-color:${col(c[1])}">${es.length > 1 ? es.length : ""}</button>` : "") + `</span>`;
+    });
+  });
+  g.innerHTML = h;
+  const detail = (ri, cs) => {
+    const r = T.rows[ri];
+    g.querySelectorAll("[aria-pressed]").forEach(b => b.setAttribute("aria-pressed", "false"));
+    if (cs.length === 1) g.querySelector(`.dot[data-r="${ri}"][data-c="${cs[0]}"]`).setAttribute("aria-pressed", "true");
+    else g.querySelector(`.cn[data-r="${ri}"]`).setAttribute("aria-pressed", "true");
+    $("#fcdetail").innerHTML = `<h3>CN ${r.cn}${cs.length === 1 ? " · " + cs[0] : ""}</h3>` + cs.map(c => r.cells[c].map(([id, w, gs]) => {
+      const s = id && OBJ[id] ? OBJ[id].s : null;
+      return `<div class="it">${s ? `<button data-id="${id}"><i style="background:${s.color}"></i>${s.zh.replace(/（.*?）/g, "")}</button>` : "<span></span>"}<span class="w">${cs.length > 1 ? `<b>${c}</b>　` : ""}${linkG(w, gs)}</span></div>`;
+    }).join("")).join("");
+    $("#fcdetail").querySelectorAll("button[data-id]").forEach(b => b.onclick = () => pick(b.dataset.id));
+  };
+  g.querySelectorAll(".dot").forEach(b => b.onclick = () => {
+    const ri = +b.dataset.r, c = b.dataset.c; detail(ri, [c]);
+    const es = T.rows[ri].cells[c]; if (es.length === 1 && es[0][0]) pick(es[0][0]);
+  });
+  g.querySelectorAll(".cn").forEach(b => b.onclick = () => { const ri = +b.dataset.r; detail(ri, T.cols.map(c => c[0]).filter(c => T.rows[ri].cells[c])); });
+}
+buildFc();
+
+// ---------- 導覽：路徑與反射／單一顱神經（只留相關構造，右側「導覽」分頁畫平面路徑圖，步驟與 3D 同步） ----------
+const FOCUS_CTX = new Set(["midbrain", "pons", "medulla", "cord"].filter(id => OBJ[id]));
+let focus = null, focusSaved = null, stepIdx = -1, lesionKey = "", stepSet = null;
+const PATHS = D.paths || [], CNV = D.cnview || [];
+const FC = (D.tables || []).find(t => t.id === "fc");
+const GANG = D.structures.filter(x => x.pairs);
+// 某個神經節：它自己、配對的核、同一對神經的根與周邊段
+function gangSet(gid) {
+  const g = OBJ[gid].s, s = new Set([gid, ...g.pairs.map(p => p[0]), "cn_" + g.cn]);
+  D.structures.forEach(x => { if (x.group === "ganglion" && x.cn === g.cn && x.sub !== "sens" && x.sub !== "para") s.add(x.id); });
+  return s;
+}
+function setGangStep(gid) {
+  stepIdx = -1; stepGang = gid === stepGang ? "" : gid;
+  stepSet = stepGang ? gangSet(stepGang) : null;
+  refreshVis(); renderGuide();
+  if (stepGang && !isDesk() && $("#bench").classList.contains("open")) openSheet("");   // 手機：收起抽屜才看得到 3D 與說明卡
+  if (stepGang) { select(stepGang, null, false); flyToIds([...stepSet]); } else { select(null); flyToIds([...focus.ids]); }
+}
+let stepGang = "";
+const ndIds = n => n ? [n[2], ...(n[5] || [])].filter(Boolean) : [];   // 節點的構造＋一起亮的（n[5]，如 Broca＝三角部＋蓋部）
+const LES_SUB = id => OBJ[id] && (OBJ[id].s.sub === "lesion" || OBJ[id].s.les);   // les：病灶專用的構造（L06 楔形切面的三種血塊）
+const lesSlices = (P, L) => (P.lesions || []).forEach(l => { if (LES_SUB(l[4])) OBJ[l[4]].userOn = !!L && l[4] === L[4]; });
+function focusIds(f) {
+  const s = new Set();
+  if (f.kind === "path") {
+    const P = PATHS.find(p => p.id === f.id);
+    P.nodes.forEach(n => ndIds(n).forEach(i => s.add(i))); P.steps.forEach(st => st[2].forEach(i => s.add(i)));
+    (P.lesions || []).forEach(l => { LES_SUB(l[4]) || s.add(l[4]); (l[6] || []).forEach(i => s.add(i)); });   // 紅色病灶切片只在點那個病灶時開（lesSlices）；l[6]：病灶一起亮的構造
+  } else if (f.kind === "gang") {
+    for (const g of GANG) { s.add(g.id); g.pairs.forEach(p => s.add(p[0])); }
+    D.structures.forEach(x => { if (x.group === "ganglion") s.add(x.id); });
+    ["III", "V", "VII", "VIII", "IX", "X"].forEach(c => s.add("cn_" + c)); OBJ.eyeball && s.add("eyeball");
+  } else {
+    const C = CNV.find(c => c.cn === f.id), row = FC && FC.rows.find(r => r.cn === f.id);
+    if (row) Object.values(row.cells).forEach(es => es.forEach(([i, , gs]) => { i && s.add(i); (gs || []).forEach(g => s.add(g)); }));
+    D.structures.forEach(x => { if ((x.group === "ganglion" && x.cn === f.id) || (x.cns && x.cns.includes(f.id))) s.add(x.id); });
+    ["cn_" + f.id, "exit_" + f.id, ...C.extra].forEach(i => OBJ[i] && s.add(i));
+  }
+  return s;
+}
+function flyToIds(ids) {
+  const box = new THREE.Box3();
+  ids.forEach(id => { const o = OBJ[id]; if (o && o.root.visible) box.expandByObject(o.root); });
+  if (box.isEmpty()) return;
+  flyTo(box.getCenter(new THREE.Vector3()), null, Math.max(55, box.getSize(new THREE.Vector3()).length() * 1.6));
+}
+function setFocus(f) {
+  if (f && preset) setPreset(null);
+  if (f && solidMode) setSolid(false);
+  if (f && dorsMode) setDors(false);
+  if (f && !focus) focusSaved = snapOn();
+  if (!f && focus && focusSaved) { restoreOn(focusSaved); focusSaved = null; }
+  focus = f; stepIdx = -1; lesionKey = ""; stepSet = null; stepGang = "";
+  if (f) {
+    select(null);
+    const ids = focusIds(f); f.ids = ids;
+    for (const id in OBJ) OBJ[id].userOn = ids.has(id) || FOCUS_CTX.has(id);
+    setTab("guide");
+    if (isDesk()) setPanel("bench", true); else if (!$("#bench").classList.contains("open")) openSheet("bench");
+  }
+  syncModeSel(); refreshVis(); renderGuide();
+  if (f) requestAnimationFrame(() => flyToIds([...f.ids]));
+}
+function setStep(i) {
+  const P = PATHS.find(p => p.id === focus.id);
+  stepIdx = i; lesionKey = ""; lesSlices(P, null);
+  if (i < 0) stepSet = null;
+  else { const st = P.steps[i], s = new Set(st[2]); st[1].forEach(k => ndIds(P.nodes.find(n => n[0] === k)).forEach(i => s.add(i))); stepSet = s; }
+  refreshVis(); renderGuide();
+  if (stepSet) flyToIds([...stepSet]); else flyToIds([...focus.ids]);
+}
+// 病灶構造＋（病灶構造就是節點的構造時）那個節點一起亮的構造＋L[6]
+const lesIds = (P, L) => { const n = P.nodes.find(n => n[0] === L[2]); return new Set([...(n && n[2] === L[4] ? ndIds(n) : [L[4]]), ...(L[6] || [])]); };
+function setLesion(k) {
+  const P = PATHS.find(p => p.id === focus.id);
+  lesionKey = lesionKey === k ? "" : k; stepIdx = -1;
+  const L = (P.lesions || []).find(l => l[0] === lesionKey);
+  stepSet = L ? lesIds(P, L) : null; lesSlices(P, L);
+  refreshVis(); renderGuide();
+  if (!L) return;
+  if (OBJ[L[4]] && OBJ[L[4]].s.les)   // 楔形切面的血塊：從正面框整塊楔形（L[6] 的 mma、ica 在顱內，一起框會縮成整顆頭）
+    flyToDir(Object.keys(OBJ).filter(i => OBJ[i].s.sub === "wedge" && !OBJ[i].s.les), new THREE.Vector3(...VIEWS.front), null, 1.8);
+  else flyToIds([...stepSet]);
+}
+const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;");
+function pathSvg(P) {
+  const W = 388, LW = 40, CX = LW + (W - LW) / 2, CW = 44, NW = 78, RH = 54, TOP = 20;
+  const X = c => CX + c * CW, Y = r => TOP + r * RH + RH / 2;
+  const inStep = new Set(stepIdx >= 0 ? P.steps[stepIdx][1] : []);
+  const done = new Set(stepIdx >= 0 ? P.steps.slice(0, stepIdx).flatMap(s => s[1]) : []);
+  const L = (P.lesions || []).find(l => l[0] === lesionKey), lesEdge = L && L[2].includes(">") ? L[2].split(">") : null, lesNode = L && !lesEdge ? L[2] : null, aff = new Set(L && L[5] || []);   // L[5]：受影響（會麻）的節點
+  const H = TOP + P.rows.length * RH + 6, kd = kgOn ? kgNodes(P) : null;
+  const node = {}; P.nodes.forEach(n => { const lines = n[1].split("\n"); node[n[0]] = { n, lines, x: X(n[4]), y: Y(n[3]), w: NW, h: lines.length * 13 + 10 }; });
+  const clip = (a, b) => { const dx = b.x - a.x, dy = b.y - a.y; const t = Math.min(dx ? (a.w / 2 + 2) / Math.abs(dx) : 1e9, dy ? (a.h / 2 + 2) / Math.abs(dy) : 1e9); return [a.x + dx * t, a.y + dy * t]; };
+  let s = `<svg class="pathsvg" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(P.zh)} 路徑圖"><defs>
+    <marker id="ar" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L8,4 L0,8 z" fill="${css("--mute")}"/></marker>
+    <marker id="arA" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L8,4 L0,8 z" fill="${css("--accent")}"/></marker></defs>`;
+  P.rows.forEach((r, i) => {
+    if (i % 2 === 0) s += `<rect x="0" y="${TOP + i * RH}" width="${W}" height="${RH}" fill="${css("--chip")}" opacity=".45"/>`;
+    const ls = r.includes("\n") ? r.split("\n") : r.match(/.{1,4}/g);
+    ls.forEach((l, j) => s += `<text x="3" y="${Y(i) - (ls.length - 1) * 6 + j * 12 + 4}" font-size="9" fill="${css("--mute")}">${esc(l)}</text>`);
+  });
+  if (!P.noside) {   // 分類圖（noside）不分左右
+    s += `<line x1="${X(0)}" y1="${TOP - 4}" x2="${X(0)}" y2="${H}" stroke="${css("--mute")}" stroke-dasharray="3 4" opacity=".6"/>`;
+    s += `<text x="${X(-2)}" y="13" font-size="10" text-anchor="middle" fill="${css("--mute")}">病人右</text><text x="${X(0)}" y="13" font-size="10" text-anchor="middle" fill="${css("--mute")}">中線</text><text x="${X(2)}" y="13" font-size="10" text-anchor="middle" fill="${css("--mute")}">病人左</text>`;
+  }
+  let edgeX = "";
+  for (const e of P.edges) {
+    const a = node[e[0]], b = node[e[1]]; const [x1, y1] = clip(a, b), [x2, y2] = clip(b, a);
+    const act = inStep.has(e[1]) && (inStep.has(e[0]) || done.has(e[0]) || stepIdx === 0), fut = stepIdx >= 0 && !act && !(done.has(e[1]) || inStep.has(e[1]));
+    const cut = (lesNode && e[0] === lesNode) || (lesEdge && e[0] === lesEdge[0] && e[1] === lesEdge[1]);
+    if (cut && lesEdge) { const mx = (x1 + x2) / 2, my = (y1 + y2) / 2; edgeX = `<path d="M${mx - 8},${my - 8} L${mx + 8},${my + 8} M${mx + 8},${my - 8} L${mx - 8},${my + 8}" stroke="${css("--warn")}" stroke-width="3"/>`; }
+    s += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${cut ? css("--warn") : act ? css("--accent") : css("--mute")}" stroke-width="${act ? 2.2 : 1.3}" ${cut ? 'stroke-dasharray="4 3"' : ""} opacity="${fut ? .3 : 1}" marker-end="url(#${act ? "arA" : "ar"})"/>`;
+    const lft = x2 < x1 - 4 || (x1 + x2) / 2 > W - 70;   // 往左走的線（或靠右邊界的線），標籤放在線的左邊
+    if (e[2]) s += `<text x="${(x1 + x2) / 2 + (lft ? -4 : 4)}" y="${(y1 + y2) / 2 + 3}" text-anchor="${lft ? "end" : "start"}" font-size="9.5" fill="${css("--ink")}" stroke="${css("--stage")}" stroke-width="3" paint-order="stroke" opacity="${fut ? .4 : .9}">${esc(e[2])}</text>`;
+  }
+  for (const k in node) {
+    const { n, lines, x, y, w, h } = node[k], sid = n[2] && OBJ[n[2]] ? n[2] : null, col = sid ? OBJ[sid].s.color : css("--mute");
+    const act = inStep.has(k), fut = stepIdx >= 0 && !act && !done.has(k), les = k === lesNode, hit = aff.has(k);
+    s += `<g class="nd${sid ? "" : " txt"}" data-k="${k}" opacity="${fut ? .35 : 1}"${sid ? ` tabindex="0" role="button" aria-label="${esc(n[1].replace(/\n/g, ""))}"` : ""}>`;
+    s += `<rect x="${x - w / 2}" y="${y - h / 2}" width="${w}" height="${h}" rx="6" fill="${hit ? css("--warn") : sid ? col : "none"}" fill-opacity="${hit ? .45 : act ? .5 : .2}" stroke="${les || hit ? css("--warn") : act ? css("--accent") : col}" stroke-width="${act || les || hit ? 2.4 : 1.2}" ${sid ? "" : 'stroke-dasharray="3 3"'}/>`;
+    lines.forEach((l, j) => s += `<text x="${x}" y="${y - (lines.length - 1) * 6.5 + j * 13 + 4}" font-size="11" text-anchor="middle" fill="${css("--ink")}">${esc(l)}</text>`);
+    if (les) s += `<path d="M${x - 10},${y - 10} L${x + 10},${y + 10} M${x + 10},${y - 10} L${x - 10},${y + 10}" stroke="${css("--warn")}" stroke-width="3"/>`;
+    if (kd && kd.has(k)) s += `<circle class="kgdot" cx="${x + w / 2 - 5}" cy="${y - h / 2 + 5}" r="3.5" fill="${css("--kg")}" stroke="${css("--kg-ink")}" stroke-width="1"/>`;
+    s += `</g>`;
+  }
+  return s + edgeX + `</svg>`;
+}
+  // ── 複視模擬（病人視角）──────────────────────────────
+// dev(s,h,v) 回傳該眼相對「應有眼位」的偏差（度）：da＋＝較外展、de＋＝較上、dt＋＝較外旋。
+// 影像在病人視野中的位置與眼球偏斜方向相反；病人視角 x＋＝病人右、y＋＝上、r＋＝影像上端偏向病人右。
+const DP={
+  shift(s,d){const k=s==='R'?1:-1;return {x:-k*d.da,y:-d.de,r:-k*d.dt};},
+  pair(dev,h,v){const D={R:dev('R',h,v),L:dev('L',h,v)},m=s=>Math.hypot(D[s].da,D[s].de)+Math.abs(D[s].dt)*.3,f=m('R')>=m('L')?'R':'L',o=f==='R'?'L':'R',a=DP.shift(f,D[f]),b=DP.shift(o,D[o]);
+    return {f,o,x:a.x-b.x,y:a.y-b.y,r:a.r-b.r};},
+  has(p){return Math.hypot(p.x,p.y)>=1.5||Math.abs(p.r)>=3;},
+  eye:{R:'右眼',L:'左眼'},
+  label(p){if(!DP.has(p))return '單一影像，沒有複視';const parts=[],hx=Math.abs(p.x)>=1.5,vy=Math.abs(p.y)>=1.5;
+    parts.push(hx&&vy?'斜向複視':hx?'水平複視':vy?'垂直複視':'扭轉複視');
+    if(hx)parts.push((p.x>0)===(p.f==='R')?'同側複視（uncrossed）：假像在'+DP.eye[p.f]+'那一側':'交叉複視（crossed）：假像在'+DP.eye[p.f]+'的對側');
+    if(vy)parts.push('假像在'+(p.y>0?'上方':'下方'));if(Math.abs(p.r)>=3)parts.push('假像傾斜');
+    return parts.join('；')+'（兩像差：水平 '+Math.abs(p.x).toFixed(0)+'°、垂直 '+Math.abs(p.y).toFixed(0)+'°）';},
+  bar(x,y,r,cls,w,hh){return '<g transform="translate('+x.toFixed(1)+','+y.toFixed(1)+') rotate('+r.toFixed(1)+')"><rect class="'+cls+'" x="'+(-w/2)+'" y="'+(-hh/2)+'" width="'+w+'" height="'+hh+'" rx="'+(w/2)+'"/><circle class="'+cls+'" cx="0" cy="'+(-hh/2-w)+'" r="'+(w*.7)+'"/></g>';},
+  field(p,title){const W=300,H=150,cx=150,cy=74,k=2.6,cl=(v,m)=>Math.max(-m,Math.min(m,v)),dx=cl(p.x*k,120),dy=cl(-p.y*k,52),two=DP.has(p);
+    let s='<svg class="dp-svg" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="病人看到的影像"><rect class="dp-frame" x="1" y="1" width="'+(W-2)+'" height="'+(H-2)+'" rx="8"/>';
+    s+='<text class="dp-t" x="8" y="14">'+(title||'')+'</text><text class="dp-s" x="8" y="'+(H-7)+'">← 病人左</text><text class="dp-s" x="'+(W-8)+'" y="'+(H-7)+'" text-anchor="end">病人右 →</text>';
+    s+='<line class="dp-cross" x1="'+cx+'" y1="22" x2="'+cx+'" y2="'+(H-18)+'"/><line class="dp-cross" x1="12" y1="'+cy+'" x2="'+(W-12)+'" y2="'+cy+'"/>';
+    s+=DP.bar(cx,cy,0,'dp-true',7,46);
+    if(two){s+=DP.bar(cx+dx,cy+dy,p.r,'dp-false',7,46);
+      s+='<text class="dp-s" x="'+(cx+(dx>=0?-10:10))+'" y="'+(cy+36)+'" text-anchor="'+(dx>=0?'end':'start')+'">真像（'+DP.eye[p.o]+'）</text>';
+      s+='<text class="dp-f" x="'+(cx+dx+(dx>=0?10:-10))+'" y="'+cl(cy+dy+36,H-20)+'" text-anchor="'+(dx>=0?'start':'end')+'">假像（'+DP.eye[p.f]+'）</text>';}
+    else s+='<text class="dp-s" x="'+(cx+10)+'" y="'+(cy+36)+'">兩眼影像重合</text>';
+    return s+'</svg>';},
+  chart(dev,cur){const CW=96,CH=58,k=1.05,cl=(v,m)=>Math.max(-m,Math.min(m,v));let s='<svg class="dp-svg" viewBox="0 0 '+(CW*3)+' '+(CH*3+14)+'" role="img" aria-label="九方向複視圖（病人視角）">';
+    for(const v of [1,0,-1])for(const h of [-1,0,1]){const x0=(h+1)*CW,y0=(1-v)*CH,p=DP.pair(dev,h,v),on=cur&&cur[0]===h&&cur[1]===v,cx=x0+CW/2,cy=y0+CH/2+3;
+      s+='<g class="dp-cell'+(on?' on':'')+'" data-h="'+h+'" data-v="'+v+'"><rect x="'+(x0+1.5)+'" y="'+(y0+1.5)+'" width="'+(CW-3)+'" height="'+(CH-3)+'" rx="5"/>';
+      s+='<text class="dp-s" x="'+(x0+5)+'" y="'+(y0+11)+'">'+(h===0&&v===0?'正前':(h===1?'右':h===-1?'左':'')+(v===1?'上':v===-1?'下':''))+'</text>';
+      s+=DP.bar(cx,cy,0,'dp-true',4,24);if(DP.has(p))s+=DP.bar(cx+cl(p.x*k,40),cy+cl(-p.y*k,18),p.r,'dp-false',4,24);s+='</g>';}
+    return s+'<text class="dp-s" x="'+(CW*1.5)+'" y="'+(CH*3+11)+'" text-anchor="middle">格子＝病人往那個方向看（病人視角：右欄＝往病人右看）</text></svg>';},
+  worst(dev){let b=[0,0],bm=-1;for(const v of [0,1,-1])for(const h of [0,-1,1]){const p=DP.pair(dev,h,v),m=Math.hypot(p.x,p.y)+Math.abs(p.r)*.2;if(m>bm+.01){bm=m;b=[h,v];}}return b;},
+  RULES:'<ul class="dp-rules"><li><b>假像</b>＝偏斜那隻眼看到的影像，位置在外圍；兩像距離在<b>麻痺肌作用的方向最大</b>。</li><li><b>水平複視</b>＝內直肌／外直肌出問題。外直肌麻痺（CN VI）→ 內斜視 → <b>同側複視</b>（uncrossed），往患側看分最開、看遠較明顯；內直肌無法內收（CN III、MLF 病灶）→ 外斜視 → <b>交叉複視</b>（crossed）。</li><li><b>垂直複視</b>＝上下轉的肌肉（SR、IR、SO、IO）出問題。CN IV 麻痺：患眼偏高 → 假像在<b>下方</b>，往內下看分最開，假像還會傾斜（外旋）。</li><li>兩眼一起受限但仍對齊（PPRF、外旋神經核病灶）→ 凝視麻痺，<b>通常沒有複視</b>。</li></ul>'
+};
+
+// 病灶眼位（與眼外肌神解版相同的教學示意角度）：外展 24°、上下 19°、扭轉 15°
+function dpDevFor(type, side) {
+  return (s, h, v) => { const i = { a: s === "R" ? h : -h, e: v, t: 0 }; let { a, e, t } = i; const ipsi = side === s;
+    if (type === "CN3" && ipsi) { a = Math.max(a, .55); e = -.38 + Math.min(0, i.e) * .12; t = -.2 + Math.min(0, i.e) * .3; }
+    else if (type === "CN4" && ipsi) { const add = Math.max(0, -i.a), down = Math.max(0, -i.e); e = i.e + .18 + .25 * add + .25 * down + .45 * add * down; t = .45 + .35 * Math.max(0, i.a); a = i.a - .06; }
+    else if (type === "CN6" && ipsi) a = Math.min(a, -.22);
+    else if (type === "MLF" && ipsi) a = Math.max(a, 0);
+    else if (type === "PPRF" && h === (side === "R" ? 1 : -1)) a = 0;
+    return { da: (a - i.a) * 24, de: (e - i.e) * 19, dt: (t - i.t) * 15 }; };
+}
+const dpDir = (h, v) => h === 0 && v === 0 ? "正前方" : (h === 1 ? "右" : h === -1 ? "左" : "") + (v === 1 ? "上" : v === -1 ? "下" : "");
+let dpCur = null;
+function dpBlock(dev, g, title) {
+  dpCur = { dev, title }; const p = DP.pair(dev, g[0], g[1]);
+  return `<div class="lbl">病人看到的影像（病人視角：右＝病人右）</div><div class="dpbox" id="dpField">${DP.field(p, title + "・病人往" + dpDir(g[0], g[1]) + "看")}</div><p class="dpcap" id="dpCap">${DP.label(p)}</p>` +
+    `<div class="dpbox" id="dpChart">${DP.chart(dev, g)}</div><details class="dpdet"><summary>水平／垂直複視怎麼判斷</summary>${DP.RULES}</details>`;
+}
+function dpWire(root) {
+  root.querySelectorAll("#dpChart .dp-cell").forEach(c => c.onclick = () => { const h = +c.dataset.h, v = +c.dataset.v, p = DP.pair(dpCur.dev, h, v);
+    root.querySelector("#dpField").innerHTML = DP.field(p, dpCur.title + "・病人往" + dpDir(h, v) + "看"); root.querySelector("#dpCap").textContent = DP.label(p);
+    root.querySelectorAll("#dpChart .dp-cell").forEach(x => x.classList.toggle("on", x === c)); });
+}
+// 路徑對照表：一張一行「表：標題」，預設收起；換步驟會重畫，同一條路徑內記住哪幾張打開
+let tabOpen = new Set(), tabFor = "";
+function pathTable(T, pid) {
+  if (!T) return "";
+  if (tabFor !== pid) { tabFor = pid; tabOpen = new Set(); }
+  return (Array.isArray(T) ? T : [T]).map((t, i) => `<details class="fold ptabw" data-t="${i}"${tabOpen.has(i) ? " open" : ""}><summary>表：${esc(t.title)}</summary><div><table class="ptab"><thead><tr>${t.head.map(h => `<th>${esc(h)}</th>`).join("")}</tr></thead>` +
+    `<tbody>${t.rows.map(r => `<tr${r[0] === t.hl ? ' class="on"' : ""}>${r.map(c => `<td>${esc(c)}</td>`).join("")}</tr>`).join("")}</tbody></table></div></details>`).join("");
+}
+// ---------- 國考標記（data/kaoguo.json，tools/kaoguo_map.py 產生；開關 K）：關掉時不加任何元素 ----------
+// rows[].at：["s", 構造]｜["lobe", 葉]｜["p", 路徑]｜["ps", 路徑, 步驟]｜["pl", 路徑, 病灶]；每題只掛一處
+const KG = D.kaoguo || { q: [], rows: [], todo: [] };
+let kgOn = (() => { try { return localStorage.getItem("b9neuro.kg") === "1"; } catch (e) { return false; } })(), kgOpen = false, kgFor = "";
+const kgAt = (a, b, c) => KG.rows.filter(r => r.at[0] === a && r.at[1] === b && (c === undefined || r.at[2] === c));
+const kgNq = rs => rs.reduce((n, r) => n + r.q.length, 0);
+const kgX = rs => rs.length ? `<span class="kgx">×${kgNq(rs)}</span>` : "";
+const kgRow = (r, t) => `<button class="kgr" data-kq="${t ? "t" : "r"}:${(t ? KG.todo : KG.rows).indexOf(r)}">${esc(r.txt)}</button>`;
+const kgQName = q => { const [y, n, p, k] = q.id.split("-"); return `${q.subj ? q.subj + "題庫 " : ""}${y}-${n} ${p} 第 ${k} 題`; };
+// 路徑列涉及的構造：整條路徑＝路徑上所有構造；步驟＝亮起的構造＋節點；病灶＝病灶構造＋病灶節點
+function kgIds(r) {
+  const P = PATHS.find(p => p.id === r.at[1]), nd = k => ndIds(P.nodes.find(n => n[0] === k));
+  if (r.at[0] === "p") return focusIds({ kind: "path", id: P.id });
+  if (r.at[0] === "ps") { const st = P.steps[r.at[2]]; return new Set([...st[2], ...st[1].flatMap(nd)]); }
+  const L = P.lesions.find(l => l[0] === r.at[2]); return new Set([L[4], ...L[2].split(">").flatMap(nd)]);
+}
+// 路徑圖上加小點的節點：構造本身有題、在有題的步驟裡、是有題的病灶
+function kgNodes(P) {
+  const s = new Set();
+  P.nodes.forEach(n => n[2] && kgAt("s", n[2]).length && s.add(n[0]));
+  P.steps.forEach((st, i) => kgAt("ps", P.id, i).length && st[1].forEach(k => s.add(k)));
+  (P.lesions || []).forEach(l => kgAt("pl", P.id, l[0]).length && l[2].split(">").forEach(k => s.add(k)));
+  return s;
+}
+function kgPathList(P) {
+  const grp = (h, rs, on) => rs.length ? `<div class="kgg${on ? " on" : ""}">${h}${rs.map(r => kgRow(r)).join("")}</div>` : "";
+  return `<div class="kgl">${grp(`<span class="kgh">整條路徑</span>`, kgAt("p", P.id), false)}` +
+    P.steps.map((st, i) => grp(`<button class="kgh" data-ks="${i}">步驟 ${i + 1}</button>`, kgAt("ps", P.id, i), i === stepIdx)).join("") +
+    (P.lesions || []).map(l => grp(`<button class="kgh" data-kl="${l[0]}">病灶：${esc(l[1])}</button>`, kgAt("pl", P.id, l[0]), l[0] === lesionKey)).join("") + `</div>`;
+}
+function kgWire(root) { root.querySelectorAll("[data-kq]").forEach(b => b.onclick = () => kgShow(b.dataset.kq)); }
+function kgShow(key) {
+  const [k, i] = key.split(":"), r = (k === "t" ? KG.todo : KG.rows)[+i], qs = r.q.map(j => KG.q[j]);
+  $("#kgBody").innerHTML = `<h2>${esc(r.label || kgQName(qs[0]))}</h2>` + qs.map(q => {
+    const all = q.ans.length >= Object.keys(q.opt).length;
+    return `<section>${r.label ? `<div class="kqh">${kgQName(q)}</div>` : ""}<p>${esc(q.stem)}</p>${q.img ? `<img src="${q.img}" alt="${q.t} 附圖">` : ""}` +
+      `<ol>${Object.entries(q.opt).map(([c, t]) => `<li${!all && q.ans.includes(c) ? ' class="ok"' : ""}><b>${c}</b>${esc(t)}</li>`).join("")}</ol>` +
+      `<div class="meta">官方答案：${all ? "一律給分" : q.ans}${q.note && !all ? "・" + esc(q.note) : ""}</div></section>`;
+  }).join("");
+  $("#kgDlg").showModal(); $("#kgDlg").scrollTop = 0;
+}
+// 說明卡：自己的題（構造卡／六葉整塊卡）＋構造卡「另有 N 題在路徑」、六葉卡「另有 N 題在腦迴」
+function kgCard() {
+  const el = $("#info"); el.querySelectorAll(".kgc").forEach(x => x.remove());
+  if (!kgOn || !selId || el.hidden) return;
+  const own = selLobe ? kgAt("lobe", selLobe) : kgAt("s", selId);
+  let h = own.length ? `<details class="kgc kq"><summary><i>國考 ${kgNq(own)}</i></summary><div>${own.map(r => kgRow(r)).join("")}</div></details>` : "";
+  if (!selLobe) {
+    const via = new Map(), qs = new Set();
+    KG.rows.forEach(r => { if (r.at[0][0] === "p" && kgIds(r).has(selId)) { if (!via.has(r.at[1])) via.set(r.at[1], new Set()); r.q.forEach(j => { via.get(r.at[1]).add(j); qs.add(j); }); } });
+    if (qs.size) h += `<div class="kgc kgvia">另有 ${qs.size} 題在路徑：${[...via].map(([id, s]) => `<button data-kp="${id}">${esc(PATHS.find(p => p.id === id).zh)}${via.size > 1 ? ` ${s.size}` : ""}</button>`).join("")}</div>`;
+  } else {   // 六葉卡：這一葉的腦迴、葉內的溝自己的題
+    const via = [...new Set((LOBE_ITEMS[selLobe] || []).map(([sid]) => sid))].map(sid => [sid, kgNq(kgAt("s", sid))]).filter(([, n]) => n);
+    const nSu = via.filter(([sid]) => OBJ[sid].s.sub === "sulcus").length, where = !nSu ? "腦迴" : nSu === via.length ? "腦溝" : "腦迴、腦溝";
+    if (via.length) h += `<div class="kgc kgvia">另有 ${via.reduce((a, [, n]) => a + n, 0)} 題在${where}：${via.map(([sid, n]) => `<button data-kgs="${sid}">${esc(OBJ[sid].s.zh.replace(/（.*?）/g, ""))}${via.length > 1 ? ` ${n}` : ""}</button>`).join("")}</div>`;
+  }
+  if (!h) return;
+  el.querySelector("[data-mode]").parentElement.previousElementSibling.insertAdjacentHTML("beforebegin", h);
+  kgWire(el); el.querySelectorAll("[data-kp]").forEach(b => b.onclick = () => setFocus({ kind: "path", id: b.dataset.kp }));
+  el.querySelectorAll("[data-kgs]").forEach(b => b.onclick = () => pick(b.dataset.kgs));
+}
+function setKg(on) {
+  kgOn = on; try { localStorage.setItem("b9neuro.kg", on ? "1" : "0"); } catch (e) {}
+  $("#bKg").setAttribute("aria-pressed", on);
+  const old = $("#kgTodo"); if (old) old.remove();
+  if (on && KG.todo.length) {
+    const cats = [...new Set(KG.todo.map(r => r.cat))];
+    $("#layers .modes").insertAdjacentHTML("afterend", `<details id="kgTodo"><summary>國考待掛 ${kgNq(KG.todo)} 題</summary>${cats.map(c => { const rs = KG.todo.filter(r => r.cat === c);
+      return `<div class="kgg"><span class="kgh">${esc(c)} ${kgNq(rs)}</span>${rs.map(r => kgRow(r, 1)).join("")}</div>`; }).join("")}</details>`);
+    kgWire($("#kgTodo"));
+  }
+  if (focus) renderGuide();
+  if (selId && !$("#info").hidden) { kgCard(); placeInfo(true); }
+}
+function renderGuide() {
+  const g = $("#paneGuide");
+  if (!focus) { g.innerHTML = `<div class="note">在左邊「路徑與反射」或「單一顱神經」選一項，或在課本視角選「顱神經節與中樞核」，這裡會出現對應的路徑圖或清單，3D 只留相關構造。</div>`; return; }
+  if (focus.kind === "path") {
+    const P = PATHS.find(p => p.id === focus.id);
+    const L = (P.lesions || []).find(l => l[0] === lesionKey);
+    if (kgFor !== P.id) { kgFor = P.id; kgOpen = false; }
+    const nP = kgOn ? kgNq(KG.rows.filter(r => r.at[0][0] === "p" && r.at[1] === P.id)) : 0;
+    g.innerHTML = `<h3>${esc(P.zh)}${nP ? `<button class="kgb" aria-expanded="${kgOpen}" title="這條路徑的國考題">國考 ${nP}</button>` : ""}</h3>${P.en ? `<div class="en">${esc(P.en)}</div>` : ""}${nP && kgOpen ? kgPathList(P) : ""}<p class="gnote">${esc(P.note)}</p>` + pathTable(P.table, P.id) + pathSvg(P) +
+      `<div class="gctl"><button class="btn" data-g="prev">‹ 上一步</button><button class="btn" data-g="all" aria-pressed="${stepIdx < 0 && !lesionKey}">全部</button><button class="btn" data-g="next">下一步 ›</button></div>` +
+      `<ol class="steps">${P.steps.map((st, i) => `<li><button data-s="${i}" aria-pressed="${i === stepIdx}">${esc(st[0])}${kgOn ? kgX(kgAt("ps", P.id, i)) : ""}</button></li>`).join("")}</ol>` +
+      (P.lesions && P.lesions.length ? `<div class="lbl">模擬病灶</div><div class="lesbar">${P.lesions.map(l => `<button class="btn" data-l="${l[0]}" aria-pressed="${l[0] === lesionKey}">${esc(l[1])}${kgOn ? kgX(kgAt("pl", P.id, l[0])) : ""}</button>`).join("")}</div>${L ? `<div class="lesfx">${esc(L[3])}</div>` : ""}` : "") +
+      (L && P.id === "hgaze" ? dpBlock(dpDevFor({ mlf: "MLF", cn6: "CN6" }[L[0]] || "PPRF", L[0] === "mlf" ? "L" : "R"), [1, 0], L[1] + "病灶") : "");
+    g.querySelectorAll("[data-s]").forEach(b => b.onclick = () => setStep(+b.dataset.s === stepIdx ? -1 : +b.dataset.s));
+    g.querySelector('[data-g="prev"]').onclick = () => setStep(stepIdx <= 0 ? P.steps.length - 1 : stepIdx - 1);
+    g.querySelector('[data-g="next"]').onclick = () => setStep(stepIdx >= P.steps.length - 1 ? -1 : stepIdx + 1);
+    g.querySelector('[data-g="all"]').onclick = () => setStep(-1);
+    g.querySelectorAll("[data-l]").forEach(b => b.onclick = () => setLesion(b.dataset.l));
+    g.querySelectorAll("details.ptabw").forEach(d => d.ontoggle = () => d.open ? tabOpen.add(+d.dataset.t) : tabOpen.delete(+d.dataset.t));
+    if (nP) {
+      g.querySelector(".kgb").onclick = () => { kgOpen = !kgOpen; renderGuide(); };
+      g.querySelectorAll("[data-ks]").forEach(b => b.onclick = () => setStep(+b.dataset.ks === stepIdx ? -1 : +b.dataset.ks));
+      g.querySelectorAll("[data-kl]").forEach(b => b.onclick = () => setLesion(b.dataset.kl));
+      kgWire(g);
+    }
+    dpWire(g);
+    g.querySelectorAll(".nd:not(.txt)").forEach(el => {
+      const go = () => { const k = el.dataset.k, n = P.nodes.find(n => n[0] === k), si = P.steps.findIndex(st => st[1].includes(k));
+        if (si >= 0 && si !== stepIdx) setStep(si); pick(n[2]); };
+      el.onclick = go; el.onkeydown = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(); } };
+    });
+  } else if (focus.kind === "gang") {
+    const grp = (sub, t) => `<div class="lbl">${t}</div><div class="secchips">${GANG.filter(x => x.sub === sub).map(x => `<button data-g="${x.id}" aria-pressed="${x.id === stepGang}"><i style="background:${x.color}"></i>${esc(gName(x.id))}</button>`).join("")}</div>`;
+    g.innerHTML = `<h3>顱神經節</h3><p class="gnote">感覺：一級神經元在腦幹外的神經節，二級核在腦幹內。副交感：節前神經元在腦幹核，到神經節換節後神經元。點一個神經節，只留它和它的核、神經；說明卡列出配對。</p>` +
+      grp("sens", "感覺神經節（一級）") + grp("para", "副交感神經節（換元）");
+    g.querySelectorAll("button[data-g]").forEach(b => b.onclick = () => setGangStep(b.dataset.g));
+  } else {
+    const C = CNV.find(c => c.cn === focus.id), row = FC && FC.rows.find(r => r.cn === focus.id);
+    const comps = row ? FC.cols.map(c => c[0]).filter(c => row.cells[c]).flatMap(c => row.cells[c].map(([id, w, gs]) => [c, id, w, gs])) : [];
+    const secs = D.sections.filter(sec => [...focus.ids].some(id => sec.cuts[id] || (sec.pins && sec.pins[id])));
+    g.innerHTML = `<h3>CN ${C.cn} ${esc(C.zh)}</h3>` +
+      `<div class="lbl">功能成分（一級在哪／支配誰）</div><div class="cnlist">${comps.map(([c, id, w, gs]) => { const s = id && OBJ[id] ? OBJ[id].s : null;
+        return `<div class="it"><b>${c}</b>${s ? `<button data-id="${id}"><i style="background:${s.color}"></i>${esc(s.zh.replace(/（.*?）/g, ""))}</button>` : "<span></span>"}<span class="w">${linkG(w, gs)}</span></div>`; }).join("")}</div>` +
+      (C.lesion.length ? `<div class="lbl">損傷</div><ul class="leslist">${C.lesion.map(([x]) => `<li>${esc(x)}</li>`).join("")}</ul>` : "") +
+      `<div class="lbl">3D 上的位置</div><div class="secchips"><button data-id="cn_${C.cn}">神經根</button>${OBJ["exit_" + C.cn] ? `<button data-id="exit_${C.cn}">出腦處</button>` : ""}${OBJ["pn_" + C.cn] ? `<button data-id="pn_${C.cn}">周邊段</button>` : ""}</div>` +
+      (secs.length ? `<div class="lbl">切得到的切面</div><div class="secchips">${secs.map(sec => `<button data-sec="${sec.id}">${secName(sec)}</button>`).join("")}</div>` : "");
+    g.querySelectorAll("button[data-id]").forEach(b => b.onclick = () => pick(b.dataset.id));
+    g.querySelectorAll("button[data-sec]").forEach(b => b.onclick = () => openSection(D.sections.find(s => s.id === b.dataset.sec)));
+  }
+}
+function buildModeSelects() {
+  const ps = $("#pathSel"), cats = [...new Set(PATHS.map(p => p.cat))];
+  ps.innerHTML = `<option value="">—</option>` + cats.map(c => `<optgroup label="${esc(c)}">${PATHS.filter(p => p.cat === c).map(p => `<option value="${p.id}" data-lec="${lecsOf(p).join(" ")}"${p.en ? ` title="${esc(p.en)}"` : ""}>${esc(p.zh)}</option>`).join("")}</optgroup>`).join("");
+  $("#cnSel").innerHTML = `<option value="">—</option>` + CNV.map(c => `<option value="${c.cn}" data-lec="${lecsOf(c).join(" ")}">CN ${c.cn} ${esc(c.zh)}</option>`).join("");
+  $("#modeSel").insertAdjacentHTML("beforeend", (D.views || []).map(v => `<option value="v:${v.id}" data-lec="${lecsOf(v).join(" ")}" title="${esc(v.title)}">${esc(v.zh)}</option>`).join(""));
+  for (const sel of ["#modeSel", "#pathSel", "#cnSel"]) $(sel)._all = [...$(sel).children].map(o => o.cloneNode(true));   // 完整清單，filterSelects 依課堂重建
+  filterSelects();
+  ps.onchange = e => setFocus(e.target.value ? { kind: "path", id: e.target.value } : null);
+  $("#cnSel").onchange = e => setFocus(e.target.value ? { kind: "cn", id: e.target.value } : null);
+  if (!PATHS.length) ps.parentElement.hidden = true;
+  if (!CNV.length) $("#cnSel").parentElement.hidden = true;
+}
+// 下拉選單只列目前課程的項目：從完整清單重建、把其他課的選項真的移除（iOS 原生選單不認 option 的 hidden）；
+// 正在看的項目若屬於被關掉的課程就先離開
+function filterSelects() {
+  const keep = o => !o.dataset.lec || o.dataset.lec.split(" ").some(lecAny);
+  for (const sel of ["#modeSel", "#pathSel", "#cnSel"]) {
+    const S = $(sel), v = S.value; if (!S._all) continue;
+    S.replaceChildren(...S._all.map(n => {
+      if (n.tagName !== "OPTGROUP") return keep(n) ? n.cloneNode(true) : null;
+      const g = n.cloneNode(false); g.append(...[...n.children].filter(keep).map(o => o.cloneNode(true)));
+      return g.children.length ? g : null;
+    }).filter(Boolean));
+    const gone = v && ![...S.options].some(o => o.value === v);
+    S.value = gone ? "" : v;
+    if (gone && typeof setFocus === "function") {
+      if (sel === "#modeSel") { setPreset(null); setSolid(false); setDors(false); if (focus && focus.kind === "gang") setFocus(null); }
+      else setFocus(null);
+    }
+  }
+}
+buildModeSelects(); renderGuide();
+// 大腦皮質（腦迴、腦溝）也跟外殼透明度走；同時開兩堂以上又不在課本視角時再淡到 0.3（腦溝 0.12），裡面的腦幹核團才看得到
+const cortexK = s => !preset && (lecOn.size || LEC_IDS.length) > 1 ? (s.sub === "sulcus" ? 0.12 : 0.3) : 1;   // 薄片在腦迴底下，疊起來較濃，淡得更多
+function applyOpacity() {
+  const VOP = (preset && presetV() || {}).op || {};   // 課本視角各構造的透明度覆寫
+  for (const id in OBJ) {
+    const o = OBJ[id];
+    for (const m of o.mats) {
+      const part = m.userData.part ?? undefined, dim = viewMode === "dim" && selId && !inSel(id, part);
+      let op = (solidMode && SOLID.has(id) && !SOLID_SOFT.has(id)) || (dorsMode && nucView === "back" && DORS.has(id) && !DORS_SOFT.has(id) && o.s.group !== "cn_nucleus") ? 1
+             : (VOP[id] ?? m.userData.op0) * (shellIds.has(id) ? shellScale : o.s.group === "cortex" ? shellScale * cortexK(o.s) : 1);
+      if (dim) op = Math.min(op, shellIds.has(id) ? 0.06 : 0.12);
+      if (focus) { if (FOCUS_CTX.has(id)) op = Math.min(op, 0.12); else if (stepSet && !stepSet.has(id)) op = Math.min(op, 0.12); }
+      const xray = (solidMode && SOLID_XRAY.has(id)) || (dorsMode && o.s.group === "cn_nucleus");
+      if (xray) op = Math.min(op, dorsMode ? 0.85 : 0.7);
+      m.opacity = op; m.transparent = op < 1; m.depthWrite = op >= 0.6 && !xray; m.depthTest = !xray; m.visible = op > 0.01 && !(part != null && pieceHidden(id, part));
+    }
+    for (const me of o.meshes) me.renderOrder = (solidMode && SOLID_XRAY.has(id)) || (dorsMode && o.s.group === "cn_nucleus") ? 5 : me.userData.pin ? 0 : (o.s.opacity ?? 1) < 1 ? 2 : 0;
+    if (o.lineMat) o.lineMat.opacity = viewMode === "dim" && selId ? 0.3 : 0.85;
+  }
+}
+
+// ---------- layer panel ----------
+let searchQ = "";
+const matchesSearch = id => { if (!searchQ) return true; const s = OBJ[id].s; return (s.zh + " " + s.en + " " + (s.comp || "")).toLowerCase().includes(searchQ); };
+function buildPanel() {
+  const chips = $("#lecChips"); chips.innerHTML = "";
+  for (const l of D.lectures) {
+    if (l.id === "L00") continue;
+    const b = document.createElement("button"); b.className = "chip"; b.setAttribute("aria-pressed", lecOn.has(l.id));
+    b.textContent = `${l.short}${l.teacher ? "（" + l.teacher + "）" : ""}`; b.title = `${l.title} ${l.date}`;
+    b.onclick = () => { lecOn.has(l.id) ? lecOn.delete(l.id) : lecOn.add(l.id); b.setAttribute("aria-pressed", lecOn.has(l.id)); saveLec(); filterSelects(); $("#bReset").click(); buildSecList();
+      document.querySelectorAll("details.subgrp").forEach(sd => sd.open = sd._its.some(x => defOn(x.id))); chipNote(); };
+    chips.append(b);
+  }
+  chips.insertAdjacentHTML("beforeend", `<span class="chipnote" hidden>都不選＝全部構造</span>`); chipNote();
+  const G = $("#groups"); G.innerHTML = "";
+  for (const g of D.groups) {
+    const items = D.structures.filter(s => s.group === g.id); if (!items.length) continue;
+    const det = document.createElement("details"); det.className = "grp"; det.open = !["nerve", "bone", "ganglion", "vessel"].includes(g.id);
+    const sum = document.createElement("summary");
+    sum.innerHTML = `<span>${g.zh}</span><span class="n">${items.length}</span>`;
+    const tg = document.createElement("button"); tg.className = "tg"; tg.textContent = "全開／全關";
+    const gIts = items.filter(s => !s.overlay);   // 全開／只留：不含疊在腦迴上的 overlay（Wernicke 區），要單獨勾
+    tg.onclick = e => { e.preventDefault(); const anyOff = gIts.some(s => !OBJ[s.id].userOn); gIts.forEach(s => OBJ[s.id].userOn = anyOff); refreshVis(); };
+    const og = document.createElement("button"); og.className = "tg"; og.textContent = "只留這組"; og.title = `只顯示「${g.zh}」，其他全部關掉`;
+    og.onclick = e => { e.preventDefault(); keepOnly(gIts); };
+    const tw = document.createElement("span"); tw.className = "tgs"; tw.append(tg, og);
+    sum.append(tw); det.append(sum);
+    for (const sub of g.subs) {
+      const its = items.filter(s => s.sub === sub.id); if (!its.length) continue;
+      // 小分類也可收合：預設全關的層（例如周邊分支、出入顱的孔）一開始收起來
+      const sd = document.createElement("details"); sd.className = "subgrp"; sd._its = its; sd.open = its.some(x => defOn(x.id));
+      const h = document.createElement("summary"); h.className = "subh";
+      const swc = g.id === "cn_nucleus" ? its[0].color : null;
+      h.innerHTML = (swc ? `<span class="sw" style="background:${swc}"></span>` : "") + `<span>${sub.zh}</span><span class="n">${its.length}</span>`;
+      const stg = document.createElement("button"); stg.className = "tg"; stg.textContent = "全開／全關"; stg.title = `${sub.zh}：全部打開或全部關掉`;
+      const sIts = its.filter(x => !x.overlay);
+      stg.onclick = e => { e.preventDefault(); const anyOff = sIts.some(x => !OBJ[x.id].userOn); sIts.forEach(x => OBJ[x.id].userOn = anyOff); refreshVis(); };
+      const sog = document.createElement("button"); sog.className = "tg"; sog.textContent = "只留這層"; sog.title = `只顯示「${sub.zh}」，其他全部關掉`;
+      sog.onclick = e => { e.preventDefault(); keepOnly(sIts); };
+      const tw2 = document.createElement("span"); tw2.className = "tgs"; tw2.append(stg, sog);
+      h.append(tw2); sd.append(h); det.append(sd);
+      for (const s of its) {
+        const r = document.createElement("div"); r.className = "row"; r.dataset.id = s.id;
+        const [t, cls] = SRC_TAG(s);
+        const lt = lecsOf(s).filter(l => l !== "L00").map(l => lecById[l].teacher).join("、");
+        r.innerHTML = `<input type="checkbox" id="cb_${s.id}" aria-label="${s.zh}"><span class="sw" style="background:${s.color}"></span><span class="nm" title="${s.en}">${s.zh}</span><span class="tgs2">${t ? `<span class="tag ${cls}">${t}</span>` : ""}<span class="tag lec" title="別堂課的構造" hidden>${lt}</span></span>`;
+        r.querySelector("input").onchange = e => { OBJ[s.id].userOn = e.target.checked; refreshVis(); showOffbar(); };
+        r.querySelector(".nm").onclick = () => { if (!OBJ[s.id].userOn) { OBJ[s.id].userOn = true; refreshVis(); } select(s.id, null, true); };
+        sd.append(r);
+      }
+    }
+    G.append(det);
+  }
+}
+function chipNote() { $("#lecChips .chipnote").hidden = lecOn.size > 0; }
+// 只保留某一組／某一層：把它全部打開，其餘構造全部關掉（用「回到預設」可復原）
+function keepOnly(items) {
+  const keep = new Set(items.map(x => x.id));
+  for (const id in OBJ) OBJ[id].userOn = keep.has(id);
+  refreshVis();
+}
+$("#search").addEventListener("input", e => {
+  searchQ = e.target.value.trim().toLowerCase(); refreshVis();
+  if (searchQ) document.querySelectorAll("#groups details").forEach(d => { if ([...d.querySelectorAll(".row")].some(r => !r.hidden)) d.open = true; });
+});
+$("#shellOp").addEventListener("input", e => { shellScale = e.target.value / 100; refreshVis(); });
+// 回到預設：每個構造回到登錄檔的預設開關，課程全開、外殼不透明度 100%、清空搜尋、畫面模式回「全部顯示」，關掉橫切面與矢狀切面，相機飛回開啟時的斜前方視角
+// 課本視角下拉選單（互斥）；矢狀切面是獨立開關，可與任何視角並用
+function syncModeSel() {
+  const v = preset ? "v:" + preset : solidMode ? "solid" : dorsMode ? nucView : focus && focus.kind === "gang" ? "gang" : "";
+  const pv = focus && focus.kind === "path" ? focus.id : "", cv = focus && focus.kind === "cn" ? focus.id : "";
+  for (const [s, x] of [["#modeSel", v], ["#pathSel", pv], ["#cnSel", cv]]) { $(s).value = x; $(s).parentElement.classList.toggle("on", !!x); }
+}
+$("#modeSel").onchange = e => {
+  const v = e.target.value;
+  if (v.startsWith("v:")) setPreset(v.slice(2));
+  else if (v === "solid") setSolid(true);
+  else if (v === "back" || v === "side") setDors(true, v);
+  else if (v === "gang") setFocus({ kind: "gang" });
+  else { setPreset(null); setSolid(false); setDors(false); if (focus && focus.kind === "gang") setFocus(null); }
+};
+$("#bReset").onclick = () => {
+  preset = null; presetSaved = null; tagSide = 0; setPinTags(false); vcam = null; vcamSag = false; $("#vcams").hidden = true;
+  solidMode = false; solidSaved = null;
+  if (dorsMode) { dorsSaved = null; setDors(false); }
+  if (focus) { focusSaved = null; setFocus(null); }
+  syncModeSel();
+  offStack = []; $("#offbar").hidden = true;
+  for (const id in OBJ) OBJ[id].userOn = defOn(id);
+  corAuto = new Set();
+  shellScale = 1; $("#shellOp").value = 100; searchQ = ""; $("#search").value = "";
+  viewMode = "all"; document.querySelectorAll("#info [data-mode]").forEach(x => x.setAttribute("aria-pressed", x.dataset.mode === "all"));
+  if (activeSec) closeSection();
+  if (sagOn) setSag(false);
+  refreshVis();
+  setHome();
+  flyTo(HOME, new THREE.Vector3(...VIEWS.oblique), homeDist());
+};
+
+// ---------- selection & info ----------
+let selId = null, selLobe = null, HL = null;   // selId 是 "lobe:<葉>" 時＝整塊模式選到的腦葉（selLobe）
+// 選取範圍含不含 id（part：第幾塊；省略＝這個構造有任何一塊在裡面）
+function inSel(id, part) {
+  if (!selId || !OBJ[id]) return false;
+  if (!selLobe) return id === selId;
+  const L = OBJ[id].lobes; if (!L) return false;
+  return part == null || !OBJ[id].s.plobe ? L.includes(selLobe) : L[part] === selLobe;
+}
+// 這一塊不畫：關掉了，或選到腦葉＋「只留它／只留大體＋它」時不屬於那一葉
+const pieceHidden = (id, i) => OBJ[id].partOff.has(i) || (!!selLobe && (viewMode === "only" || viewMode === "skel") && !inSel(id, i));
+const pieceMeshes = (id, i) => OBJ[id].meshes.filter(me => i == null || !OBJ[id].s.plobe || me.userData.part === i);
+const selItems = () => !selId ? [] : selLobe ? LOBE_ITEMS[selLobe] : [[selId, null]];
+const lobeCard = l => (D.lobes || []).find(x => x.id === l);
+// 選取方式（同全身模型）：整塊＝3D 上點腦迴或葉內的溝選到整個腦葉；細分＝選到那條腦迴／溝。記在這台瀏覽器
+const UNIT_KEY = "b9neuro.selWhole";
+let selWhole = (() => { try { return localStorage.getItem(UNIT_KEY) !== "0"; } catch (e) { return true; } })();
+let lastPick = null;   // 3D 上最後點到的 {id, part, point}：切換選取方式時換成整葉／那條腦迴
+function syncUnit() { document.querySelectorAll("#unitSeg .btn").forEach(b => b.setAttribute("aria-pressed", (b.dataset.u === "1") === selWhole)); }
+document.querySelectorAll("#unitSeg .btn").forEach(b => b.onclick = () => {
+  selWhole = b.dataset.u === "1"; try { localStorage.setItem(UNIT_KEY, selWhole ? "1" : "0"); } catch (e) {}
+  syncUnit(); if (!selId) return;
+  const lp = lastPick && OBJ[lastPick.id] ? lastPick : null;
+  if (!selWhole && selLobe && lp && inSel(lp.id, lp.part)) select(lp.id, lp.point, false);
+  else if (selWhole && !selLobe && OBJ[selId].lobes) select("lobe:" + OBJ[selId].lobes[lp && lp.id === selId ? lp.part : 0], lp && lp.id === selId ? lp.point : null, false);
+});
+syncUnit();
+const REDUCED = matchMedia("(prefers-reduced-motion: reduce)").matches, PULSE_MS = 3.5 * 2 * Math.PI / 0.006;
+// Highlight = the structure's own surface pulses (emissive) + an "x-ray" copy drawn on top of everything,
+// so a nucleus buried inside the brainstem or a tract still shows where it is from any angle.
+// 腦葉：這一葉開著的每一塊一起亮＋透視副本（腦溝薄片只亮、不疊副本）
+function clearHighlight() {
+  if (!HL) return;
+  HL.groups.forEach(g => g.removeFromParent()); HL.mat.dispose();
+  HL.mats.forEach(m => m.emissive && m.emissive.setHex(m.userData.em0));
+  const id = HL.id; HL = null; if (OBJ[id]) rimVis(id);
+}
+// 溝口細帶：選到這條溝，或課本視角「腦溝（整顆）」時顯示
+function rimVis(id) { const o = OBJ[id]; if (o.rim) o.rim.visible = (!!HL && HL.id === id) || !!(presetV() || {}).rims; }
+function makeHighlight(id) {
+  const L = selLobe && lobeCard(selLobe), c0 = L ? L.color : OBJ[id].s.color || "#ffffff", shell = !L && shellIds.has(id);
+  const col = new THREE.Color(c0).lerp(new THREE.Color(0xffffff), 0.45);
+  const mat = new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.5, depthTest: false, depthWrite: false,
+    side: THREE.DoubleSide, clippingPlanes: clipArr });
+  const groups = [], mats = [];
+  for (const [sid, i] of selItems()) {
+    const o = OBJ[sid], ms = pieceMeshes(sid, i); ensureGeom(o);
+    if (L && !pieceOn(sid, i)) continue;
+    mats.push(...ms.map(m => m.material));
+    if (o.s.sub === "sulcus" && (L || !o.s.host)) { if (o.rim && !L) o.rim.visible = true; continue; }   // 腦溝：標示＝溝口細帶，不疊透視的薄片（薄片整片在腦迴底下，疊上去是一大塊）；補洞薄片（host）沒有細帶，單獨選到時照一般構造疊副本
+    if (o.rim && !L) o.rim.visible = true;   // 島葉：環狀溝細帶跟著亮
+    const group = new THREE.Group(); group.renderOrder = 1000;
+    for (const m of ms) {
+      const c = new THREE.Mesh(m.geometry, mat); c.position.copy(m.position); c.renderOrder = 1000;
+      if (m.userData.pin) c.scale.setScalar(2.2);
+      group.add(c);
+    }
+    o.root.add(group); groups.push(group);
+  }
+  HL = { id, groups, mat, mats, t0: performance.now(), done: false, base: shell ? 0.18 : 0.6, glow: new THREE.Color(c0).lerp(new THREE.Color(0xffffff), 0.3) };
+}
+function pulseHighlight(now) {
+  if (!HL) return;
+  // 閃 3.5 下（約 3.7 秒）後停在最亮，之後畫面就不必一直重畫
+  const t = now - HL.t0; if (REDUCED || t >= PULSE_MS) HL.done = true;
+  const k = HL.done ? 1 : 0.5 - 0.5 * Math.cos(t * 0.006);
+  HL.mat.opacity = HL.base * (0.35 + 0.65 * k);
+  const e = HL.glow.clone().multiplyScalar(0.25 + 0.55 * k);
+  HL.mats.forEach(m => m.emissive && m.emissive.copy(e));
+}
+// 在 3D 上直接關掉選中的構造或腦葉（等於清單取消勾選）；下方提示列可以一個一個復原或全部打開
+// offStack：[{key, zh, its: [[id, 第幾塊（null＝整個構造）]]}]，腦葉只記關掉時開著的那幾塊
+let offStack = [];
+function turnOff(key) {
+  const lobe = key.startsWith("lobe:") ? key.slice(5) : null;
+  const its = lobe ? LOBE_ITEMS[lobe].filter(([id, i]) => pieceOn(id, i)) : [[key, null]];
+  its.forEach(([id, i]) => i == null ? OBJ[id].userOn = false : pieceOff(id, i));
+  offStack = offStack.filter(x => x.key !== key); offStack.push({ key, its, zh: lobe ? lobeCard(lobe).zh : OBJ[key].s.zh.replace(/（.*?）/g, "") });
+  select(null); showOffbar();
+}
+const restoreIts = e => e.its.forEach(([id, i]) => i == null ? OBJ[id].userOn = true : pieceRestore(id, i));
+function showOffbar() {
+  offStack = offStack.filter(e => e.its.some(([id, i]) => i == null ? !OBJ[id].userOn : !pieceOn(id, i)));
+  const bar = $("#offbar"); bar.hidden = !offStack.length; if (!offStack.length) return;
+  const last = offStack[offStack.length - 1].zh;
+  bar.querySelector(".msg").textContent = offStack.length > 1 ? `已關掉「${last}」等 ${offStack.length} 個` : `已關掉「${last}」`;
+  $("#bAllOff").hidden = offStack.length < 2;
+}
+$("#bUndoOff").onclick = () => { const e = offStack.pop(); if (e) { restoreIts(e); refreshVis(); } showOffbar(); };
+$("#bAllOff").onclick = () => { offStack.forEach(restoreIts); offStack = []; refreshVis(); showOffbar(); };
+$("#bOffX").onclick = () => { offStack = []; showOffbar(); };
+addEventListener("keydown", e => {
+  if (e.target.closest && e.target.closest("input, textarea")) return;
+  if ((e.key === "h" || e.key === "H") && selId && !e.metaKey && !e.ctrlKey) { e.preventDefault(); turnOff(selId); }
+  if ((e.key === "k" || e.key === "K") && !e.metaKey && !e.ctrlKey && !e.altKey) setKg(!kgOn);
+  if ((e.key === "n" || e.key === "N") && !e.metaKey && !e.ctrlKey && !e.altKey) setLab(!labOn);
+});
+const fold = (sum, body, cls) => `<details class="fold${cls ? " " + cls : ""}"><summary>${sum}</summary>${body}</details>`;
+// 神經節 → 核 → 功能成分（神經節的說明卡）；核的說明卡反查回神經節。收成一行「標題 N 個」，點開才列
+function pairsHtml(s) {
+  const row = (bid, comp, w) => { const b = OBJ[bid] && OBJ[bid].s; return b ? `<div class="pr"><button data-id="${bid}"><i style="background:${b.color}"></i>${esc(b.zh.replace(/（.*?）/g, ""))}</button><b>${comp}</b><span>${esc(w)}</span></div>` : ""; };
+  const out = (h, ps) => [`${h} ${new Set(ps.map(p => p[0])).size} 個`, `<div class="pairs">${ps.map(p => row(...p)).join("")}</div>`];
+  if (s.pairs) return out(s.sub === "sens" ? "一級在這裡 → 二級核" : "節前核", s.pairs);
+  const back = GANG.flatMap(g => g.pairs.filter(p => p[0] === s.id).map(p => [g.id, p[1], p[2], g.sub]));
+  return back.length ? out(back[0][3] === "para" ? "副交感神經節" : "一級神經節", back) : null;
+}
+function rankHtml(s) {
+  const pr = pairsHtml(s), m = s.rank && s.rank.match(/^([^：]+)：(.*)$/s);
+  if (s.rank && pr) return fold(`<b>${m[1]}</b>：${pr[0]}`, m[2] + pr[1], "rank");
+  if (s.rank) return `<div class="rank">${s.rank.replace(/^([^：]+)：/, "<b>$1</b>：")}</div>`;
+  return pr ? fold(pr[0], pr[1]) : "";
+}
+// fn：第一段照舊；第二段以後一段一行點開，標題用段首（「受損」「對照」…）；・開頭的行併入上一段。第二段只有一行的（mgb）不收
+const FN_FOLD = new Set(["mlf", "pprf", "rimlf", "inc", "prepositus", "stt", "ml", "ll", "vttt", "dttt", "stria_med_thal", "vpm", "vpl", "striae"]);
+// 不分段的長說明 7 張（10/19）：第一句照舊，後段依主題一段一行點開。[這段開頭的字, 標題（沒寫就用段首「X：」）, 分項（符合的字後面換行）]
+const FN_SPLIT = {
+  n_vest: [["內側核（", "四個次核", /([；。])(?=.)/g]],
+  n_amb: [["纖維主要走", "支配"], ["下端發出", "副神經延腦根"]],
+  n_NTS: [["由頭到尾分三段：", , /(）、)/g]],
+  pn_V3: [["感覺：下頜"], ["運動："]],
+  corpus_callosum: [["大腦裡 3 個", "3 個 C 形構造"], ["由前到後", "分部"]],
+  fornix: [["和腦室的關係："], ["大腦裡 3 個", "3 個 C 形構造"]],
+  cn_VIIi: [["管運動以外", "4 個功能", /(：|）、)/g]],
+};
+function fnSplit(s) {
+  const at = FN_SPLIT[s.id].map(([k]) => s.fn.indexOf(k));
+  if (at.some((i, j) => i <= (j ? at[j - 1] : 0))) return `<p>${s.fn}</p>`;   // 原文改過、對不上：整段照舊
+  return `<p>${s.fn.slice(0, at[0])}</p>` + FN_SPLIT[s.id].map(([, t, li], j) => {
+    let x = s.fn.slice(at[j], at[j + 1]); const m = !t && x.match(/^([^：，。（<]{1,8})：(.*)$/s);
+    if (m) [t, x] = [m[1], m[2]];
+    return fold(t, `<div>${li ? x.replace(li, "$1<br>") : x}</div>`);
+  }).join("");
+}
+function fnHtml(s) {
+  if (!s.fn) return "";
+  if (FN_SPLIT[s.id]) return fnSplit(s);
+  if (!FN_FOLD.has(s.id)) return `<p>${s.fn}</p>`;
+  const ps = [];
+  s.fn.split("<br>").forEach((x, i) => i > 1 && x.startsWith("・") ? ps[ps.length - 1] += "<br>" + x : ps.push(x));
+  return `<p>${ps[0]}</p>` + ps.slice(1).map(x => {
+    const c = x.match(/^<span class="cmp">(.*)<\/span>$/s), t = c ? c[1] : x;
+    const m = t.match(/^<b>([^<]+)<\/b>：(?:<br>)?(.*)$/s) || t.match(/^([^：，。（<]{1,8})：(.*)$/s), e = !m && t.match(/^([^＝，。（<]{1,8})＝/);
+    return fold(m ? m[1] : e ? e[1] : "對照", `<div${c ? ' class="cmp"' : ""}>${m ? m[2] : t}</div>`);
+  }).join("");
+}
+// 腦葉卡片：葉的界線與功能（L02 LOBE_CARDS）＋這一葉的腦迴、葉內的溝
+function lobeHtml(l, side) {
+  const L = lobeCard(l), lec = lecById[L.lec], its = LOBE_ITEMS[l];
+  const nm = ([sid, i]) => { const s = OBJ[sid].s; return s.zh.replace(/（.*?）/g, "") + (s.plobe ? (i ? "（後塊）" : "（前塊）") : ""); };
+  const gy = its.filter(([sid]) => OBJ[sid].s.sub !== "sulcus").map(nm), su = its.filter(([sid]) => OBJ[sid].s.sub === "sulcus" && !OBJ[sid].s.host).map(nm);
+  return `<button class="x" aria-label="關閉">×</button><h2>${L.zh}</h2><div class="en">${L.en}${side ? " · " + side : ""}</div>
+    <div class="meta"><span class="pill">大腦皮質・腦葉</span>${lec ? `<span class="pill">${lec.short}・${lec.teacher}</span>` : ""}</div>
+    <p>${L.fn}</p><p><b>腦迴</b>：${gy.join("、")}</p>${su.length ? `<p><b>葉內的溝</b>：${su.join("、")}</p>` : ""}`;
+}
+function select(id, point, fly) {
+  clearHighlight();
+  selId = id; selLobe = id && id.startsWith("lobe:") ? id.slice(5) : null;
+  document.querySelectorAll(".row").forEach(r => r.classList.toggle("sel", inSel(r.dataset.id)));
+  document.querySelectorAll(".hit").forEach(h => h.classList.toggle("on", inSel(h.dataset.id)));
+  document.querySelectorAll("#svgwrap [data-id]").forEach(e => e.classList.toggle("selp", inSel(e.dataset.id)));
+  refreshVis();
+  if (!id) { $("#info").hidden = true; return; }
+  makeHighlight(id);
+  const side = point ? (Math.abs(point.x) < 0.6 ? "中線" : point.x > 0 ? "病人左側" : "病人右側") : null;
+  if (selLobe) $("#info").innerHTML = lobeHtml(selLobe, side);
+  else {
+    const s = OBJ[id].s, lec = lecById[s.lec];
+    const [t] = SRC_TAG(s);
+    const comp = s.comp ? `<span class="pill" style="background:${s.color};color:#111">${s.comp}</span>` : "";
+    const note =(t === "示意" && s.note ? s.note.replace(/^依解剖位置建模（示意）：[^。]*。\s*/, "") : s.note || "").trim();
+    $("#info").innerHTML = `<button class="x" aria-label="關閉">×</button><h2>${s.zh}${t === "示意" ? `<span class="tag custom" title="依解剖位置建模（示意）">示意</span>` : ""}</h2><div class="en">${s.en}${side ? " · " + side : ""}</div>
+    <div class="meta">${comp}<span class="pill">${groupName(s)}</span><span class="pill">${lec ? (lec.id === "L00" ? "大體構造" : lec.short + "・" + lec.teacher) : ""}</span></div>
+    ${rankHtml(s)}${fnHtml(s)}${!note ? "" : note.length > 20 ? fold("附註", `<p class="warnbox">${note}</p>`) : `<p class="warnbox">${note}</p>`}`;   // 一行放得下的附註不收
+  }
+  const MODES = [["all", "全部顯示"], ["dim", "其他變淡"], ["skel", "只留大體＋它"], ["only", "只留它"]];
+  $("#info").insertAdjacentHTML("beforeend", `<div class="lbl" style="margin:10px 0 4px">畫面</div><div class="seg" role="group" aria-label="選取時的畫面">${MODES.map(([k, t]) => `<button class="btn" data-mode="${k}" aria-pressed="${viewMode === k}">${t}</button>`).join("")}</div>`);
+  $("#info").querySelectorAll("[data-mode]").forEach(b => b.onclick = () => {
+    viewMode = b.dataset.mode; $("#info").querySelectorAll("[data-mode]").forEach(x => x.setAttribute("aria-pressed", x === b)); refreshVis();
+  });
+  $("#info").insertAdjacentHTML("beforeend", `<button class="btn offbtn" title="${selLobe ? "關掉這一葉的腦迴和葉內的溝" : "等於在左側清單取消勾選"}（快捷鍵 H）">關掉它</button>`);
+  $("#info .offbtn").onclick = () => turnOff(id);
+  $("#info").hidden = false; $("#info .x").onclick = () => select(null);
+  const tg = $("#info h2 .tag");   // 「示意」放在名稱後；名稱因此多一行（名稱太長）就放回 meta 行最後
+  if (tg) { const h2 = tg.parentNode, hB = h2.offsetHeight; tg.hidden = true; if (h2.offsetHeight < hB) $("#info .meta").append(tg); tg.hidden = false; }
+  $("#info").querySelectorAll(".pairs button[data-id]").forEach(b => b.onclick = () => pick(b.dataset.id));
+  if (selLobe) { selBox = new THREE.Box3(); for (const [sid, i] of selItems()) if (pieceOn(sid, i)) for (const me of pieceMeshes(sid, i)) selBox.expandByObject(me); }
+  else selBox = new THREE.Box3().setFromObject(OBJ[id].root);
+  kgCard();
+  placeInfo(true);
+  if (fly && !selLobe && OBJ[id].root.visible && !selBox.isEmpty()) { const c = selBox.getCenter(new THREE.Vector3()); flyTo(c, null, Math.max(55, selBox.getSize(new THREE.Vector3()).length() * 2.2)); }
+}
+// Info card dodges the selected structure: each frame, project its bounding box to the screen and move the
+// card to whichever stage corner covers it least (with some hysteresis so it doesn't flicker while orbiting).
+let selBox = null, infoCorner = null;
+const _pv = new THREE.Vector3();
+function placeInfo(force) {
+  const el = $("#info"), st = $("#stage");
+  if (el.hidden || !selBox || selBox.isEmpty()) return;
+  const W = st.clientWidth, H = st.clientHeight, w = el.offsetWidth, h = el.offsetHeight;
+  const vw = $("#views"), top = vw.offsetTop + vw.offsetHeight + 6;   // below the view buttons (they wrap on phones)
+  const C = matchMedia("(max-width: 820px)").matches
+    ? { b: { bottom: 8, left: 10 }, t: { top, left: 10 } }
+    : { tr: { top, right: 10 }, tl: { top, left: 10 }, br: { bottom: 30, right: 10 }, bl: { bottom: 8, left: 128 } };
+  const rect = p => { const L = p.left ?? W - p.right - w, T = p.top ?? H - p.bottom - h; return [L, T, L + w, T + h]; };
+  let x0 = W, y0 = H, x1 = 0, y1 = 0;
+  for (let i = 0; i < 8; i++) {
+    _pv.set(i & 1 ? selBox.max.x : selBox.min.x, i & 2 ? selBox.max.y : selBox.min.y, i & 4 ? selBox.max.z : selBox.min.z).project(camera);
+    const sx = (_pv.x + 1) / 2 * W, sy = (1 - _pv.y) / 2 * H;
+    x0 = Math.min(x0, sx); y0 = Math.min(y0, sy); x1 = Math.max(x1, sx); y1 = Math.max(y1, sy);
+  }
+  x0 = Math.max(x0, 0); y0 = Math.max(y0, 0); x1 = Math.min(x1, W); y1 = Math.min(y1, H);
+  const cover = r => Math.max(0, Math.min(r[2], x1) - Math.max(r[0], x0)) * Math.max(0, Math.min(r[3], y1) - Math.max(r[1], y0));
+  const fits = r => r[0] >= 0 && r[1] >= 0 && r[2] <= W && r[3] <= H;
+  if (!(infoCorner in C)) { infoCorner = Object.keys(C)[0]; force = true; }
+  const cur = cover(rect(C[infoCorner]));
+  let best = infoCorner, bo = cur;
+  for (const k in C) { const r = rect(C[k]); if (!fits(r)) continue; const o = cover(r); if (o < bo) { bo = o; best = k; } }
+  if (best !== infoCorner && cur - bo > 0.15 * (x1 - x0) * (y1 - y0)) { infoCorner = best; force = true;
+    if (!REDUCED) el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 180 }); }
+  if (force || (C[infoCorner].top != null && el.style.top !== C[infoCorner].top + "px")) { const p = C[infoCorner]; for (const k of ["top", "bottom", "left", "right"]) el.style[k] = p[k] != null ? p[k] + "px" : "auto"; }
+}
+function groupName(s) { const g = D.groups.find(g => g.id === s.group); const sub = g && g.subs.find(x => x.id === s.sub); return g ? (g.zh + (sub && g.id !== "tract" ? "・" + sub.zh : "")) : ""; }
+
+// picking (click without drag)
+const ray = new THREE.Raycaster(), ndc = new THREE.Vector2(); let down = null;
+canvas.addEventListener("pointerdown", e => { down = [e.clientX, e.clientY]; });
+canvas.addEventListener("pointerup", e => {
+  if (!down || Math.hypot(e.clientX - down[0], e.clientY - down[1]) > 6) return;
+  const r = canvas.getBoundingClientRect(); ndc.set((e.clientX - r.left) / r.width * 2 - 1, -(e.clientY - r.top) / r.height * 2 + 1);
+  ray.setFromCamera(ndc, camera);
+  const vis = pickables.filter(m => m.visible && m.parent.visible && m.material.visible !== false && (m.material.opacity > 0.05));
+  if (BVH) vis.forEach(m => m.geometry !== pinGeo && !m.geometry.boundsTree && m.geometry.computeBoundsTree());
+  const hits = ray.intersectObjects(vis, false).filter(h => clipPlane.distanceToPoint(h.point) >= 0);
+  // prefer opaque things (nuclei, tracts) over translucent shells when both are hit
+  const opaque = hits.find(h => h.object.material.opacity >= 0.6 || h.object.userData.pin);
+  const h = opaque || hits[0];
+  let sid = h && h.object.userData.sid, part = h && h.object.userData.part;
+  if (h && !h.object.userData.pin) lastPick = { id: sid, part, point: h.point.clone() };
+  if (h && selWhole && OBJ[sid].lobes && !h.object.userData.pin) return select("lobe:" + OBJ[sid].lobes[part], h.point, false);   // 整塊：選到整個腦葉
+  select(h ? sid : null, h ? h.point : null, false);
+});
+
+// ---------- camera ----------
+let anim = null;
+function finite(v) { return Number.isFinite(v.x + v.y + v.z + (v.w ?? 0)); }   // Vector3／Quaternion 有 NaN 或 Infinity → false
+function flyTo(target, dir, dist) {
+  if (!finite(target) || (dist != null && !Number.isFinite(dist))) return;   // NaN／Infinity 進鏡頭會讓 render 每格出錯、整個畫面全黑
+  const t0 = controls.target.clone(), p0 = camera.position.clone();
+  const d = dir ? dir.clone().normalize() : p0.clone().sub(t0).normalize();
+  const t1 = target.clone(), p1 = t1.clone().add(d.multiplyScalar(dist ?? p0.distanceTo(t0)));
+  const start = performance.now(), dur = matchMedia("(prefers-reduced-motion: reduce)").matches ? 1 : 650;
+  anim = now => { const k = Math.min(1, (now - start) / dur), e = k < .5 ? 2 * k * k : 1 - (-2 * k + 2) ** 2 / 2;
+    controls.target.lerpVectors(t0, t1, e); camera.position.lerpVectors(p0, p1, e); if (k >= 1) anim = null; };
+}
+// 起始鏡頭：預設框住腦幹；開的課程有寫 LECTURE home（例如 L02 整個大腦）時，用最後一堂的
+const HOME = new THREE.Vector3(0, 4, 0);
+const lecHome = () => D.lectures.filter(l => lecAny(l.id) && l.home).pop()?.home;
+const setHome = () => HOME.set(...(lecHome()?.c || [0, 4, 0]));
+setHome();
+const VIEWS = { front: [0, 0.05, 1], back: [0, 0.05, -1], left: [1, 0.05, 0], right: [-1, 0.05, 0], top: [0, 1, 0.02], bottom: [0, -1, 0.02], oblique: [-0.55, 0.3, 0.78], sc_top: [0.3, 0.85, 0.45], sc_back: [0.5, 0.3, -0.8] };   // sc_top：L04 從前上方看 C1 平切斷面（畫面上方＝背側）；sc_back：L04 從左後斜看灰質
+document.querySelectorAll("#views [data-v]").forEach(b => b.onclick = () => flyTo(activeSec ? new THREE.Vector3(...activeSec.c) : HOME, new THREE.Vector3(...VIEWS[b.dataset.v]), camera.position.distanceTo(controls.target)));
+// 舞台 0 尺寸（背景分頁、App 面板還沒排好）時比例當 1：以前 0.8 / 0 → 距離 Infinity → 鏡頭 NaN → three 報「firstElem.toArray is not a function」全黑
+const homeDist = () => { const r = stage.getBoundingClientRect(), a = r.width / r.height;
+  return (lecHome()?.d || 240) * (a > 0 && Number.isFinite(a) ? Math.max(1, 0.8 / a) : 1); };
+const camStart = () => camera.position.copy(new THREE.Vector3(...VIEWS.oblique).normalize().multiplyScalar(homeDist()).add(HOME));
+const camHome = () => { anim = null; controls.target.copy(HOME); camStart(); camera.lookAt(HOME); };   // 朝向也要重設：NaN 位置時 OrbitControls 的 lookAt 已讓 quaternion 變 NaN
+controls.target.copy(HOME); camStart();   // 目標點也要跟 home（L04 起始框整條脊髓，離預設的腦幹很遠）
+let homeLate = !(stage.clientWidth && stage.clientHeight);   // 載入時舞台 0 尺寸：第一次有尺寸時再照畫面比例重算起始距離
+
+// ---------- 3D text tags ----------
+const tagBox = $("#tags"); let TAGS = [];
+let showPinTags = false;
+function buildTags() {
+  tagBox.innerHTML = ""; TAGS = []; labDirty = true;
+  const hideSub = (presetV() || {}).hidesub || [];
+  const add = (txt, p, cls, onclick, sub, n) => { const el = document.createElement("div"); el.className = "t3 " + cls; el.textContent = txt; if (sub) { const i = document.createElement("i"); i.textContent = sub; el.append(i); } if (onclick) el.onclick = onclick; tagBox.append(el); TAGS.push({ el, v: new THREE.Vector3(...p), n: n && new THREE.Vector3(...n) }); };
+  for (const s of D.structures) {
+    if (!shown(s.id)) continue;
+    for (const l of s.labels || []) {
+      if (s.id === "level_ticks") add(l.zh, l.p, "lvl", () => openSection(D.sections.find(x => x.id === l.sec)));
+      else add(l.zh, l.p, l.region ? "region" : l.bone ? "bone" : "div");
+    }
+    if (labOn) for (const l of s.subtags || []) if (!hideSub.includes(l.zh)) add(l.zh, l.p, "pin", null, null, l.n);   // 構造一部分的名稱（海馬旁迴的鉤）：跟著圖上名稱；視角的 hidesub 不標
+    if (sulTags() && s.sub === "sulcus" && s.rim.length) for (const [txt, p] of sulcusTags(s, vcam)) add(txt, p, "sul", () => select(s.id));
+    if (showPinTags && s.pins.length) {
+      const txt = s.cn && s.id.startsWith("exit_") ? "CN " + s.cn : s.zh.replace(/（.*?）/g, "");
+      s.pins.forEach((p, i) => { if (i === 0 || !s.id.startsWith("exit_")) add(txt, [p[0] + (p[0] >= 0 ? 1.2 : -1.2), p[1] + 1.2, p[2]], "pin", null, s.tag2); });
+    }
+  }
+  const V = presetV(); if (labOn && V && V.vtags) for (const t of V.vtags) add(t.zh, t.p, "pin", null, null, t.n);
+}
+const v3 = new THREE.Vector3(), _tn = new THREE.Vector3(), _tm = new THREE.Vector3();
+// 有法向的名稱（鉤）：那一面背對鏡頭、或鏡頭在對側而對側半球沒被切掉（隔著半球）就藏
+function subHidden(t) {
+  const d = _tn.copy(camera.position).sub(t.v);
+  return d.dot(t.n) < 0 || (d.normalize().x * Math.sign(t.v.x) < -0.5 && clipPlane.distanceToPoint(_tm.set(-t.v.x, t.v.y, t.v.z)) >= -0.5);
+}
+function placeTags() {
+  const w = stage.clientWidth, h = stage.clientHeight, ts = keptSide(tagSide);
+  for (const t of TAGS) {
+    v3.copy(t.v).project(camera);
+    const off = v3.z > 1 || clipPlane.distanceToPoint(t.v) < -0.5 || (ts && t.v.x * ts < -0.5) || (t.n && subHidden(t));
+    t.el.hidden = off;
+    if (!off) { t.el.style.left = ((v3.x + 1) / 2 * w) + "px"; t.el.style.top = ((1 - v3.y) / 2 * h) + "px"; }
+  }
+}
+$("#bTags").onclick = e => { showPinTags = !showPinTags; e.currentTarget.setAttribute("aria-pressed", showPinTags); buildTags(); };
+
+// ---------- 圖上名稱（照全身模型） ----------
+// 看得到的構造用 ID 色畫到 1/3 解析度的離屏 target，數每個構造占幾個像素，面積大的標名稱（標在可見區塊重心最近的那一點）；
+// 錨點用射線打回構造上，轉動時名稱跟著模型走，鏡頭停 220 ms 後重挑。
+// ID 色：R、G＝編號（構造＋第幾塊），B＝這個像素在病人左／右（片段的世界 x）、是不是切面。左右鏡像合在同一個 geometry，
+// 分兩側統計，名稱才標在面積大的那一側、不會落在中線
+const labEl = $("#labels"), idRT = new THREE.WebGLRenderTarget(4, 4);
+let labs = [], lastMove = 0, labOn = (() => { try { return localStorage.getItem("b9neuro.lab") === "1"; } catch (e) { return false; } })();
+const LAB_ENT = [], LAB_IX = new Map(), ID_MATS = new Map();
+// 名稱的 span 依構造重用（V116.5）：iOS 點一下後若畫面馬上冒出新的可點元素，會當成 hover 選單把 click 吞掉——
+// 每次點按都會重挑名稱，以前整批刪掉重建，iPhone／iPad 上的按鈕就按不動。挑出來的名稱沒變時 DOM 一點都不動
+const LAB_EL = new Map();
+function clearLabs() { labEl.replaceChildren(); LAB_EL.clear(); labs = []; }
+function labIx(id, part) { const k = id + "|" + (part || 0); let i = LAB_IX.get(k); if (!i) { LAB_ENT.push([id, part || 0]); LAB_IX.set(k, i = LAB_ENT.length); } return i; }
+const idPatch = sh => {
+  sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nvarying float vWx;")
+    .replace("#include <project_vertex>", "#include <project_vertex>\n\tvWx = (modelMatrix * vec4(transformed, 1.0)).x;");
+  sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying float vWx;")
+    .replace("#include <dithering_fragment>", "#include <dithering_fragment>\n\tgl_FragColor.b += (vWx < 0.0 ? 100.0 : 50.0) / 255.0;");
+};
+// B：50 病人左、100 病人右，切面再加 100
+function idMat(ix, cap) {
+  const k = ix * 2 + cap; let m = ID_MATS.get(k);
+  if (!m) { m = new THREE.MeshBasicMaterial({ color: new THREE.Color((ix >> 8 & 255) / 255, (ix & 255) / 255, cap ? 100 / 255 : 0), side: THREE.DoubleSide }); m.onBeforeCompile = idPatch; ID_MATS.set(k, m); }
+  return m;
+}
+const LAB_NT = new Set(["cn_nucleus", "nucleus", "tract"]);   // 切面上的核團、徑路：門檻降低
+const isLobeKey = k => k.startsWith("lobe:");
+function computeLabels() {
+  labDirty = false;
+  if (!labOn) return clearLabs();
+  const W = canvas.clientWidth, H = canvas.clientHeight, f = 3, w = Math.ceil(W / f), h = Math.ceil(H / f);
+  if (w < 2 || h < 2) return clearLabs();
+  labs = [];
+  idRT.setSize(w, h);
+  const A = [], B = [], hid = [], saved = [];
+  for (const id in OBJ) {
+    const o = OBJ[id]; if (!o.root.visible) continue;
+    for (const c of o.root.children) {
+      if (!c.visible) continue;
+      const m = c.material;
+      // 線、溝口細帶、選取的透視副本不畫；透明度 < 0.2 的不標，也不擋後面的
+      if (!c.isMesh || c.userData.sid == null || !m.visible || m.opacity < 0.2) { c.visible = false; hid.push(c); continue; }
+      const im = idMat(labIx(id, c.userData.pin ? 0 : c.userData.part), 0);
+      im.clippingPlanes = m.clippingPlanes; im.depthTest = m.depthTest;
+      saved.push([c, m]); c.material = im; (m.depthWrite || !m.depthTest ? B : A).push(c);
+    }
+  }
+  for (const c of capGroup.children) {
+    const m = c.material, im = idMat(labIx(c.userData.sid, c.userData.part), 1);
+    im.polygonOffset = true; im.polygonOffsetFactor = m.polygonOffsetFactor; im.polygonOffsetUnits = m.polygonOffsetUnits;
+    saved.push([c, m]); c.material = im; B.push(c);
+  }
+  // 兩趟：先畫半透明的（外殼、調淡的皮質），清掉深度再畫不透明的——包在外殼裡的核團、徑路也分得到像素，和畫面上看到的一樣
+  const bg = scene.background, cc = renderer.getClearColor(new THREE.Color()), ca = renderer.getClearAlpha(), ac = renderer.autoClear;
+  try {
+    scene.background = null; renderer.autoClear = false;
+    renderer.setRenderTarget(idRT); renderer.setClearColor(0x000000, 1); renderer.clear();
+    for (const c of B) c.visible = false;
+    renderer.render(scene, camera);
+    renderer.clearDepth(); for (const c of A) c.visible = false; for (const c of B) c.visible = true;
+    renderer.render(scene, camera);
+  } finally {   // 出錯也要還原，不然模型會停在 ID 色
+    for (const c of A) c.visible = true; for (const c of B) c.visible = true;
+    renderer.setRenderTarget(null); renderer.setClearColor(cc, ca); renderer.autoClear = ac; scene.background = bg;
+    for (const [c, m] of saved) c.material = m;
+    for (const c of hid) c.visible = true;
+  }
+  const buf = new Uint8Array(w * h * 4); renderer.readRenderTargetPixels(idRT, 0, 0, w, h, buf);
+  // 像素歸到名稱：構造；整塊模式（或選到腦葉時）腦迴、葉內的溝歸到腦葉，單獨選到的那一條除外。每個名稱分病人左、右兩側統計
+  const keyOf = ([sid, part]) => { const L = OBJ[sid].lobes; return L && sid !== selId && (selWhole || selLobe === L[part]) ? "lobe:" + L[part] : sid; };
+  const NE = LAB_ENT.length, gOf = new Int32Array(NE + 1).fill(-1), G = [], gIx = new Map(), st = [];
+  for (let y = 0, o = 0; y < h; y++) for (let x = 0; x < w; x++, o += 4) {
+    const ix = buf[o] << 8 | buf[o + 1]; if (!ix || ix > NE) continue;
+    let g = gOf[ix];
+    if (g < 0) { const k = keyOf(LAB_ENT[ix - 1]); g = gIx.get(k); if (g == null) { gIx.set(k, g = G.length); G.push(k); } gOf[ix] = g; }
+    const c = Math.round(buf[o + 2] / 50) - 1, r = st[g * 2 + (c & 1)] ||= { n: 0, cap: 0, sx: 0, sy: 0, best: 1e18, bx: 0, by: 0 };
+    r.n++; r.sx += x; r.sy += y; if (c > 1) r.cap++;
+  }
+  for (const r of st) if (r) { r.cx = r.sx / r.n; r.cy = r.sy / r.n; }
+  for (let y = 0, o = 0; y < h; y++) for (let x = 0; x < w; x++, o += 4) {
+    const ix = buf[o] << 8 | buf[o + 1]; if (!ix || ix > NE) continue;
+    const r = st[gOf[ix] * 2 + ((Math.round(buf[o + 2] / 50) - 1) & 1)], d = (x - r.cx) ** 2 + (y - r.cy) ** 2;
+    if (d < r.best) { r.best = d; r.bx = x; r.by = y; }
+  }
+  // 必標：選取的構造（或腦葉）、路徑導覽時路徑上的構造（點了步驟／病灶＝那一步的構造）
+  const must = new Set(selId ? [selId] : []), minPx = 1200 / (f * f);
+  if (focus) (stepSet || focus.ids || []).forEach(k => must.add(k));
+  // 畫面上已有固定名稱的不再標：腦幹分區、脊髓節段等 s.labels；開著地標名稱時的出腦處等 pins；課本視角「腦溝（整顆）」標了的溝；
+  // 和畫面上固定標籤同名的（分界線構造標了「中腦、橋腦、延腦」，中腦本身就不再標）
+  const tagTxt = new Set([...tagBox.children].filter(e => !e.hidden).map(e => e.textContent.trim()));
+  const fixed = s => (s.labels || []).length || (showPinTags && s.pins.length) || (sulTags() && s.sub === "sulcus" && s.rim.length && sulcusTags(s, vcam).length) || tagTxt.has(short(s));
+  const cand = [], only = (presetV() || {}).labs || (activeSec && activeSec.only_labels ? activeSec.labels : null);   // only_labels 切片：只標投影片有標的
+  G.forEach((k, g) => {
+    const s = !isLobeKey(k) && OBJ[k].s; if (s && fixed(s)) return;
+    if (only && !must.has(k) && (!s || !only.includes(k))) return;
+    const L = st[2 * g], R = st[2 * g + 1], n = (L ? L.n : 0) + (R ? R.n : 0), cap = (L ? L.cap : 0) + (R ? R.cap : 0), m = must.has(k);
+    if (m || n >= minPx || (s && LAB_NT.has(s.group) && cap >= 4)) cand.push({ k, n, m, r: !R || (L && L.n >= R.n) ? L : R });
+  });
+  cand.sort((x, y) => (y.m - x.m) || y.n - x.n);
+  for (const c of cand.slice(0, 80)) {
+    const lobe = isLobeKey(c.k) ? c.k.slice(5) : null, s = !lobe && OBJ[c.k].s;
+    const its = lobe ? LOBE_ITEMS[lobe].filter(([sid]) => sid !== selId) : [[c.k, null]], sids = new Set(its.map(x => x[0]));
+    const ms = [...its.flatMap(([sid, i]) => pieceMeshes(sid, i)).filter(m => m.parent.visible && m.geometry !== EMPTY && m.material.visible && m.material.opacity >= 0.2),
+                ...capGroup.children.filter(m => sids.has(m.userData.sid))];
+    if (BVH) ms.forEach(m => m.geometry !== pinGeo && m.parent !== capGroup && !m.geometry.boundsTree && m.geometry.computeBoundsTree());
+    const sx = (c.r.bx + 0.5) * f, sy = H - (c.r.by + 0.5) * f;
+    ndc.set(sx / W * 2 - 1, -sy / H * 2 + 1); ray.setFromCamera(ndc, camera);
+    const hit = ray.intersectObjects(ms, false).find(x => (x.object.material.clippingPlanes || []).every(p => p.distanceToPoint(x.point) >= -0.5));
+    if (!hit) continue;
+    // 考 N：構造＝構造卡「國考 N」（路徑題不算）；腦葉＝葉本身＋葉內腦迴＋葉內的溝（同一題只算一次）
+    let kn = 0;
+    if (kgOn && lobe) { const q = new Set(); [...kgAt("lobe", lobe), ...LOBE_ITEMS[lobe].flatMap(([sid]) => kgAt("s", sid))].forEach(r => r.q.forEach(j => q.add(j))); kn = q.size; }
+    else if (kgOn) kn = kgNq(kgAt("s", c.k));
+    const Lc = lobe && lobeCard(lobe), name = lobe ? (Lc ? Lc.zh : lobe) : short(s), col = (lobe ? Lc && Lc.color : paintOf(c.k) || s.color) || "#999", sig = name + "|" + kn + "|" + col;
+    let el = LAB_EL.get(c.k);
+    if (!el) { el = document.createElement("span"); el.onclick = () => select(c.k, null, false); LAB_EL.set(c.k, el); }
+    if (el._sig !== sig) {
+      el._sig = sig; el._ow = 0; el.textContent = name; el.style.setProperty("--c", col);
+      if (kn) { const b = document.createElement("b"); b.textContent = "考 " + kn; el.append(b); }
+    }
+    labs.push({ k: c.k, p: hit.point.clone(), el, ms, w: name.length * 11.5 + 12 + (kn ? 34 : 0) });
+  }
+  const keep = new Set(labs.map(L => L.el));
+  for (const [k, el] of LAB_EL) if (!keep.has(el)) { el.remove(); LAB_EL.delete(k); }
+  for (const L of labs) if (!L.el.parentNode) labEl.append(L.el);
+  // 實際寬度（右邊界用；一次量完，不和寫入交錯）。被重疊藏起來的量不到，用上次量的
+  for (const L of labs) L.ow = L.el._ow = L.el.offsetWidth || L.el._ow;
+  placeLabels();
+}
+const _lv = new THREE.Vector3();
+function placeLabels() {
+  if (!labs.length) return;
+  const w = canvas.clientWidth, h = canvas.clientHeight, boxes = [];
+  for (const t of TAGS) if (t.n && !t.el.hidden) boxes.push([parseFloat(t.el.style.left), parseFloat(t.el.style.top), 9]);   // 鉤的位置先占住，名稱避開
+  for (const L of labs) {
+    _lv.copy(L.p).project(camera);
+    if (_lv.z > 1 || Math.abs(_lv.x) > 1 || Math.abs(_lv.y) > 1 || clipPlane.distanceToPoint(L.p) < -0.5 || !L.ms.some(m => m.parent && m.parent.visible && m.material.visible)) { L.el.style.display = "none"; continue; }
+    // 名稱碰到畫面右邊就往左移（V116.1）、碰到左邊就往右移（V116.2），整個名稱留在畫面內
+    const ow2 = (L.ow || L.w) / 2, y = (1 - _lv.y) / 2 * h, hw = L.w / 2, x = Math.max(2 + ow2, Math.min((_lv.x + 1) / 2 * w, w - 2 - ow2));
+    if (boxes.some(b => Math.abs(b[0] - x) < hw + b[2] && Math.abs(b[1] - y) < 17)) { L.el.style.display = "none"; continue; }   // 重疊：先放的（選取的、面積大的）留著
+    boxes.push([x, y, hw]); L.el.style.display = ""; L.el.style.left = x + "px"; L.el.style.top = y + "px";
+  }
+}
+// 第一次是關的，之後記在這台瀏覽器（同國考 K）
+function setLab(on) {
+  labOn = on; try { localStorage.setItem("b9neuro.lab", on ? "1" : "0"); } catch (e) {}
+  $("#bLab").setAttribute("aria-pressed", on); if (!on) clearLabs(); buildTags(); invalidate();
+}
+$("#bLab").onclick = () => setLab(!labOn); $("#bLab").setAttribute("aria-pressed", labOn);
+controls.addEventListener("change", () => { lastMove = performance.now(); });
+
+// ---------- orientation gizmo ----------
+const gz = $("#gizmo"), gctx = gz.getContext("2d");
+const AX = [ { v: [0, 1, 0], a: "吻側", b: "尾側" }, { v: [0, 0, -1], a: "背側", b: "腹側" }, { v: [1, 0, 0], a: "左 L", b: "右 R" } ];
+function drawGizmo() {
+  const W = gz.width, c = W / 2, R = W * 0.34; gctx.clearRect(0, 0, W, W);
+  const q = camera.quaternion.clone().invert(), items = [];
+  for (const ax of AX) for (const sgn of [1, -1]) {
+    const p = new THREE.Vector3(...ax.v).multiplyScalar(sgn).applyQuaternion(q);
+    items.push({ x: c + p.x * R, y: c - p.y * R, z: p.z, t: sgn > 0 ? ax.a : ax.b, main: sgn > 0 });
+  }
+  items.sort((a, b) => a.z - b.z);
+  const ink = css("--ink"), mute = css("--mute"), acc = css("--accent");
+  for (const it of items) {
+    gctx.globalAlpha = it.z < -0.2 ? 0.45 : 1;
+    gctx.strokeStyle = it.main ? acc : mute; gctx.lineWidth = it.main ? 4 : 2;
+    gctx.beginPath(); gctx.moveTo(c, c); gctx.lineTo(it.x, it.y); gctx.stroke();
+    gctx.fillStyle = it.main ? ink : mute; gctx.font = `${it.main ? 600 : 400} 22px "Noto Sans TC", sans-serif`; gctx.textAlign = "center"; gctx.textBaseline = "middle";
+    gctx.fillText(it.t, c + (it.x - c) * 1.32, c + (it.y - c) * 1.32);
+  }
+  gctx.globalAlpha = 1;
+}
+
+// ---------- sections ----------
+let corAuto = new Set();   // 冠狀切片自動打開的構造
+let activeSec = null, keepUpper = false, clipOn = true, svgLabels = true, sagOn = false;
+const capGroup = new THREE.Group(); scene.add(capGroup);
+const LAYER = s => s.group === "skeleton" ? (shellIds.has(s.id) ? 0 : s.sub === "ventricle" && s.id !== "sup_med_velum" ? 2 : 1) : s.group === "tract" ? 3 : s.group === "nerve" ? 3 : 4;
+const secs = [...D.sections].sort((a, b) => a.lec.localeCompare(b.lec) || a.n - b.n);
+const COR = sec => sec && sec.kind === "cor", SC = sec => sec && sec.kind === "sc";
+const secName = sec => COR(sec) ? `冠狀 ${sec.tag} ${esc(sec.zh)}` : SC(sec) ? `脊髓 ${esc(sec.zh)}` : `第 ${sec.n} 層 ${esc(sec.zh)}`;
+// 冠狀切片：只有大腦白質當底（外殼層），間腦、腦幹照一般構造上色
+// 脊髓橫切（L04）：硬膜囊墊最底、脊髓白質當底，其餘照一般圖層
+const LAY = (sec, s) => SC(sec) ? (s.id === "sc_dura" ? -1 : s.id === "sc_wm" ? 0 : LAYER(s)) : !COR(sec) ? LAYER(s) : s.id === "hemisphere" ? 0 : s.sub === "ventricle" ? 2 : s.group === "tract" || s.group === "nerve" ? 3 : 4;
+function secBasis(sec) { return { c: new THREE.Vector3(...sec.c), n: new THREE.Vector3(...sec.nrm), u: new THREE.Vector3(...sec.u), v: new THREE.Vector3(...sec.v) }; }
+// 切成兩塊的腦迴：切面輪廓（重心）屬第幾塊（沒切塊＝null）；那一塊沒畫就不畫輪廓，顏色用那一塊的
+function loopPiece(id, L, B) {
+  const o = OBJ[id]; if (!o.s.plobe) return null;
+  let u = 0, v = 0; const n = L.length / 2; for (let i = 0; i < L.length; i += 2) { u += L[i]; v += L[i + 1]; }
+  const P = B.c.clone().addScaledVector(B.u, u / n).addScaledVector(B.v, v / n);
+  return pieceAt(o.s, P.x, P.y, P.z);
+}
+const pieceColor = (id, pc) => paintOf(id, pc) || (pc == null ? OBJ[id].s.color : OBJ[id].pieceCol[pc]);
+// 舊切面要 dispose：只 clear 的話 geometry／material 留在 GPU，切換幾十次手機就記憶體不足、WebGL 斷線（畫面停住）
+function clearCaps() { for (const m of capGroup.children) { m.geometry.dispose(); m.material.dispose(); } capGroup.clear(); labDirty = true; }
+function drawCaps(sec, sgnArg) {
+  clearCaps(); if (!clipOn) return;
+  const B = secBasis(sec), sgn = sgnArg ?? (keepUpper ? -1 : 1);
+  // 矢狀切面落在第三腦室、導水管、第四腦室裡：腦室不畫切面，才看得到後方的視丘／下視丘內側壁（像投影片 pg.8 的空腔）
+  const ids = Object.keys(sec.cuts).filter(id => shown(id) && !(sec === D.sagittal && LAYER(OBJ[id].s) === 2))
+    .sort((a, b) => LAY(sec, OBJ[a].s) - LAY(sec, OBJ[b].s));
+  ids.forEach((id, k) => {
+    const s = OBJ[id].s, byCol = {}, pcOf = {};
+    for (const L of sec.cuts[id]) {
+      const pc = loopPiece(id, L, B); if (pc != null && pieceHidden(id, pc)) continue;
+      const pts = []; for (let i = 0; i < L.length; i += 2) pts.push(new THREE.Vector2(L[i], L[i + 1])); if (pts.length > 2) { (byCol[pieceColor(id, pc)] ||= []).push(new THREE.Shape(pts)); pcOf[pieceColor(id, pc)] = pc || 0; }
+    }
+    const shell = LAY(sec, s) <= 0;
+    for (const c in byCol) {
+      const m = new THREE.MeshBasicMaterial({ color: shell ? new THREE.Color(c).lerp(new THREE.Color(css("--panel")), 0.35) : c, side: THREE.DoubleSide,
+        depthWrite: true, polygonOffset: true, polygonOffsetFactor: -1 - k, polygonOffsetUnits: -4 - 4 * k });
+      const mesh = new THREE.Mesh(new THREE.ShapeGeometry(byCol[c]), m); mesh.renderOrder = 10 + k;
+      const off = B.n.clone().multiplyScalar(sgn * (0.02 + 0.004 * k));
+      mesh.matrixAutoUpdate = false; mesh.matrix.makeBasis(B.u, B.v, B.n).setPosition(B.c.clone().add(off)); mesh.userData.sid = id; mesh.userData.part = pcOf[c];
+      capGroup.add(mesh);
+    }
+  });
+}
+// 切面一變，腦溝名稱（位置要避開切掉的部分、標哪半球看切面）重算
+function setClip() {
+  applyClip();
+  for (const k in _stag) delete _stag[k];
+  if (sulTags()) buildTags();
+}
+function applyClip() {
+  if (sagOn) {   // 正中矢狀切面：保留病人右半（-X），切面朝病人左側
+    const B = secBasis(D.sagittal); clipPlane.setFromNormalAndCoplanarPoint(B.n.clone().negate(), B.c); drawCaps(D.sagittal, 1); return;
+  }
+  if (!activeSec || !clipOn) { clipPlane.set(new THREE.Vector3(0, -1, 0), 1e6); clearCaps(); return; }
+  const B = secBasis(activeSec);
+  const nn = keepUpper ? B.n.clone() : B.n.clone().negate();        // keep caudal half: normal points caudally
+  clipPlane.setFromNormalAndCoplanarPoint(nn, B.c);
+  drawCaps(activeSec);
+}
+function faceView() {
+  if (!activeSec) return; const B = secBasis(activeSec);
+  const dir = B.n.clone().multiplyScalar(keepUpper ? -1 : 1).add(B.v.clone().multiplyScalar(0.25));
+  flyTo(B.c, dir, (COR(activeSec) ? 420 : SC(activeSec) ? 55 : 75) * Math.max(1, 0.9 / camera.aspect));
+}
+// 依課程分組，只列開著的課程；L01＝腦幹 9 個橫切面，L02＝大腦 6 個冠狀切片
+const SECHEAD = { ax: n => `老師的 ${n} 個腦幹橫切面（尾側 → 吻側）`, cor: n => `大腦 ${n} 個冠狀切片（前 → 後）`, sc: n => `脊髓 ${n} 個橫切面（上 → 下）` };
+function buildSecList() {
+  const W = $("#seclist"); W.innerHTML = "";
+  for (const lec of [...new Set(secs.map(s => s.lec))].filter(lecAny)) {
+    const ss = secs.filter(s => s.lec === lec), lb = document.createElement("div"), L = document.createElement("div");
+    lb.className = "lbl"; lb.style.marginTop = "2px"; lb.textContent = SECHEAD[ss[0].kind](ss.length); L.className = "seclist";
+    for (const s of ss) {
+      const b = document.createElement("button"); b.className = "secbtn"; b.dataset.id = s.id; b.setAttribute("aria-pressed", String(activeSec === s));
+      b.innerHTML = `<span class="num">${s.tag}</span><span>${s.zh}</span>`; b.title = `${s.tag}. ${s.zh}`;
+      b.onclick = () => activeSec && activeSec.id === s.id ? closeSection() : openSection(s);
+      L.append(b);
+    }
+    W.append(lb, L);
+  }
+}
+function openSection(s) {
+  if (sagOn) { sagOn = false; $("#bSag").setAttribute("aria-pressed", "false"); }
+  activeSec = s; document.querySelectorAll(".secbtn").forEach(b => b.setAttribute("aria-pressed", b.dataset.id === s.id));
+  if (COR(s) || SC(s)) {   // 冠狀切片照投影片：大腦白質與投影片有標的構造打開（預設多半關著），小腦與腦溝關掉；脊髓橫切只補開投影片有標的
+    if (COR(s)) for (const id in OBJ) { const x = OBJ[id].s; if (x.sub === "cerebellum" || x.sub === "sulcus") OBJ[id].userOn = false; }
+    const want = new Set([COR(s) ? "hemisphere" : "sc_wm", ...s.labels]);
+    for (const id of corAuto) if (!want.has(id)) OBJ[id].userOn = false;   // 上一張自動打開的關回去（使用者自己開的不動）
+    corAuto = new Set([...corAuto].filter(id => want.has(id)));
+    for (const id of want) if (!OBJ[id].userOn) { OBJ[id].userOn = true; corAuto.add(id); }
+    refreshVis();
+  }
+  else if (corAuto.size) { for (const id of corAuto) OBJ[id].userOn = false; corAuto = new Set(); refreshVis(); }
+  keepText();
+  $("#secview").hidden = false; $("#secIntro").hidden = true; $("#bench").classList.add("active");
+  setClip(); faceView(); drawSvg(); fillHits();
+  setTab("sec");
+  if (innerWidth <= 820) { if (!$("#bench").classList.contains("open")) openSheet("bench"); } else setPanel("bench", true);
+}
+// 矢狀切面：獨立開關（不改圖層開關，可與腦幹外觀並用）；和橫切面共用同一個切面，所以兩者互斥
+function setSag(on) {
+  sagOn = on; $("#bSag").setAttribute("aria-pressed", on);
+  if (on && dorsMode) setDors(false);
+  if (on && activeSec) closeSection();
+  setClip();
+  if (on) flyTo(new THREE.Vector3(0, 12, 6), new THREE.Vector3(1, 0.08, 0), 230 * Math.max(1, 0.9 / camera.aspect));
+}
+$("#bSag").onclick = () => setSag(!sagOn);
+function closeSection() {
+  if (corAuto.size) { for (const id of corAuto) OBJ[id].userOn = false; corAuto = new Set(); refreshVis(); }   // 冠狀切片自動打開的關回去
+  activeSec = null; document.querySelectorAll(".secbtn").forEach(b => b.setAttribute("aria-pressed", "false"));
+  $("#secview").hidden = true; $("#secIntro").hidden = false; $("#bench").classList.remove("active"); setClip();
+}
+$("#bClip").onclick = e => { clipOn = !clipOn; e.currentTarget.setAttribute("aria-pressed", clipOn); setClip(); };
+// 「保留哪一半」：腦幹橫切面＝上／下半段；冠狀切片＝前／後半段（預設保留後半段、從前面看）
+function keepText() { $("#bKeep").textContent = COR(activeSec) ? (keepUpper ? "改看後半段" : "改看前半段") : (keepUpper ? "改看下半段" : "改看上半段"); }
+$("#bKeep").onclick = e => { keepUpper = !keepUpper; e.currentTarget.setAttribute("aria-pressed", keepUpper); keepText(); setClip(); faceView(); };
+$("#bFace").onclick = faceView;
+$("#bSecOff").onclick = closeSection;
+$("#bSvgLab").onclick = e => { svgLabels = !svgLabels; e.currentTarget.setAttribute("aria-pressed", svgLabels); drawSvg(); };
+
+const NS = "http://www.w3.org/2000/svg";
+// 圖上短名：構造有 short 欄（L00／L01 的 add）就用它，否則去括號、顱神經只留「CN N」
+const short = s => s.short || s.zh.replace(/（.*?）/g, "").replace(/^CN (\S+) .*/, "CN $1");
+function drawSvg() {
+  const s = activeSec, W = $("#svgwrap"), cor = COR(s); W.innerHTML = "";
+  const frame = cor ? ["hemisphere", "midbrain", "pons"] : SC(s) ? ["sc_wm", "sc_dura"] : ["midbrain", "pons", "medulla", "cord"];
+  const all = []; for (const id in s.cuts) if (frame.includes(id)) for (const L of s.cuts[id]) for (let i = 0; i < L.length; i += 2) all.push([L[i], L[i + 1]]);
+  let x0 = -14, x1 = 14, y0 = -12, y1 = 14;
+  if (all.length) { x0 = Math.min(...all.map(p => p[0])); x1 = Math.max(...all.map(p => p[0])); y0 = Math.min(...all.map(p => p[1])); y1 = Math.max(...all.map(p => p[1])); }
+  const k = cor ? 3 : 1;   // 冠狀切片約 130 mm 寬，字、間距、圓點都放大
+  const m = 2.5 * k, half = Math.min(24 * k * 1.1, Math.max(Math.abs(x0), Math.abs(x1))) + m; x0 = -half; x1 = half;
+  y0 = (cor ? y0 : Math.max(y0, -24)) - m; y1 = (cor ? y1 : Math.min(y1, 26)) + m;
+  if (svgLabels) x1 += 9 * k;   // room for the label column on the patient-left side
+  const svg = document.createElementNS(NS, "svg"); svg.setAttribute("viewBox", `${x0} ${-y1} ${x1 - x0} ${y1 - y0}`);
+  const ids = Object.keys(s.cuts).filter(id => isOn(id)).sort((a, b) => LAY(s, OBJ[a].s) - LAY(s, OBJ[b].s));
+  const labs = [];
+  for (const id of ids) {
+    const st = OBJ[id].s, shell = LAY(s, st) <= 0, SB = st.plobe && secBasis(s);
+    for (const L of s.cuts[id]) {
+      const pc = SB ? loopPiece(id, L, SB) : null; if (pc != null && pieceHidden(id, pc)) continue;
+      let d = ""; for (let i = 0; i < L.length; i += 2) d += (i ? "L" : "M") + L[i].toFixed(2) + " " + (-L[i + 1]).toFixed(2);
+      const p = document.createElementNS(NS, "path"); p.setAttribute("d", d + "Z"); p.dataset.id = id; p.dataset.base = shell ? 0.25 : 0.12;
+      p.setAttribute("fill", pieceColor(id, pc)); p.setAttribute("fill-opacity", shell ? 0.28 : LAY(s, st) === 2 ? 0.7 : 0.88);
+      p.setAttribute("stroke", shell ? css("--mute") : "#000"); p.setAttribute("stroke-opacity", shell ? 0.8 : 0.35); p.setAttribute("stroke-width", p.dataset.base);
+      p.setAttribute("vector-effect", "non-scaling-stroke"); p.style.cursor = "pointer"; p.onclick = () => select(id, null, false);
+      if (inSel(id)) p.classList.add("selp");
+      svg.append(p);
+      // 背景層不標名稱；但投影片有標的（s.labels）照樣標（V116.2）
+      if ((!shell || (s.labels || []).includes(id)) && (!s.only_labels || s.labels.includes(id)) && L.length >= 6) { let cx = 0, cy = 0, n = L.length / 2; for (let i = 0; i < L.length; i += 2) { cx += L[i]; cy += L[i + 1]; } labs.push({ id, x: cx / n, y: cy / n }); }
+    }
+  }
+  for (const id in s.pins || {}) if (isOn(id)) for (const [u, v] of s.pins[id]) {
+    const c = document.createElementNS(NS, "circle"); c.setAttribute("cx", u); c.setAttribute("cy", -v); c.setAttribute("r", 0.55 * k); c.setAttribute("fill", "#ffcf4a"); c.setAttribute("stroke", "#000"); c.setAttribute("stroke-width", 0.08); c.dataset.id = id; c.onclick = () => select(id, null, false); svg.append(c);
+    if (!s.only_labels || s.labels.includes(id)) labs.push({ id, x: u, y: v });
+  }
+  if (svgLabels) {
+    // one label per structure on the patient-left half; stack them in a column without overlap, inside the frame
+    const seen = new Set(), L = [];
+    for (const l of labs.filter(l => l.x >= -0.3).sort((a, b) => b.y - a.y)) { if (!seen.has(l.id)) { seen.add(l.id); L.push(l); } }
+    const top = y1 - (cor ? 4 : 2.2) * k, bot = y0 + 0.8 * k, gap = Math.min(1.25 * k, (top - bot) / Math.max(1, L.length - 1));
+    const fs = Math.min(1.05 * k, gap * 0.9);
+    let prev = Infinity; L.forEach(l => { l.ty = Math.min(l.y, prev - gap, top); prev = l.ty; });
+    L.forEach((l, i) => { l.ty = Math.max(l.ty, bot + (L.length - 1 - i) * gap); });   // push up from the bottom; gap guarantees the stack fits
+    for (const l of L) {
+      const txt = short(OBJ[l.id].s);
+      const t = document.createElementNS(NS, "text"); t.setAttribute("x", x1 - 0.6 * k); t.setAttribute("y", -l.ty + fs * 0.35); t.setAttribute("text-anchor", "end");
+      t.setAttribute("font-size", fs); t.setAttribute("fill", css("--ink")); t.textContent = txt; t.dataset.id = l.id; t.style.cursor = "pointer"; t.onclick = () => select(l.id, null, false);
+      const ln = document.createElementNS(NS, "line"); ln.setAttribute("x1", l.x); ln.setAttribute("y1", -l.y); ln.setAttribute("x2", x1 - 0.9 * k - txt.length * fs); ln.setAttribute("y2", -l.ty);
+      ln.setAttribute("stroke", css("--mute")); ln.setAttribute("stroke-width", 0.6); ln.setAttribute("vector-effect", "non-scaling-stroke"); ln.setAttribute("stroke-opacity", 0.7);
+      svg.append(ln, t);
+    }
+  }
+  W.append(svg);
+  const o = (txt, st) => { const e = document.createElement("div"); e.className = "o"; e.textContent = txt; Object.assign(e.style, st); W.append(e); };
+  o(cor ? "上 S" : "背側 D", { top: "4px", left: "50%", transform: "translateX(-50%)" }); o(cor ? "下 I" : "腹側 V", { bottom: "4px", left: "50%", transform: "translateX(-50%)" });
+  o("右 R", { left: "6px", top: "50%" }); o("左 L", { right: "6px", top: "4px" });
+  $("#secnote").innerHTML = `<b>${cor ? `冠狀切片 ${s.tag}：${s.zh}` : SC(s) ? `脊髓橫切 ${s.tag}：${s.zh}` : `第 ${s.n} 層：${s.zh}`}</b><br>${s.note || ""}`;
+}
+function hitChip(id, miss) {
+  const st = OBJ[id].s, b = document.createElement("button"); b.className = "hit" + (miss ? " miss" : ""); b.dataset.id = id;
+  b.innerHTML = `<span class="sw" style="background:${st.color}"></span>${short(st)}`; b.title = miss ? "模型在這一層沒有切到（點開看原因）" : st.en;
+  b.onclick = () => { if (!OBJ[id].userOn) { OBJ[id].userOn = true; refreshVis(); } select(id, null, false); }; return b;
+}
+function fillHits() {
+  const s = activeSec, H = $("#hits"), S = $("#slideLabs"); H.innerHTML = ""; S.innerHTML = "";
+  const cut = new Set([...Object.keys(s.cuts), ...Object.keys(s.pins || {})]);
+  const ids = [...cut].filter(id => OBJ[id].s.group !== "skeleton" || OBJ[id].s.sub !== "axis").sort((a, b) => LAY(s, OBJ[a].s) - LAY(s, OBJ[b].s) || OBJ[a].s.group.localeCompare(OBJ[b].s.group));
+  ids.forEach(id => H.append(hitChip(id, false)));
+  for (const id of s.labels) S.append(hitChip(id, !cut.has(id)));
+  const nMiss = s.labels.filter(id => !cut.has(id)).length;
+  if (nMiss) { const n = document.createElement("div"); n.className = "note"; n.style.width = "100%"; n.textContent = `虛線框 ${nMiss} 個＝投影片有標、模型這層沒切到（多半是模型核團的上下範圍和課本不同，點開看說明）。`; S.append(n); }
+}
+
+// ---------- mobile sheets ----------
+function openSheet(which) {
+  for (const w of ["layers", "bench"]) { const on = w === which && !$("#" + w).classList.contains("open"); $("#" + w).classList.toggle("open", on); }
+  syncPanelButtons();
+}
+// 右側面板的分頁：切面／核團對照表／導覽
+let benchTab = "sec";
+function setTab(tab) {
+  $("#app").classList.toggle("wide-bench", tab === "guide");
+  benchTab = tab; $("#paneSec").hidden = tab !== "sec"; $("#paneFc").hidden = tab !== "fc"; $("#paneGuide").hidden = tab !== "guide";
+  document.querySelectorAll("#bench [data-tab]").forEach(b => b.setAttribute("aria-pressed", b.dataset.tab === tab));
+  syncPanelButtons();
+}
+document.querySelectorAll("#bench [data-tab]").forEach(b => b.onclick = () => setTab(b.dataset.tab));
+const benchOpen = () => isDesk() ? !$("#app").classList.contains("hide-bench") : $("#bench").classList.contains("open");
+function toggleBenchTab(tab) {
+  const close = benchOpen() && benchTab === tab;
+  if (!close) setTab(tab);
+  if (isDesk()) setPanel("bench", !close); else openSheet(close ? "" : "bench");
+}
+// 桌機：切換面板收合；手機：底部抽屜（一次只開一個）
+const isDesk = () => innerWidth > 820;
+function setPanel(w, on) {
+  $("#app").classList.toggle(w === "layers" ? "hide-layers" : "hide-bench", !on);
+  syncPanelButtons();
+}
+function syncPanelButtons() {
+  const lay = isDesk() ? !$("#app").classList.contains("hide-layers") : $("#layers").classList.contains("open");
+  $("#bLayers").setAttribute("aria-pressed", lay);
+  const b = benchOpen();
+  $("#bBench").setAttribute("aria-pressed", b && benchTab === "sec"); $("#bFc").setAttribute("aria-pressed", b && benchTab === "fc");
+}
+$("#bLayers").onclick = () => isDesk() ? setPanel("layers", $("#app").classList.contains("hide-layers")) : openSheet("layers");
+$("#bBench").onclick = () => toggleBenchTab("sec");
+$("#bFc").onclick = () => toggleBenchTab("fc");
+$("#bBenchX").onclick = () => isDesk() ? setPanel("bench", false) : openSheet("");   // 不管在哪個分頁都收起
+addEventListener("resize", syncPanelButtons);
+syncPanelButtons();
+
+// ---------- share（Artifact 在 iframe 裡，那個網址不是使用者看到的，所以不顯示） ----------
+{ let framed = true; try { framed = window.self !== window.top; } catch (e) {}
+  const b = $("#bShare"); b.hidden = framed;
+  b.onclick = () => navigator.clipboard.writeText(location.href)
+    .then(() => { b.textContent = "已複製"; setTimeout(() => b.textContent = "分享", 1500); })
+    .catch(() => prompt("複製這個網址", location.href)); }
+
+// ---------- about ----------
+$("#bAbout").onclick = () => {
+  const r = D.meta.registration, row = (k, x) => `<tr><td>${k}</td><td>${x.brainstem.mean}</td><td>${x["4th ventricle"].mean}</td><td>${x.thalamus.mean}</td><td>${x.brainstem.p90}</td></tr>`;
+  $("#aboutBody").innerHTML = `
+  <p><b>骨架座標＝Z-Anatomy</b>（CC BY-SA 4.0）：腦幹、小腦、腦室、間腦、顱神經核與顱神經曲線都直接取自 Z-Anatomy 的 Blender 檔，以 Blender headless 匯出 mesh 再用 three.js 呈現。座標：病人左＝+X、吻側＝+Y、腹側＝+Z，單位 mm。</p>
+  <p><b>傳導束＝雛型 1</b>：HCP1065（Yeh 2022）與 HCP842（Yeh 2018）族群纖維 atlas（CC BY-SA 4.0，Human Connectome Project）。先以多結構 ICP 做 MNI→Z-Anatomy 仿射對位，再用薄板樣條（TPS）平滑微調。表面距離誤差（mm）：</p>
+  <div style="overflow-x:auto"><table><tr><th>方法</th><th>腦幹平均</th><th>第四腦室</th><th>視丘</th><th>腦幹 p90</th></tr>${row("仿射", r.affine)}${row("仿射＋TPS", r["affine+TPS"])}</table></div>
+  <p>MNI 模板的腦幹只到 z = −50 mm，對位後落在 Z-Anatomy 橋延溝下約 4 mm；延腦更下方的錐體交叉、內弓纖維、前外側系統等以管狀「橋接束」示意。</p>
+  <p><b>自建示意（標 <span class="tag custom">示意</span>）</b>：三叉神經四個核與脊髓徑、黑質、薄核、楔核、上橄欖核、PAG、藍斑、橋腦核、斜方體、顏面神經內膝、前三叉丘腦徑、前庭脊髓徑等，依投影片橫切面相對於 Z-Anatomy 的腦室與外形擺放。PAG 範圍參考 Harvard AAN。</p>
+  <p><b>Z-Anatomy 需留意</b>：前庭核只有一團且偏腹側、偏上（模型改用依教科書位置自建的四個次核）；舌下神經核、迷走背核、疑核只從 obex 稍上方開始；耳蝸前核比耳蝸後核高約 4 mm。切面面板會標出「投影片有、模型沒切到」的構造。</p>
+  <p>橫切面：投影片（謝侑霖 Brainstem &amp; Cranial nerve），切面方向依投影片矢狀示意圖，大致垂直腦幹長軸；中腦兩層為了切到 CN III 核、紅核與上丘，傾角略調小。</p>
+  <p>冠狀切片：投影片（施耀翔 CNS，Section of brain I–VI），切面上端往後傾，依投影片矢狀示意圖的藍線；I–IV 傾 20°，V、VI 為了同一平面切到胼胝體壓部與中腦、橋腦，傾 30°、40°。只切腦本身（骨、眼球、血管、顱神經不切）。</p>
+  <p><b>出處與授權</b>：
+  Z-Anatomy — The libre 3D atlas of anatomy（CC BY-SA 4.0），其網格部分源自 BodyParts3D, The Database Center for Life Science（CC BY-SA 2.1 Japan）與 Cranial Nerves and Foramina, University of Dundee, CAHID（CC BY 4.0）；
+  耳蝸取自 Z-Anatomy，其內耳模型改作自 Anatomy of the Inner Ear, University of Dundee School of Medicine（<b>CC BY-NC-SA 4.0，不可商用</b>）。
+  HCP1065：Yeh FC, <i>Nat Commun</i> 13:4933 (2022)；HCP842：Yeh FC et al., <i>NeuroImage</i> 178:57–68 (2018)；皆 CC BY-SA 4.0。
+  Data were provided in part by the Human Connectome Project, WU-Minn Consortium (Principal Investigators: David Van Essen and Kamil Ugurbil; 1U54MH091657) funded by the 16 NIH Institutes and Centers that support the NIH Blueprint for Neuroscience Research; and by the McDonnell Center for Systems Neuroscience at Washington University.
+  HCP 衍生資料依 <a href="https://www.humanconnectome.org/study/hcp-young-adult/document/wu-minn-hcp-consortium-open-access-data-use-terms" target="_blank" rel="noreferrer">WU-Minn HCP Open Access Data Use Terms</a> 再散布。
+  介面用 three.js 0.160、three-mesh-bvh、meshoptimizer 解碼器（皆 MIT）。</p>
+  <p><b>授權</b>：3D 網格（Z-Anatomy、HCP 衍生）依 <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noreferrer">CC BY-SA 4.0</a> 分享；耳蝸部分另受 CC BY-NC-SA 4.0 限制（不可商用）。說明文字與整理 © INMU_KING_2026。</p>
+  <p class="pg">建置日期 ${D.meta.built}</p>`;
+  $("#about").showModal();
+};
+
+// ---------- loop ----------
+function resize() { const w = stage.clientWidth, h = stage.clientHeight; if (!w || !h) return;   // 背景分頁剛開時舞台是 0 尺寸：aspect 會變 NaN、畫面全黑
+  if (renderer.getPixelRatio() !== DPR()) renderer.setPixelRatio(DPR());
+  renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix(); invalidate(); lastMove = performance.now();
+  if (homeLate) { homeLate = false; camStart(); } }
+new ResizeObserver(resize).observe(stage);
+// 有變動才重畫：相機在動（拖曳、阻尼、飛行）、選取的脈衝、或剛有操作（點擊、輸入、按鍵、滾輪）之後幾格。
+// 畫面靜止時不再每秒畫 60 次，筆電、平板比較省電。程式裡改了 3D 狀態卻沒有使用者操作時，呼叫 invalidate()。
+function tick(now) {
+  requestAnimationFrame(tick);   // 先排下一格：單一格出錯也不會讓畫面停住
+  if (anim) { anim(now); dirty = Math.max(dirty, 2); }
+  if (controls.update()) dirty = Math.max(dirty, 2);
+  if (!finite(camera.position) || !finite(camera.quaternion) || !finite(controls.target)) {   // 鏡頭壞掉（NaN）就回起始視角，不讓 render 每格出錯
+    if (!tick.cwarned) { console.warn("camera not finite → home"); tick.cwarned = true; }
+    camHome(); dirty = Math.max(dirty, 2);
+  }
+  if (HL && !HL.done) dirty = Math.max(dirty, 1);
+  if (dirty > 0) {
+    dirty--; pulseHighlight(now);
+    key.position.copy(camera.position).add(new THREE.Vector3(30, 60, 20));
+    try { renderer.render(scene, camera); } catch (e) { if (!tick.warned) { console.warn("render", e); showErr("render " + e.message); tick.warned = true; } }
+    placeTags(); placeLabels(); drawGizmo(); placeInfo();
+  }
+  if (labOn && labDirty && now - lastMove > 220) try { computeLabels(); } catch (e) { if (!tick.lwarned) { console.warn("labels", e); showErr("labels " + e.message); tick.lwarned = true; } }   // 鏡頭停 220 ms 後重挑名稱
+}
+for (const t of ["pointerdown", "pointerup", "click", "input", "change", "keydown", "wheel"]) addEventListener(t, invalidate, { capture: true, passive: true });
+addEventListener("pointermove", e => { if (e.buttons) invalidate(); }, { capture: true, passive: true });
+controls.addEventListener("change", invalidate);
+// 點選加速：three-mesh-bvh 載入後替顯示中的構造在空檔建 BVH（點選時沒有的才當場建）；CDN 失敗就維持一般射線檢測
+let BVH = false;
+import("three-mesh-bvh").then(M => {
+  THREE.BufferGeometry.prototype.computeBoundsTree = M.computeBoundsTree; THREE.Mesh.prototype.raycast = M.acceleratedRaycast; BVH = true;
+  const idle = window.requestIdleCallback || (f => setTimeout(() => f({ timeRemaining: () => 8 }), 50));
+  const todo = () => pickables.filter(m => m.parent.visible && m.geometry !== pinGeo && m.geometry !== EMPTY && !m.geometry.boundsTree);
+  const step = d => { const q = todo(); while (q.length && d.timeRemaining() > 4) q.pop().geometry.computeBoundsTree(); if (q.length) idle(step); };
+  idle(step);
+}).catch(e => console.warn("three-mesh-bvh", e));
+buildPanel(); buildSecList(); refreshVis(); resize(); requestAnimationFrame(tick);
+$("#loading").remove();
+const kick = f => (...a) => { const r = f(...a); invalidate(); return r; };
+$("#bKg").onclick = () => setKg(!kgOn); if (kgOn) setKg(true);
+window.__neuro = { THREE, camera, controls, flyTo: kick(flyTo), OBJ, openSection: kick(openSection), select: kick(select), renderer, invalidate, ensureGeom,
+  kg: { KG, setKg, kgIds, kgNodes, get on() { return kgOn; } },
+  lab: { set: setLab, compute: computeLabels, get on() { return labOn; },
+         get list() { return labs.map(L => ({ k: L.k, name: L.el.firstChild.textContent, kn: L.el.querySelector("b")?.textContent || "", shown: L.el.style.display !== "none" })); } } };
+if (location.hash) { const s = D.sections.find(x => x.id === location.hash.slice(1)); if (s) openSection(s); }
+</script>
+</body>
+</html>
