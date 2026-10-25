@@ -163,9 +163,17 @@ details.subgrp[open] > summary.subh::before { transform: rotate(90deg); }
 #paneGuide .ptab td:first-child { white-space: nowrap; }
 #paneGuide .ptab tr.on td { background: var(--chip); font-weight: 600; }
 #paneGuide .pg { color: var(--mute); }
+.vfsvg { width: 100%; max-width: 340px; display: block; margin: 2px auto 0; }
+.vfcap { font-size: 11.5px; color: var(--mute); text-align: center; margin-bottom: 6px; } .vfcap i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; vertical-align: -1px; margin: 0 3px 0 6px; }
 .pathsvg { width: 100%; box-sizing: border-box; height: auto; display: block; border: 1px solid var(--line); border-radius: 6px; background: var(--stage); }
 .pathsvg .nd { cursor: pointer; }
 .pathsvg .nd.txt { cursor: default; }
+#paneGuide .pathsvg { cursor: zoom-in; }
+.pzbar { display: flex; justify-content: flex-end; margin: 4px 0 -2px; }
+.pzbar .pzoom { padding: 1px 9px; font-size: 12px; }
+#pathDlg { width: calc(100vw - 24px); max-width: none; max-height: calc(100vh - 24px); box-sizing: border-box; padding: 10px 12px 12px; }
+#pathDlg form { float: right; }
+#pathDlg h2 { font-size: 15px; margin: 4px 0 8px; }
 .gctl { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; margin: 8px 0 6px; }
 .steps { margin: 0; padding: 0; list-style: none; display: grid; gap: 3px; counter-reset: st; }
 .steps button { width: 100%; text-align: left; border: 1px solid var(--line); background: var(--panel); border-radius: 6px; padding: 4px 8px 4px 28px; font-size: 12.5px; position: relative; counter-increment: st; }
@@ -426,6 +434,12 @@ input[type=range] { width: 100%; accent-color: var(--accent); }
   <table id="keyTbl"></table>
 </dialog>
 
+<dialog id="pathDlg" aria-labelledby="pathDlgH">
+  <form method="dialog"><button class="btn" aria-label="關閉">✕</button></form>
+  <h2 id="pathDlgH"></h2>
+  <div id="pathBig"></div>
+</dialog>
+
 <dialog id="kgDlg">
   <div id="kgBody"></div>
   <form method="dialog" style="margin-top:12px"><button class="btn">關閉</button></form>
@@ -514,10 +528,10 @@ function partOf(p, prev) {
 }
 const shaded = s => s.parts.some(p => p.sh);
 // 一個構造的所有 part 合併成一個 geometry：繪製次數少很多（part 之間不共用頂點，法向量和分開算一樣）
-// lobe：切成兩塊的腦迴（plobe）只取屬於這一葉的 part
-function structGeom(s, lobe) {
+// lobe：切成兩塊的腦迴（plobe）只取屬於這一葉的 part；seg：分段構造（s.segs，視覺纖維）只取第 seg 個 part
+function structGeom(s, lobe, seg) {
   const all = []; for (const p of s.parts) all.push(partOf(p, all));
-  const ps = lobe ? all.filter((_, k) => s.plobe[k] === lobe) : all;
+  const ps = lobe ? all.filter((_, k) => s.plobe[k] === lobe) : seg != null ? [all[seg]] : all;
   const nv = ps.reduce((a, q) => a + q.pos.length / 3, 0), ni = ps.reduce((a, q) => a + q.f.length, 0);
   const pos = new Float32Array(nv * 3), f = new (nv < 65536 ? Uint16Array : Uint32Array)(ni);
   let vo = 0, io = 0;
@@ -598,7 +612,7 @@ const pinGeo = new THREE.SphereGeometry(0.45, 14, 10), EMPTY = new THREE.BufferG
 // 之後腦血管那堂的中大腦動脈走在側溝裡）。橫向 6 列頂點：RIM_F＝在兩緣之間的位置，RIM_C＝1 亮、0 暗
 const RIM_MAT = new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -4, clippingPlanes: clipArr });
 const RIM_F = [0, 0.24, 0.24, 0.76, 0.76, 1], RIM_C = [0, 0, 1, 1, 0, 0], RIM_LO = new THREE.Color(0x1b1b1b), RIM_HI = new THREE.Color(0xffffff);
-function ensureGeom(o) { for (const b of o.bodies) if (b.geometry === EMPTY) b.geometry = structGeom(o.s, o.s.plobe ? o.lobes[b.userData.part] : null); }
+function ensureGeom(o) { for (const b of o.bodies) if (b.geometry === EMPTY) b.geometry = structGeom(o.s, o.s.plobe ? o.lobes[b.userData.part] : null, b.userData.seg); }
 // 腦葉（整塊模式）：大腦皮質的腦迴屬它的 sub、葉內的溝屬 s.lobe；跨兩葉的腦迴（plobe）每一葉各一個 mesh（第 0 塊＝前、第 1 塊＝後）
 const LOBE_IDS = new Set((D.lobes || []).map(l => l.id));
 const lobesOf = s => s.overlay ? null : s.plobe ? [...new Set(s.plobe)] : s.group === "cortex" && LOBE_IDS.has(s.sub) ? [s.sub] : s.lobe ? [s.lobe] : null;   // overlay（Wernicke 區）疊在腦迴上，不算進哪一葉
@@ -614,11 +628,12 @@ for (const s of D.structures) {
   const op = s.opacity ?? 1, col = new THREE.Color(s.color || "#999");
   // 切成兩塊的腦迴：每一塊用所屬葉的顏色（旁中央小葉後塊＝頂葉色、梭狀迴後塊＝枕葉色）
   o.pieceCol = s.plobe ? o.lobes.map(l => ((D.lobes || []).find(x => x.id === l) || {}).color || s.color) : null;
-  for (let i = 0; s.parts.length && i < (s.plobe ? o.lobes.length : 1); i++) {   // geometry 等第一次顯示才建（ensureGeom）：預設關閉的構造不必在開頁時解碼
+  for (let i = 0; s.parts.length && i < (s.plobe ? o.lobes.length : s.segs ? s.parts.length : 1); i++) {   // s.segs：每段一個 mesh（病灶後的那段變灰）   // geometry 等第一次顯示才建（ensureGeom）：預設關閉的構造不必在開頁時解碼
     const m = new THREE.MeshStandardMaterial({ color: o.pieceCol ? new THREE.Color(o.pieceCol[i]) : col, roughness: 0.62, metalness: 0.0, side: THREE.DoubleSide, vertexColors: shaded(s),
       transparent: op < 1, opacity: op, depthWrite: op >= 0.6, clippingPlanes: clipArr, emissive: 0x000000 });
     m.userData = { op0: op, em0: 0x000000, part: s.plobe ? i : null };
-    const mesh = new THREE.Mesh(EMPTY, m); mesh.userData.sid = s.id; mesh.userData.part = i;
+    const mesh = new THREE.Mesh(EMPTY, m); mesh.userData.sid = s.id; mesh.userData.part = s.segs ? 0 : i;
+    if (s.segs) { mesh.userData.seg = i; m.userData.seg = s.segs[i]; }
     if (op < 1) mesh.renderOrder = 2;
     root.add(mesh); o.mats.push(m); o.meshes.push(mesh); pickables.push(mesh); o.bodies.push(mesh);
   }
@@ -1033,18 +1048,21 @@ function setLesion(k) {
   else flyToIds([...stepSet]);
 }
 const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;");
-function pathSvg(P) {
-  const W = 388, LW = 40, CX = LW + (W - LW) / 2, CW = 44, NW = 78, RH = 54, TOP = 20;
+function pathSvg(P, big) {   // big：放大視窗用（marker id 加 b，免得和側欄那張重複）
+  const LW = 40, CW = 44, NW = 78, RH = 54, TOP = 20;
+  const tw = t => [...t].reduce((a, c) => a + (c.charCodeAt(0) > 255 ? 11 : 6.3), 14), nw = n => Math.max(NW, Math.min(Math.max(...n[1].split("\n").map(tw)), ...P.nodes.filter(m => m !== n && m[3] === n[3]).map(m => Math.abs(m[4] - n[4]) * CW - 4)));   // 字太長時框跟著變寬，但不超過到同列鄰居的一半距離
+  const half = Math.max(174, ...P.nodes.map(n => Math.abs(n[4]) * CW + nw(n) / 2 + 3));   // 寬度依最外欄自動算，側欄裡永遠整張
+  const W = LW + 2 * half, CX = LW + half, mk = big ? "b" : "";
   const X = c => CX + c * CW, Y = r => TOP + r * RH + RH / 2;
   const inStep = new Set(stepIdx >= 0 ? P.steps[stepIdx][1] : []);
   const done = new Set(stepIdx >= 0 ? P.steps.slice(0, stepIdx).flatMap(s => s[1]) : []);
   const L = (P.lesions || []).find(l => l[0] === lesionKey), lesEdge = L && L[2].includes(">") ? L[2].split(">") : null, lesNode = L && !lesEdge ? L[2] : null, aff = new Set(L && L[5] || []);   // L[5]：受影響（會麻）的節點
   const H = TOP + P.rows.length * RH + 6, kd = kgOn ? kgNodes(P) : null;
-  const node = {}; P.nodes.forEach(n => { const lines = n[1].split("\n"); node[n[0]] = { n, lines, x: X(n[4]), y: Y(n[3]), w: NW, h: lines.length * 13 + 10 }; });
+  const node = {}; P.nodes.forEach(n => { const lines = n[1].split("\n"); node[n[0]] = { n, lines, x: X(n[4]), y: Y(n[3]), w: nw(n), h: lines.length * 13 + 10 }; });
   const clip = (a, b) => { const dx = b.x - a.x, dy = b.y - a.y; const t = Math.min(dx ? (a.w / 2 + 2) / Math.abs(dx) : 1e9, dy ? (a.h / 2 + 2) / Math.abs(dy) : 1e9); return [a.x + dx * t, a.y + dy * t]; };
   let s = `<svg class="pathsvg" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(P.zh)} 路徑圖"><defs>
-    <marker id="ar" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L8,4 L0,8 z" fill="${css("--mute")}"/></marker>
-    <marker id="arA" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L8,4 L0,8 z" fill="${css("--accent")}"/></marker></defs>`;
+    <marker id="${mk}ar" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L8,4 L0,8 z" fill="${css("--mute")}"/></marker>
+    <marker id="${mk}arA" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L8,4 L0,8 z" fill="${css("--accent")}"/></marker></defs>`;
   P.rows.forEach((r, i) => {
     if (i % 2 === 0) s += `<rect x="0" y="${TOP + i * RH}" width="${W}" height="${RH}" fill="${css("--chip")}" opacity=".45"/>`;
     const ls = r.includes("\n") ? r.split("\n") : r.match(/.{1,4}/g);
@@ -1060,7 +1078,7 @@ function pathSvg(P) {
     const act = inStep.has(e[1]) && (inStep.has(e[0]) || done.has(e[0]) || stepIdx === 0), fut = stepIdx >= 0 && !act && !(done.has(e[1]) || inStep.has(e[1]));
     const cut = (lesNode && e[0] === lesNode) || (lesEdge && e[0] === lesEdge[0] && e[1] === lesEdge[1]);
     if (cut && lesEdge) { const mx = (x1 + x2) / 2, my = (y1 + y2) / 2; edgeX = `<path d="M${mx - 8},${my - 8} L${mx + 8},${my + 8} M${mx + 8},${my - 8} L${mx - 8},${my + 8}" stroke="${css("--warn")}" stroke-width="3"/>`; }
-    s += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${cut ? css("--warn") : act ? css("--accent") : css("--mute")}" stroke-width="${act ? 2.2 : 1.3}" ${cut ? 'stroke-dasharray="4 3"' : ""} opacity="${fut ? .3 : 1}" marker-end="url(#${act ? "arA" : "ar"})"/>`;
+    s += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${cut ? css("--warn") : act ? css("--accent") : css("--mute")}" stroke-width="${act ? 2.2 : 1.3}" ${cut ? 'stroke-dasharray="4 3"' : ""} opacity="${fut ? .3 : 1}" marker-end="url(#${mk}${act ? "arA" : "ar"})"/>`;
     const lft = x2 < x1 - 4 || (x1 + x2) / 2 > W - 70;   // 往左走的線（或靠右邊界的線），標籤放在線的左邊
     if (e[2]) s += `<text x="${(x1 + x2) / 2 + (lft ? -4 : 4)}" y="${(y1 + y2) / 2 + 3}" text-anchor="${lft ? "end" : "start"}" font-size="9.5" fill="${css("--ink")}" stroke="${css("--stage")}" stroke-width="3" paint-order="stroke" opacity="${fut ? .4 : .9}">${esc(e[2])}</text>`;
   }
@@ -1215,15 +1233,59 @@ function setKg(on) {
   if (focus) renderGuide();
   if (selId && !$("#info").hidden) { kgCard(); placeInfo(true); }
 }
+function pathNodeGo(P, k) {   // 點路徑圖節點：跳到那一步＋選構造
+  const n = P.nodes.find(n => n[0] === k), si = P.steps.findIndex(st => st[1].includes(k));
+  if (si >= 0 && si !== stepIdx) setStep(si); pick(n[2]);
+}
+function openPathBig() {   // 放大的路徑圖：dialog 固定在 HTML 裡，只換內容；節點點按用事件委派
+  const P = focus && focus.kind === "path" && PATHS.find(p => p.id === focus.id); if (!P) return;
+  $("#pathDlgH").textContent = P.zh; $("#pathBig").innerHTML = pathSvg(P, true) + (P.vf ? vfSvg(P) : "");
+  $("#pathDlg").showModal(); $("#pathDlg").scrollTop = 0;
+}
+// 視野圖（vis 路徑）：左眼、右眼兩個圓，病人看出去的方向；左半視野綠、右半橘（同兩束視覺纖維），點病灶時看不到的地方塗黑
+function vfSvg(P) {
+  const V = P.vf[lesionKey], R = 46, MR = R * 0.22, cy = 64, cl = OBJ.vfib_lvf ? OBJ.vfib_lvf.s.color : "#4fae6a", cr = OBJ.vfib_rvf ? OBJ.vfib_rvf.s.color : "#e89338";
+  const half = (cx, sg, r) => `M${cx},${cy - r} A${r},${r} 0 0 ${sg < 0 ? 0 : 1} ${cx},${cy + r} Z`;
+  const reg = (cx, k) => ({ all: `M${cx - R},${cy} a${R},${R} 0 1 0 ${2 * R},0 a${R},${R} 0 1 0 ${-2 * R},0 Z`, L: half(cx, -1, R), R: half(cx, 1, R),
+    LU: `M${cx},${cy} L${cx},${cy - R} A${R},${R} 0 0 0 ${cx - R},${cy} Z`, LL: `M${cx},${cy} L${cx - R},${cy} A${R},${R} 0 0 0 ${cx},${cy + R} Z`,
+    Lc: half(cx, -1, MR), Lms: half(cx, -1, R) + half(cx, -1, MR),   // 黃斑保留：左半扣掉中央黃斑
+    Lcres: (h => half(cx, -1, R) + `M${cx},${cy - h} A${R},${R} 0 0 0 ${cx},${cy + h} Z`)(R * Math.sqrt(1 - 0.35 * 0.35)) })[k];   // 顳側新月：左半扣掉圓心右移 0.35R 的同大圓（兩眼共同視野）
+  const eye = (cx, nm, ks) => `<text x="${cx}" y="11" font-size="11" text-anchor="middle" fill="${css("--ink")}">${nm}</text>` +
+    `<path d="${half(cx, -1, R)}" fill="${cl}" opacity=".75"/><path d="${half(cx, 1, R)}" fill="${cr}" opacity=".75"/>` +
+    ks.map(k => `<path d="${reg(cx, k)}" fill="#111" fill-rule="evenodd" opacity=".92"/>`).join("") +
+    `<circle cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="${css("--mute")}"/><circle cx="${cx}" cy="${cy}" r="${MR}" fill="none" stroke="${css("--ink")}" stroke-dasharray="2 2" opacity=".7"/>` +
+    `<text x="${cx - R + 4}" y="${cy + R + 13}" font-size="9" fill="${css("--mute")}">左</text><text x="${cx + R - 4}" y="${cy + R + 13}" font-size="9" text-anchor="end" fill="${css("--mute")}">右</text>`;
+  return `<div class="lbl">視野（病人看出去的方向）</div><svg class="vfsvg" viewBox="0 0 300 128" role="img" aria-label="左眼、右眼視野">` +
+    eye(80, "左眼", V ? V.f[0] : []) + eye(220, "右眼", V ? V.f[1] : []) + `</svg>` +
+    `<div class="vfcap"><i style="background:${cl}"></i>左半視野 <i style="background:${cr}"></i>右半視野 <i style="background:#111"></i>看不到　虛線小圓＝黃斑</div>`;
+}
+// 視野病灶的 3D：病灶以後的纖維段變灰、病灶處畫一道橫線（介面警示色，不用動脈紅）
+const VF_GRAY = new THREE.Color(0x8c8c8c), CUT_GEO = new THREE.CylinderGeometry(0.5, 0.5, 1, 12), cutGroup = new THREE.Group(); scene.add(cutGroup);
+const CUT_MAT = new THREE.MeshBasicMaterial({ depthTest: false, transparent: true }), Y_UP = new THREE.Vector3(0, 1, 0);
+let vfKey = null;
+function vfApply() {
+  CUT_MAT.color.set(css("--warn"));
+  const P = focus && focus.kind === "path" && PATHS.find(p => p.id === focus.id), V = P && P.vf && P.vf[lesionKey] || null, k = V ? P.id + "|" + lesionKey : "";
+  if (k === vfKey) return; vfKey = k;
+  const gray = new Set(V && V.g || []);
+  for (const id in OBJ) if (OBJ[id].s.segs) for (const m of OBJ[id].mats) { m.userData.c0 = m.userData.c0 || m.color.clone(); m.color.copy(gray.has(id + ":" + m.userData.seg) ? VF_GRAY : m.userData.c0); }
+  cutGroup.clear();
+  for (const [p, d, n] of V && V.cut || []) {
+    const me = new THREE.Mesh(CUT_GEO, CUT_MAT); me.position.set(...p); me.quaternion.setFromUnitVectors(Y_UP, new THREE.Vector3(...d).normalize());
+    me.scale.set(1, n, 1); me.renderOrder = 9; cutGroup.add(me);
+  }
+  invalidate();
+}
 function renderGuide() {
-  const g = $("#paneGuide");
+  const g = $("#paneGuide"); vfApply();
+  if ((!focus || focus.kind !== "path") && $("#pathDlg").open) $("#pathDlg").close();
   if (!focus) { g.innerHTML = `<div class="note">在左邊「路徑與反射」或「單一顱神經」選一項，或在課本視角選「顱神經節與中樞核」，這裡會出現對應的路徑圖或清單，3D 只留相關構造。</div>`; return; }
   if (focus.kind === "path") {
     const P = PATHS.find(p => p.id === focus.id);
     const L = (P.lesions || []).find(l => l[0] === lesionKey);
     if (kgFor !== P.id) { kgFor = P.id; kgOpen = false; }
     const nP = kgOn ? kgNq(KG.rows.filter(r => r.at[0][0] === "p" && r.at[1] === P.id)) : 0;
-    g.innerHTML = `<h3>${esc(P.zh)}${nP ? `<button class="kgb" aria-expanded="${kgOpen}" title="這條路徑的國考題">國考 ${nP}</button>` : ""}</h3>${P.en ? `<div class="en">${esc(P.en)}</div>` : ""}${nP && kgOpen ? kgPathList(P) : ""}<p class="gnote">${esc(P.note)}</p>` + pathTable(P.table, P.id) + pathSvg(P) +
+    g.innerHTML = `<h3>${esc(P.zh)}${nP ? `<button class="kgb" aria-expanded="${kgOpen}" title="這條路徑的國考題">國考 ${nP}</button>` : ""}</h3>${P.en ? `<div class="en">${esc(P.en)}</div>` : ""}${nP && kgOpen ? kgPathList(P) : ""}<p class="gnote">${esc(P.note)}</p>` + pathTable(P.table, P.id) + `<div class="pzbar"><button class="btn pzoom" data-g="zoom" title="放大路徑圖">放大</button></div>` + pathSvg(P) + (P.vf ? vfSvg(P) : "") +
       `<div class="gctl"><button class="btn" data-g="prev">‹ 上一步</button><button class="btn" data-g="all" aria-pressed="${stepIdx < 0 && !lesionKey}">全部</button><button class="btn" data-g="next">下一步 ›</button></div>` +
       `<ol class="steps">${P.steps.map((st, i) => `<li><button data-s="${i}" aria-pressed="${i === stepIdx}">${esc(st[0])}${kgOn ? kgX(kgAt("ps", P.id, i)) : ""}</button></li>`).join("")}</ol>` +
       (P.lesions && P.lesions.length ? `<div class="lbl">模擬病灶</div><div class="lesbar">${P.lesions.map(l => `<button class="btn" data-l="${l[0]}" aria-pressed="${l[0] === lesionKey}">${esc(l[1])}${kgOn ? kgX(kgAt("pl", P.id, l[0])) : ""}</button>`).join("")}</div>${L ? `<div class="lesfx">${esc(L[3])}</div>` : ""}` : "") +
@@ -1242,10 +1304,12 @@ function renderGuide() {
     }
     dpWire(g);
     g.querySelectorAll(".nd:not(.txt)").forEach(el => {
-      const go = () => { const k = el.dataset.k, n = P.nodes.find(n => n[0] === k), si = P.steps.findIndex(st => st[1].includes(k));
-        if (si >= 0 && si !== stepIdx) setStep(si); pick(n[2]); };
+      const go = () => pathNodeGo(P, el.dataset.k);
       el.onclick = go; el.onkeydown = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(); } };
     });
+    g.querySelector('[data-g="zoom"]').onclick = openPathBig;
+    g.querySelector(".pathsvg").onclick = e => { if (!e.target.closest(".nd:not(.txt)")) openPathBig(); };   // 點圖本身（節點以外）也放大
+    if ($("#pathDlg").open) { $("#pathDlgH").textContent = P.zh; $("#pathBig").innerHTML = pathSvg(P, true) + (P.vf ? vfSvg(P) : ""); }
   } else if (focus.kind === "gang") {
     const grp = (sub, t) => `<div class="lbl">${t}</div><div class="secchips">${GANG.filter(x => x.sub === sub).map(x => `<button data-g="${x.id}" aria-pressed="${x.id === stepGang}"><i style="background:${x.color}"></i>${esc(gName(x.id))}</button>`).join("")}</div>`;
     g.innerHTML = `<h3>顱神經節</h3><p class="gnote">感覺：一級神經元在腦幹外的神經節，二級核在腦幹內。副交感：節前神經元在腦幹核，到神經節換節後神經元。點一個神經節，只留它和它的核、神經；說明卡列出配對。</p>` +
@@ -2149,6 +2213,17 @@ $("#bHelp").onclick = () => { $("#keyTbl").innerHTML = keyRows(); $("#helpDlg .s
 $("#helpDlg").addEventListener("click", e => {   // 點對話框外面（backdrop）關閉
   const d = e.currentTarget, r = d.getBoundingClientRect();
   if (e.target === d && (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom)) d.close();
+});
+
+$("#pathDlg").addEventListener("click", e => {   // 點外面關閉；節點用事件委派（內容每次重畫，不綁在元素上）
+  const d = e.currentTarget, r = d.getBoundingClientRect();
+  if (e.target === d && (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom)) { d.close(); return; }
+  const nd = e.target.closest("#pathBig .nd:not(.txt)"), P = focus && focus.kind === "path" && PATHS.find(p => p.id === focus.id);
+  if (nd && P) pathNodeGo(P, nd.dataset.k);
+});
+$("#pathDlg").addEventListener("keydown", e => {
+  const nd = e.target.closest && e.target.closest("#pathBig .nd:not(.txt)"), P = focus && focus.kind === "path" && PATHS.find(p => p.id === focus.id);
+  if (nd && P && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); pathNodeGo(P, nd.dataset.k); }
 });
 
 // ---------- about ----------
