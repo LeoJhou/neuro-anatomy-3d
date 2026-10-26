@@ -128,7 +128,8 @@ details.subgrp[open] > summary.subh::before { transform: rotate(90deg); }
 #hint { position: absolute; right: 10px; bottom: 8px; font-size: 11px; color: var(--mute); text-align: right; }
 /* 顯微模式（小腦皮質迴路）：同一個 canvas 換場景，大腦的疊層都收起來 */
 #stage.micro :is(#labels,#tags,#views,#gizmo,#hint,#info,#legend,#offbar){display:none!important}
-#stage:not(.micro) :is(#mlabels,#mlegend,#mback,#mnote){display:none}
+#stage:not(.micro) :is(#mlabels,#mlegend,#mnote){display:none}
+#stage:not(.micro):not(.mpath) #mback{display:none}
 #mlabels { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
 .mlab { position: absolute; transform: translate(-50%, -50%); font-size: 12px; line-height: 1.25; white-space: nowrap; padding: 1px 6px; border-radius: 4px;
   background: color-mix(in srgb, var(--panel) 82%, transparent); color: var(--ink); border: 1px solid var(--line); transition: opacity .25s; }
@@ -137,8 +138,10 @@ details.subgrp[open] > summary.subh::before { transform: rotate(90deg); }
 #mlegend { position: absolute; left: 10px; bottom: 10px; display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 12px; color: var(--mute);
   background: color-mix(in srgb, var(--panel) 85%, transparent); border: 1px solid var(--line); border-radius: 6px; padding: 4px 8px; max-width: calc(100% - 20px); }
 #mlegend i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 4px; vertical-align: -1px; }
-#mback { position: absolute; left: 10px; top: 10px; }
-#mnote { position: absolute; right: 10px; top: 10px; font-size: 11.5px; color: var(--mute); background: color-mix(in srgb, var(--panel) 85%, transparent); border: 1px solid var(--line); border-radius: 6px; padding: 2px 8px; }
+#mback { position: absolute; right: 10px; top: 10px; }   /* 顯微開關：大腦模式＝看顯微動態圖，顯微模式＝回到大腦 */
+#stage.mpath:not(.micro) #mback { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+#stage.mpath:not(.micro) #views { max-width: calc(100% - 146px); }   /* 視角鈕讓出右上角給顯微開關 */
+#mnote { position: absolute; right: 10px; top: 46px; font-size: 11.5px; color: var(--mute); background: color-mix(in srgb, var(--panel) 85%, transparent); border: 1px solid var(--line); border-radius: 6px; padding: 2px 8px; }
 .mctl { display: flex; flex-wrap: wrap; gap: 4px; margin: 0 0 8px; }
 .mctl .btn { font-size: 12px; }
 #mpick { font-size: 12.5px; min-height: 2.6em; border: 1px dashed var(--line); border-radius: 6px; padding: 5px 8px; color: var(--mute); }
@@ -1311,7 +1314,7 @@ function vfApply() {
   invalidate();
 }
 function renderGuide() {
-  const g = $("#paneGuide"); vfApply();
+  const g = $("#paneGuide"); vfApply(); microBtn();
   if ((!focus || focus.kind !== "path") && $("#pathDlg").open) $("#pathDlg").close();
   if (!focus) { g.innerHTML = `<div class="note">在左邊「路徑與反射」或「單一顱神經」選一項，或在課本視角選「顱神經節與中樞核」，這裡會出現對應的路徑圖或清單，3D 只留相關構造。</div>`; return; }
   if (focus.kind === "path") {
@@ -2677,14 +2680,18 @@ function microSync() {   // 顯微場景換段 → 面板步驟、路徑圖跟�
 function enterMicro() {
   if (!M) M = makeMicro(microSync);
   if (microOn) return;
-  microOn = true; select(null); stage.classList.add("micro"); controls.enabled = false; M.ctl.enabled = true;
+  microOn = true; select(null); stage.classList.add("micro"); controls.enabled = false; M.ctl.enabled = true; microBtn();
   M.scene.background = new THREE.Color(css("--stage")); M.resize(); M.wake();
 }
 function leaveMicro(restore = true) {   // restore＝false：馬上要換路徑，不用重畫面板
   if (!microOn) return;
-  microOn = false; M.stop(); M.ctl.enabled = false; controls.enabled = true; stage.classList.remove("micro");
+  microOn = false; M.stop(); M.ctl.enabled = false; controls.enabled = true; stage.classList.remove("micro"); microBtn();
   if (restore && focus && focus.kind === "path" && isMicro(PATHS.find(p => p.id === focus.id))) setStep(stepIdx, false);   // 大腦這邊亮同一步的構造
   invalidate();
+}
+function microBtn() {   // 舞台右上角的顯微開關：選到有顯微圖的路徑才出現
+  const on = !!(focus && focus.kind === "path" && isMicro(PATHS.find(p => p.id === focus.id)));
+  stage.classList.toggle("mpath", on); $("#mback").textContent = microOn ? "← 回到大腦" : "看顯微動態圖 →";
 }
 function microStep(i) { enterMicro(); M.play(i); }
 function microBack() { leaveMicro(); if (focus && focus.kind === "path") flyToIds([...(stepSet || focus.ids)]); }
@@ -2709,7 +2716,7 @@ function microWire(g) {
   const act = { enter: () => microStep(stepIdx), playall: () => { enterMicro(); M.playAll(); }, replay: () => M.replay(), loop: () => M.toggleLoop(), home: () => M.home(), cf: () => M.toggleCF(), back: microBack };
   g.querySelectorAll("[data-m]").forEach(b => b.onclick = () => act[b.dataset.m]());
 }
-$("#mback").onclick = microBack;
+$("#mback").onclick = () => microOn ? microBack() : microStep(stepIdx);
 const kick = f => (...a) => { const r = f(...a); invalidate(); return r; };
 $("#bKg").onclick = () => setKg(!kgOn); if (kgOn) setKg(true);
 window.__neuro = { THREE, camera, controls, flyTo: kick(flyTo), OBJ, openSection: kick(openSection), select: kick(select), renderer, invalidate, ensureGeom,
