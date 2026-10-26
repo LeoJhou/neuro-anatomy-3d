@@ -178,6 +178,7 @@ details.subgrp[open] > summary.subh::before { transform: rotate(90deg); }
 #paneGuide h3 { margin: 2px 0 4px; font: 600 15px/1.3 var(--f-display); }
 #paneGuide .en { color: var(--mute); font-size: 12.5px; margin: -2px 0 6px; }
 #paneGuide .gnote { font-size: 12.5px; color: var(--mute); margin: 0 0 8px; }
+#paneGuide .gfn { font-size: 12.5px; color: var(--ink); margin: 0 0 6px; }   /* 路徑的「功能」（P.fn，V127）：比 note 深 */
 #paneGuide .ptabw { margin: 0 0 8px; }
 #paneGuide .ptabw > div { overflow-x: auto; }
 #paneGuide .ptab { width: 100%; border-collapse: collapse; font-size: 12px; line-height: 1.4; }
@@ -1324,7 +1325,7 @@ function renderGuide() {
     const nP = kgOn ? kgNq(KG.rows.filter(r => r.at[0][0] === "p" && r.at[1] === P.id)) : 0;
     const mp = isMicro(P) ? microPanel(P) : null, mOn = mp && microOn, goStep = mOn ? i => M.play(i) : setStep;   // 顯微模式：點第 n 步播第 n 段
     const tog = i => i === stepIdx && !(mOn && M.seq) ? -1 : i;
-    g.innerHTML = `<h3>${esc(P.zh)}${nP ? `<button class="kgb" aria-expanded="${kgOpen}" title="這條路徑的國考題">國考 ${nP}</button>` : ""}</h3>${P.en ? `<div class="en">${esc(P.en)}</div>` : ""}${nP && kgOpen ? kgPathList(P) : ""}<p class="gnote">${esc(P.note)}</p>` + pathTable(P.table, P.id) + `<div class="pzbar"><button class="btn pzoom" data-g="zoom" title="放大路徑圖">放大</button></div>` + pathSvg(P) + (P.vf ? vfSvg(P) : "") +
+    g.innerHTML = `<h3>${esc(P.zh)}${nP ? `<button class="kgb" aria-expanded="${kgOpen}" title="這條路徑的國考題">國考 ${nP}</button>` : ""}</h3>${P.en ? `<div class="en">${esc(P.en)}</div>` : ""}${nP && kgOpen ? kgPathList(P) : ""}${P.fn ? `<p class="gfn"><b>功能</b>：${esc(P.fn)}</p>` : ""}${P.note ? `<p class="gnote">${esc(P.note).replace(/\n/g, "<br>")}</p>` : ""}` + pathTable(P.table, P.id) + `<div class="pzbar"><button class="btn pzoom" data-g="zoom" title="放大路徑圖">放大</button></div>` + pathSvg(P) + (P.vf ? vfSvg(P) : "") +
       `<div class="gctl"><button class="btn" data-g="prev">‹ 上一步</button><button class="btn" data-g="all" aria-pressed="${stepIdx < 0 && !lesionKey}">全部</button><button class="btn" data-g="next">下一步 ›</button></div>` + (mp ? mp.ctl : "") +
       `<ol class="steps">${P.steps.map((st, i) => `<li><button data-s="${i}" aria-pressed="${i === stepIdx}">${esc(st[0])}${kgOn ? kgX(kgAt("ps", P.id, i)) : ""}</button></li>`).join("")}</ol>` + (mp ? mp.more : "") +
       (P.lesions && P.lesions.length ? `<div class="lbl">模擬病灶</div><div class="lesbar">${P.lesions.map(l => `<button class="btn" data-l="${l[0]}" aria-pressed="${l[0] === lesionKey}">${esc(l[1])}${kgOn ? kgX(kgAt("pl", P.id, l[0])) : ""}</button>`).join("")}</div>${L ? `<div class="lesfx">${esc(L[3])}</div>` : ""}` : "") +
