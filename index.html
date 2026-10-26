@@ -126,6 +126,26 @@ details.subgrp[open] > summary.subh::before { transform: rotate(90deg); }
 #legend b { font-size: 11px; color: var(--mute); font-weight: 600; }
 #legend i { display: inline-block; width: 18px; height: 5px; border-radius: 1px; margin-right: 5px; vertical-align: middle; }
 #hint { position: absolute; right: 10px; bottom: 8px; font-size: 11px; color: var(--mute); text-align: right; }
+/* 顯微模式（小腦皮質迴路）：同一個 canvas 換場景，大腦的疊層都收起來 */
+#stage.micro :is(#labels,#tags,#views,#gizmo,#hint,#info,#legend,#offbar){display:none!important}
+#stage:not(.micro) :is(#mlabels,#mlegend,#mback,#mnote){display:none}
+#mlabels { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.mlab { position: absolute; transform: translate(-50%, -50%); font-size: 12px; line-height: 1.25; white-space: nowrap; padding: 1px 6px; border-radius: 4px;
+  background: color-mix(in srgb, var(--panel) 82%, transparent); color: var(--ink); border: 1px solid var(--line); transition: opacity .25s; }
+.mlab.layer { background: none; border: none; color: var(--mute); font-weight: 600; transform: translate(-100%, -50%); }
+.mlab.dim { opacity: 0; }
+#mlegend { position: absolute; left: 10px; bottom: 10px; display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 12px; color: var(--mute);
+  background: color-mix(in srgb, var(--panel) 85%, transparent); border: 1px solid var(--line); border-radius: 6px; padding: 4px 8px; max-width: calc(100% - 20px); }
+#mlegend i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 4px; vertical-align: -1px; }
+#mback { position: absolute; left: 10px; top: 10px; }
+#mnote { position: absolute; right: 10px; top: 10px; font-size: 11.5px; color: var(--mute); background: color-mix(in srgb, var(--panel) 85%, transparent); border: 1px solid var(--line); border-radius: 6px; padding: 2px 8px; }
+.mctl { display: flex; flex-wrap: wrap; gap: 4px; margin: 0 0 8px; }
+.mctl .btn { font-size: 12px; }
+#mpick { font-size: 12.5px; min-height: 2.6em; border: 1px dashed var(--line); border-radius: 6px; padding: 5px 8px; color: var(--mute); }
+#mpick b { color: var(--ink); }
+.mres { font-size: 12.5px; line-height: 1.5; color: var(--mute); border: 1px solid var(--line); border-left: 3px solid var(--line); border-radius: 6px; padding: 5px 8px; margin-bottom: 5px; transition: border-color .2s, background .2s; }
+.mres b { display: block; color: var(--ink); font-weight: 600; }
+.mres.on { border-left-color: var(--accent); background: var(--chip); color: var(--ink); }
 #info { position: absolute; top: 46px; right: 10px; width: min(340px, calc(100% - 20px)); max-height: calc(100% - 64px); overflow-y: auto; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; box-shadow: 0 6px 24px rgba(0,0,0,.18); box-sizing: border-box; }
 #info h2 { font: 600 17px/1.3 var(--f-display); margin: 0 18px 2px 0; text-wrap: balance; }
 #info .en { color: var(--mute); font-size: 12.5px; margin-bottom: 8px; }
@@ -171,9 +191,10 @@ details.subgrp[open] > summary.subh::before { transform: rotate(90deg); }
 #paneGuide .pathsvg { cursor: zoom-in; }
 .pzbar { display: flex; justify-content: flex-end; margin: 4px 0 -2px; }
 .pzbar .pzoom { padding: 1px 9px; font-size: 12px; }
-#pathDlg { width: calc(100vw - 24px); max-width: none; max-height: calc(100vh - 24px); box-sizing: border-box; padding: 10px 12px 12px; }
+#pathDlg { width: fit-content; max-width: calc(100vw - 24px); max-height: calc(100vh - 24px); box-sizing: border-box; padding: 10px 12px 12px; }
 #pathDlg form { float: right; }
 #pathDlg h2 { font-size: 15px; margin: 4px 0 8px; }
+#pathBig .pathsvg { width: auto; max-width: 100%; height: auto; margin: 0 auto; }   /* 放大＝固定 1.6 倍（pathSvg 的 width／height），窄螢幕縮到視窗寬 */
 .gctl { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; margin: 8px 0 6px; }
 .steps { margin: 0; padding: 0; list-style: none; display: grid; gap: 3px; counter-reset: st; }
 .steps button { width: 100%; text-align: left; border: 1px solid var(--line); background: var(--panel); border-radius: 6px; padding: 4px 8px 4px 28px; font-size: 12.5px; position: relative; counter-increment: st; }
@@ -372,6 +393,10 @@ input[type=range] { width: 100%; accent-color: var(--accent); }
     <div id="info" hidden></div>
     <div id="legend" hidden></div>
     <div id="offbar" hidden><span class="msg"></span><button id="bUndoOff">復原</button><button id="bAllOff">全部打開</button><button id="bOffX" aria-label="關閉提示">×</button></div>
+    <div id="mlabels"></div>
+    <div id="mlegend"><span><i style="background:#ff3b2b"></i>興奮訊號</span><span><i style="background:#2f6dff"></i>抑制訊號</span><span><i style="background:#ffb547"></i>細胞發亮＝活化</span><span><i style="background:#4b5d80"></i>變暗泛藍＝被抑制</span><span><i style="background:#ff3b2b;opacity:.35"></i>淡光點＝前幾步仍在進行</span></div>
+    <button class="btn" id="mback">← 回到大腦</button>
+    <div id="mnote">示意尺寸，不是實際比例</div>
   </main>
 
   <aside id="bench" aria-label="切面與核團對照表">
@@ -488,6 +513,7 @@ window.__neuroData = (async () => {
 <script type="module">
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 
 let D;
@@ -582,20 +608,23 @@ controls.target.clampLength = function () { return this; };
 // Pinch zoom: a touch pinch follows finger distance 1:1 by default, which needs many pinches to get close;
 // raise the exponent for touch only (mouse wheel keeps the normal step).
 const PINCH_GAIN = 2.6;
-$("#stage").addEventListener("pointerdown", e => { controls.zoomSpeed = e.pointerType === "touch" ? PINCH_GAIN : 1; }, true);
+$("#stage").addEventListener("pointerdown", e => { controls.zoomSpeed = e.pointerType === "touch" ? PINCH_GAIN : 1; if (M) M.ctl.zoomSpeed = controls.zoomSpeed; }, true);
 // Trackpad pinch arrives as ctrl+wheel; OrbitControls would apply a fixed 5% per event regardless of how far
 // the fingers moved, so scale by the actual delta instead.
 $("#stage").addEventListener("wheel", e => {
   if (!e.ctrlKey) return;
   e.preventDefault(); e.stopPropagation();
-  const off = camera.position.clone().sub(controls.target);
-  const d = THREE.MathUtils.clamp(off.length() * Math.exp(e.deltaY * 0.025), controls.minDistance, controls.maxDistance);
-  camera.position.copy(controls.target).add(off.setLength(d));
+  const cam = microOn ? M.cam : camera, ctl = microOn ? M.ctl : controls;   // 顯微模式縮放顯微場景
+  if (microOn) { M.stopAutoCam(); M.wake(); }
+  const off = cam.position.clone().sub(ctl.target);
+  const d = THREE.MathUtils.clamp(off.length() * Math.exp(e.deltaY * 0.025), ctl.minDistance, ctl.maxDistance);
+  cam.position.copy(ctl.target).add(off.setLength(d));
 }, { capture: true, passive: false });
 scene.add(new THREE.HemisphereLight(0xffffff, 0x8a8f99, 1.6));
 const key = new THREE.DirectionalLight(0xffffff, 1.4); scene.add(key);
+let M = null, microOn = false;   // 顯微場景（小腦皮質迴路，第一次進才建）；要在 applyTheme() 之前宣告
 let dirty = 3, labDirty = true; function invalidate() { dirty = Math.max(dirty, 3); labDirty = true; }   // labDirty：圖上名稱要重挑
-function applyTheme() { scene.background = new THREE.Color(css("--stage")); invalidate(); }
+function applyTheme() { scene.background = new THREE.Color(css("--stage")); invalidate(); if (M) { M.scene.background = new THREE.Color(css("--stage")); M.wake(); } }
 applyTheme();
 const onTheme = () => { applyTheme(); if (focus && focus.kind === "path") renderGuide(); };   // 路徑圖畫的時候用 css() 寫死顏色，換主題要重畫
 matchMedia("(prefers-color-scheme: dark)").addEventListener("change", onTheme);
@@ -800,6 +829,7 @@ function paintView(V) {
     for (const m of o.mats) { const c = V.paint[id]; painted.push([m, m.color.clone()]); m.color.set(Array.isArray(c) ? c[m.userData.part || 0] : c); } }
 }
 function setPreset(id) {
+  if (id && microOn) leaveMicro();
   const V = id ? (D.views || []).find(v => v.id === id) : null, P0 = presetV() || {}, hadLeg = !!P0.legend;
   if (vcam) { vcam = null; $("#vcams").hidden = true; if (vcamSag && sagOn) setSag(false); vcamSag = false; }
   if (V && solidMode) setSolid(false);
@@ -1010,6 +1040,7 @@ function flyToIds(ids) {
   flyTo(box.getCenter(new THREE.Vector3()), null, Math.max(55, box.getSize(new THREE.Vector3()).length() * 1.6));
 }
 function setFocus(f) {
+  if (microOn) leaveMicro(false);
   if (f && preset) setPreset(null);
   if (f && solidMode) setSolid(false);
   if (f && dorsMode) setDors(false);
@@ -1025,14 +1056,15 @@ function setFocus(f) {
   }
   syncModeSel(); refreshVis(); renderGuide();
   if (f) requestAnimationFrame(() => flyToIds([...f.ids]));
+  if (f && f.kind === "path" && isMicro(PATHS.find(p => p.id === f.id))) microStep(-1);   // 小腦皮質迴路：直接進顯微模式
 }
-function setStep(i) {
+function setStep(i, fly = true) {
   const P = PATHS.find(p => p.id === focus.id);
   stepIdx = i; lesionKey = ""; lesSlices(P, null);
   if (i < 0) stepSet = null;
   else { const st = P.steps[i], s = new Set(st[2]); st[1].forEach(k => ndIds(P.nodes.find(n => n[0] === k)).forEach(i => s.add(i))); stepSet = s; }
   refreshVis(); renderGuide();
-  if (stepSet) flyToIds([...stepSet]); else flyToIds([...focus.ids]);
+  if (fly) flyToIds([...(stepSet || focus.ids)]);
 }
 // 病灶構造＋（病灶構造就是節點的構造時）那個節點一起亮的構造＋L[6]
 const lesIds = (P, L) => { const n = P.nodes.find(n => n[0] === L[2]); return new Set([...(n && n[2] === L[4] ? ndIds(n) : [L[4]]), ...(L[6] || [])]); };
@@ -1060,7 +1092,7 @@ function pathSvg(P, big) {   // big：放大視窗用（marker id 加 b，免得
   const H = TOP + P.rows.length * RH + 6, kd = kgOn ? kgNodes(P) : null;
   const node = {}; P.nodes.forEach(n => { const lines = n[1].split("\n"); node[n[0]] = { n, lines, x: X(n[4]), y: Y(n[3]), w: nw(n), h: lines.length * 13 + 10 }; });
   const clip = (a, b) => { const dx = b.x - a.x, dy = b.y - a.y; const t = Math.min(dx ? (a.w / 2 + 2) / Math.abs(dx) : 1e9, dy ? (a.h / 2 + 2) / Math.abs(dy) : 1e9); return [a.x + dx * t, a.y + dy * t]; };
-  let s = `<svg class="pathsvg" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(P.zh)} 路徑圖"><defs>
+  let s = `<svg class="pathsvg" viewBox="0 0 ${W} ${H}"${big ? ` width="${W * 1.6}" height="${H * 1.6}"` : ""} role="img" aria-label="${esc(P.zh)} 路徑圖"><defs>
     <marker id="${mk}ar" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L8,4 L0,8 z" fill="${css("--mute")}"/></marker>
     <marker id="${mk}arA" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L8,4 L0,8 z" fill="${css("--accent")}"/></marker></defs>`;
   P.rows.forEach((r, i) => {
@@ -1085,7 +1117,8 @@ function pathSvg(P, big) {   // big：放大視窗用（marker id 加 b，免得
   for (const k in node) {
     const { n, lines, x, y, w, h } = node[k], sid = n[2] && OBJ[n[2]] ? n[2] : null, col = sid ? OBJ[sid].s.color : css("--mute");
     const act = inStep.has(k), fut = stepIdx >= 0 && !act && !done.has(k), les = k === lesNode, hit = aff.has(k);
-    s += `<g class="nd${sid ? "" : " txt"}" data-k="${k}" opacity="${fut ? .35 : 1}"${sid ? ` tabindex="0" role="button" aria-label="${esc(n[1].replace(/\n/g, ""))}"` : ""}>`;
+    const clk = sid || (microOn && isMicro(P) && P.steps.some(st => st[1].includes(k)));   // 顯微模式：點節點播它那一步
+    s += `<g class="nd${clk ? "" : " txt"}" data-k="${k}" opacity="${fut ? .35 : 1}"${clk ? ` tabindex="0" role="button" aria-label="${esc(n[1].replace(/\n/g, ""))}"` : ""}>`;
     s += `<rect x="${x - w / 2}" y="${y - h / 2}" width="${w}" height="${h}" rx="6" fill="${hit ? css("--warn") : sid ? col : "none"}" fill-opacity="${hit ? .45 : act ? .5 : .2}" stroke="${les || hit ? css("--warn") : act ? css("--accent") : col}" stroke-width="${act || les || hit ? 2.4 : 1.2}" ${sid ? "" : 'stroke-dasharray="3 3"'}/>`;
     lines.forEach((l, j) => s += `<text x="${x}" y="${y - (lines.length - 1) * 6.5 + j * 13 + 4}" font-size="11" text-anchor="middle" fill="${css("--ink")}">${esc(l)}</text>`);
     if (les) s += `<path d="M${x - 10},${y - 10} L${x + 10},${y + 10} M${x + 10},${y - 10} L${x - 10},${y + 10}" stroke="${css("--warn")}" stroke-width="3"/>`;
@@ -1235,6 +1268,7 @@ function setKg(on) {
 }
 function pathNodeGo(P, k) {   // 點路徑圖節點：跳到那一步＋選構造
   const n = P.nodes.find(n => n[0] === k), si = P.steps.findIndex(st => st[1].includes(k));
+  if (isMicro(P) && microOn) { if (si >= 0) M.play(si); return; }   // 顯微模式：播那一步
   if (si >= 0 && si !== stepIdx) setStep(si); pick(n[2]);
 }
 function openPathBig() {   // 放大的路徑圖：dialog 固定在 HTML 裡，只換內容；節點點按用事件委派
@@ -1285,20 +1319,23 @@ function renderGuide() {
     const L = (P.lesions || []).find(l => l[0] === lesionKey);
     if (kgFor !== P.id) { kgFor = P.id; kgOpen = false; }
     const nP = kgOn ? kgNq(KG.rows.filter(r => r.at[0][0] === "p" && r.at[1] === P.id)) : 0;
+    const mp = isMicro(P) ? microPanel(P) : null, mOn = mp && microOn, goStep = mOn ? i => M.play(i) : setStep;   // 顯微模式：點第 n 步播第 n 段
+    const tog = i => i === stepIdx && !(mOn && M.seq) ? -1 : i;
     g.innerHTML = `<h3>${esc(P.zh)}${nP ? `<button class="kgb" aria-expanded="${kgOpen}" title="這條路徑的國考題">國考 ${nP}</button>` : ""}</h3>${P.en ? `<div class="en">${esc(P.en)}</div>` : ""}${nP && kgOpen ? kgPathList(P) : ""}<p class="gnote">${esc(P.note)}</p>` + pathTable(P.table, P.id) + `<div class="pzbar"><button class="btn pzoom" data-g="zoom" title="放大路徑圖">放大</button></div>` + pathSvg(P) + (P.vf ? vfSvg(P) : "") +
-      `<div class="gctl"><button class="btn" data-g="prev">‹ 上一步</button><button class="btn" data-g="all" aria-pressed="${stepIdx < 0 && !lesionKey}">全部</button><button class="btn" data-g="next">下一步 ›</button></div>` +
-      `<ol class="steps">${P.steps.map((st, i) => `<li><button data-s="${i}" aria-pressed="${i === stepIdx}">${esc(st[0])}${kgOn ? kgX(kgAt("ps", P.id, i)) : ""}</button></li>`).join("")}</ol>` +
+      `<div class="gctl"><button class="btn" data-g="prev">‹ 上一步</button><button class="btn" data-g="all" aria-pressed="${stepIdx < 0 && !lesionKey}">全部</button><button class="btn" data-g="next">下一步 ›</button></div>` + (mp ? mp.ctl : "") +
+      `<ol class="steps">${P.steps.map((st, i) => `<li><button data-s="${i}" aria-pressed="${i === stepIdx}">${esc(st[0])}${kgOn ? kgX(kgAt("ps", P.id, i)) : ""}</button></li>`).join("")}</ol>` + (mp ? mp.more : "") +
       (P.lesions && P.lesions.length ? `<div class="lbl">模擬病灶</div><div class="lesbar">${P.lesions.map(l => `<button class="btn" data-l="${l[0]}" aria-pressed="${l[0] === lesionKey}">${esc(l[1])}${kgOn ? kgX(kgAt("pl", P.id, l[0])) : ""}</button>`).join("")}</div>${L ? `<div class="lesfx">${esc(L[3])}</div>` : ""}` : "") +
       (L && P.id === "hgaze" ? dpBlock(dpDevFor({ mlf: "MLF", cn6: "CN6" }[L[0]] || "PPRF", L[0] === "mlf" ? "L" : "R"), [1, 0], L[1] + "病灶") : "");
-    g.querySelectorAll("[data-s]").forEach(b => b.onclick = () => setStep(+b.dataset.s === stepIdx ? -1 : +b.dataset.s));
-    g.querySelector('[data-g="prev"]').onclick = () => setStep(stepIdx <= 0 ? P.steps.length - 1 : stepIdx - 1);
-    g.querySelector('[data-g="next"]').onclick = () => setStep(stepIdx >= P.steps.length - 1 ? -1 : stepIdx + 1);
-    g.querySelector('[data-g="all"]').onclick = () => setStep(-1);
+    g.querySelectorAll("[data-s]").forEach(b => b.onclick = () => goStep(tog(+b.dataset.s)));
+    g.querySelector('[data-g="prev"]').onclick = () => goStep(stepIdx <= 0 ? P.steps.length - 1 : stepIdx - 1);
+    g.querySelector('[data-g="next"]').onclick = () => goStep(stepIdx >= P.steps.length - 1 ? -1 : stepIdx + 1);
+    g.querySelector('[data-g="all"]').onclick = () => goStep(-1);
+    if (mp) microWire(g);
     g.querySelectorAll("[data-l]").forEach(b => b.onclick = () => setLesion(b.dataset.l));
     g.querySelectorAll("details.ptabw").forEach(d => d.ontoggle = () => d.open ? tabOpen.add(+d.dataset.t) : tabOpen.delete(+d.dataset.t));
     if (nP) {
       g.querySelector(".kgb").onclick = () => { kgOpen = !kgOpen; renderGuide(); };
-      g.querySelectorAll("[data-ks]").forEach(b => b.onclick = () => setStep(+b.dataset.ks === stepIdx ? -1 : +b.dataset.ks));
+      g.querySelectorAll("[data-ks]").forEach(b => b.onclick = () => goStep(tog(+b.dataset.ks)));
       g.querySelectorAll("[data-kl]").forEach(b => b.onclick = () => setLesion(b.dataset.kl));
       kgWire(g);
     }
@@ -1574,6 +1611,7 @@ $("#bAllOff").onclick = () => { offStack.forEach(restoreIts); offStack = []; ref
 $("#bOffX").onclick = () => { offStack = []; showOffbar(); };
 addEventListener("keydown", e => {
   if (e.target.closest && e.target.closest("input, textarea")) return;
+  if (microOn) return;   // 顯微模式沒有這些快捷鍵的對象
   if ((e.key === "h" || e.key === "H") && selId && !e.metaKey && !e.ctrlKey) { e.preventDefault(); turnOff(selId); }
   if ((e.key === "k" || e.key === "K") && !e.metaKey && !e.ctrlKey && !e.altKey) setKg(!kgOn);
   if ((e.key === "n" || e.key === "N") && !e.metaKey && !e.ctrlKey && !e.altKey) setLab(!labOn);
@@ -1636,6 +1674,7 @@ function lobeHtml(l, side) {
     <p>${L.fn}</p><p><b>腦迴</b>：${gy.join("、")}</p>${su.length ? `<p><b>葉內的溝</b>：${su.join("、")}</p>` : ""}`;
 }
 function select(id, point, fly) {
+  if (id && microOn) leaveMicro();
   clearHighlight();
   selId = id; selLobe = id && id.startsWith("lobe:") ? id.slice(5) : null;
   document.querySelectorAll(".row").forEach(r => r.classList.toggle("sel", inSel(r.dataset.id)));
@@ -1709,6 +1748,7 @@ const ray = new THREE.Raycaster(), ndc = new THREE.Vector2(); let down = null;
 canvas.addEventListener("pointerdown", e => { down = [e.clientX, e.clientY]; });
 canvas.addEventListener("pointerup", e => {
   if (!down || Math.hypot(e.clientX - down[0], e.clientY - down[1]) > 6) return;
+  if (microOn) { M.pick(e); const el = $("#mpick"); if (el) el.innerHTML = M.pickHtml; return; }
   const r = canvas.getBoundingClientRect(); ndc.set((e.clientX - r.left) / r.width * 2 - 1, -(e.clientY - r.top) / r.height * 2 + 1);
   ray.setFromCamera(ndc, camera);
   const vis = pickables.filter(m => m.visible && m.parent.visible && m.material.visible !== false && (m.material.opacity > 0.05));
@@ -1968,11 +2008,12 @@ let activeSec = null, keepUpper = false, clipOn = true, svgLabels = true, sagOn 
 const capGroup = new THREE.Group(); scene.add(capGroup);
 const LAYER = s => s.group === "skeleton" ? (shellIds.has(s.id) ? 0 : s.sub === "ventricle" && s.id !== "sup_med_velum" ? 2 : 1) : s.group === "tract" ? 3 : s.group === "nerve" ? 3 : 4;
 const secs = [...D.sections].sort((a, b) => a.lec.localeCompare(b.lec) || a.n - b.n);
-const COR = sec => sec && sec.kind === "cor", SC = sec => sec && sec.kind === "sc";
-const secName = sec => COR(sec) ? `冠狀 ${sec.tag} ${esc(sec.zh)}` : SC(sec) ? `脊髓 ${esc(sec.zh)}` : `第 ${sec.n} 層 ${esc(sec.zh)}`;
+const COR = sec => sec && sec.kind === "cor", SC = sec => sec && sec.kind === "sc", CB = sec => sec && sec.kind === "cb";
+const secName = sec => COR(sec) ? `冠狀 ${sec.tag} ${esc(sec.zh)}` : SC(sec) ? `脊髓 ${esc(sec.zh)}` : CB(sec) ? `小腦 ${esc(sec.zh)}` : `第 ${sec.n} 層 ${esc(sec.zh)}`;
 // 冠狀切片：只有大腦白質當底（外殼層），間腦、腦幹照一般構造上色
 // 脊髓橫切（L04）：硬膜囊墊最底、脊髓白質當底，其餘照一般圖層
-const LAY = (sec, s) => SC(sec) ? (s.id === "sc_dura" ? -1 : s.id === "sc_wm" ? 0 : LAYER(s)) : !COR(sec) ? LAYER(s) : s.id === "hemisphere" ? 0 : s.sub === "ventricle" ? 2 : s.group === "tract" || s.group === "nerve" ? 3 : 4;
+// 小腦橫切（L03）：整顆小腦當底，蚓部、旁蚓部、外側半球、小腦腳照分區上色
+const LAY = (sec, s) => CB(sec) ? (s.id === "cerebellum" ? 0 : s.sub === "cerebellum" ? 1 : LAYER(s)) : SC(sec) ? (s.id === "sc_dura" ? -1 : s.id === "sc_wm" ? 0 : LAYER(s)) : !COR(sec) ? LAYER(s) : s.id === "hemisphere" ? 0 : s.sub === "ventricle" ? 2 : s.group === "tract" || s.group === "nerve" ? 3 : 4;
 function secBasis(sec) { return { c: new THREE.Vector3(...sec.c), n: new THREE.Vector3(...sec.nrm), u: new THREE.Vector3(...sec.u), v: new THREE.Vector3(...sec.v) }; }
 // 切成兩塊的腦迴：切面輪廓（重心）屬第幾塊（沒切塊＝null）；那一塊沒畫就不畫輪廓，顏色用那一塊的
 function loopPiece(id, L, B) {
@@ -2026,10 +2067,11 @@ function applyClip() {
 function faceView() {
   if (!activeSec) return; const B = secBasis(activeSec);
   const dir = B.n.clone().multiplyScalar(keepUpper ? -1 : 1).add(B.v.clone().multiplyScalar(0.25));
-  flyTo(B.c, dir, (COR(activeSec) ? 420 : SC(activeSec) ? 55 : 75) * Math.max(1, 0.9 / camera.aspect));
+  const ctr = CB(activeSec) ? B.c.clone().addScaledVector(B.v, 22) : B.c;   // 小腦橫切：切面中心在腦幹，往後移到小腦中間
+  flyTo(ctr, dir, (COR(activeSec) ? 420 : SC(activeSec) ? 55 : CB(activeSec) ? 170 : 75) * Math.max(1, 0.9 / camera.aspect));
 }
 // 依課程分組，只列開著的課程；L01＝腦幹 9 個橫切面，L02＝大腦 6 個冠狀切片
-const SECHEAD = { ax: n => `老師的 ${n} 個腦幹橫切面（尾側 → 吻側）`, cor: n => `大腦 ${n} 個冠狀切片（前 → 後）`, sc: n => `脊髓 ${n} 個橫切面（上 → 下）` };
+const SECHEAD = { ax: n => `老師的 ${n} 個腦幹橫切面（尾側 → 吻側）`, cor: n => `大腦 ${n} 個冠狀切片（前 → 後）`, sc: n => `脊髓 ${n} 個橫切面（上 → 下）`, cb: n => `小腦 ${n} 個橫切面` };
 function buildSecList() {
   const W = $("#seclist"); W.innerHTML = "";
   const vis = secs.filter(s => lecsOf(s).some(lecAny));   // 別堂的切面（also）併進原本那堂的一組，只列這幾堂用得到的層
@@ -2046,11 +2088,12 @@ function buildSecList() {
   }
 }
 function openSection(s) {
+  leaveMicro();
   if (sagOn) { sagOn = false; $("#bSag").setAttribute("aria-pressed", "false"); }
   activeSec = s; document.querySelectorAll(".secbtn").forEach(b => b.setAttribute("aria-pressed", b.dataset.id === s.id));
-  if (COR(s) || SC(s)) {   // 冠狀切片照投影片：大腦白質與投影片有標的構造打開（預設多半關著），小腦與腦溝關掉；脊髓橫切只補開投影片有標的
+  if (COR(s) || SC(s) || CB(s)) {   // 冠狀切片照投影片：大腦白質與投影片有標的構造打開（預設多半關著），小腦與腦溝關掉；脊髓、小腦橫切只補開投影片有標的
     if (COR(s)) for (const id in OBJ) { const x = OBJ[id].s; if (x.sub === "cerebellum" || x.sub === "sulcus") OBJ[id].userOn = false; }
-    const want = new Set([COR(s) ? "hemisphere" : "sc_wm", ...s.labels]);
+    const want = new Set([...(COR(s) ? ["hemisphere"] : SC(s) ? ["sc_wm"] : []), ...s.labels]);
     for (const id of corAuto) if (!want.has(id)) OBJ[id].userOn = false;   // 上一張自動打開的關回去（使用者自己開的不動）
     corAuto = new Set([...corAuto].filter(id => want.has(id)));
     for (const id of want) if (!OBJ[id].userOn) { OBJ[id].userOn = true; corAuto.add(id); }
@@ -2089,14 +2132,14 @@ const NS = "http://www.w3.org/2000/svg";
 // 圖上短名：構造有 short 欄（L00／L01 的 add）就用它，否則去括號、顱神經只留「CN N」
 const short = s => s.short || s.zh.replace(/（.*?）/g, "").replace(/^CN (\S+) .*/, "CN $1");
 function drawSvg() {
-  const s = activeSec, W = $("#svgwrap"), cor = COR(s); W.innerHTML = "";
-  const frame = cor ? ["hemisphere", "midbrain", "pons"] : SC(s) ? ["sc_wm", "sc_dura"] : ["midbrain", "pons", "medulla", "cord"];
+  const s = activeSec, W = $("#svgwrap"), cor = COR(s), cb = CB(s); W.innerHTML = "";
+  const frame = cor ? ["hemisphere", "midbrain", "pons"] : SC(s) ? ["sc_wm", "sc_dura"] : cb ? ["cerebellum", "pons", "mcp_shell"] : ["midbrain", "pons", "medulla", "cord"];
   const all = []; for (const id in s.cuts) if (frame.includes(id)) for (const L of s.cuts[id]) for (let i = 0; i < L.length; i += 2) all.push([L[i], L[i + 1]]);
   let x0 = -14, x1 = 14, y0 = -12, y1 = 14;
   if (all.length) { x0 = Math.min(...all.map(p => p[0])); x1 = Math.max(...all.map(p => p[0])); y0 = Math.min(...all.map(p => p[1])); y1 = Math.max(...all.map(p => p[1])); }
-  const k = cor ? 3 : 1;   // 冠狀切片約 130 mm 寬，字、間距、圓點都放大
+  const k = cor ? 3 : cb ? 2.2 : 1;   // 冠狀切片約 130 mm 寬、小腦約 100 mm，字、間距、圓點都放大
   const m = 2.5 * k, half = Math.min(24 * k * 1.1, Math.max(Math.abs(x0), Math.abs(x1))) + m; x0 = -half; x1 = half;
-  y0 = (cor ? y0 : Math.max(y0, -24)) - m; y1 = (cor ? y1 : Math.min(y1, 26)) + m;
+  y0 = (cor || cb ? y0 : Math.max(y0, -24)) - m; y1 = (cor || cb ? y1 : Math.min(y1, 26)) + m;
   if (svgLabels) x1 += 9 * k;   // room for the label column on the patient-left side
   const svg = document.createElementNS(NS, "svg"); svg.setAttribute("viewBox", `${x0} ${-y1} ${x1 - x0} ${y1 - y0}`);
   const ids = Object.keys(s.cuts).filter(id => isOn(id)).sort((a, b) => LAY(s, OBJ[a].s) - LAY(s, OBJ[b].s));
@@ -2141,7 +2184,7 @@ function drawSvg() {
   const o = (txt, st) => { const e = document.createElement("div"); e.className = "o"; e.textContent = txt; Object.assign(e.style, st); W.append(e); };
   o(cor ? "上 S" : "背側 D", { top: "4px", left: "50%", transform: "translateX(-50%)" }); o(cor ? "下 I" : "腹側 V", { bottom: "4px", left: "50%", transform: "translateX(-50%)" });
   o("右 R", { left: "6px", top: "50%" }); o("左 L", { right: "6px", top: "4px" });
-  $("#secnote").innerHTML = `<b>${cor ? `冠狀切片 ${s.tag}：${s.zh}` : SC(s) ? `脊髓橫切 ${s.tag}：${s.zh}` : `第 ${s.n} 層：${s.zh}`}</b><br>${s.note || ""}`;
+  $("#secnote").innerHTML = `<b>${cor ? `冠狀切片 ${s.tag}：${s.zh}` : SC(s) ? `脊髓橫切 ${s.tag}：${s.zh}` : CB(s) ? `小腦橫切：${s.zh}` : `第 ${s.n} 層：${s.zh}`}</b><br>${s.note || ""}`;
 }
 function hitChip(id, miss) {
   const st = OBJ[id].s, b = document.createElement("button"); b.className = "hit" + (miss ? " miss" : ""); b.dataset.id = id;
@@ -2254,12 +2297,14 @@ $("#bAbout").onclick = () => {
 function resize() { const w = stage.clientWidth, h = stage.clientHeight; if (!w || !h) return;   // 背景分頁剛開時舞台是 0 尺寸：aspect 會變 NaN、畫面全黑
   if (renderer.getPixelRatio() !== DPR()) renderer.setPixelRatio(DPR());
   renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix(); invalidate(); lastMove = performance.now();
+  if (M) M.resize();
   if (homeLate) { homeLate = false; camStart(); } }
 new ResizeObserver(resize).observe(stage);
 // 有變動才重畫：相機在動（拖曳、阻尼、飛行）、選取的脈衝、或剛有操作（點擊、輸入、按鍵、滾輪）之後幾格。
 // 畫面靜止時不再每秒畫 60 次，筆電、平板比較省電。程式裡改了 3D 狀態卻沒有使用者操作時，呼叫 invalidate()。
 function tick(now) {
   requestAnimationFrame(tick);   // 先排下一格：單一格出錯也不會讓畫面停住
+  if (microOn) { M.frame(now); return; }   // 顯微模式：只畫顯微場景
   if (anim) { anim(now); dirty = Math.max(dirty, 2); }
   if (controls.update()) dirty = Math.max(dirty, 2);
   if (!finite(camera.position) || !finite(camera.quaternion) || !finite(controls.target)) {   // 鏡頭壞掉（NaN）就回起始視角，不讓 render 每格出錯
@@ -2289,13 +2334,393 @@ import("three-mesh-bvh").then(M => {
 }).catch(e => console.warn("three-mesh-bvh", e));
 buildPanel(); buildSecList(); refreshVis(); resize(); requestAnimationFrame(tick);
 $("#loading").remove();
+// ---------- 顯微模式：小腦皮質迴路（苔狀纖維活動）。同一個 renderer 換場景，路徑 P.micro＝"mossy"；示意尺寸，不是實際比例 ----------
+// 紅光點＝興奮、藍光點＝抑制；第 n 步時前 n−1 步在背景用淡光點繼續跑；爬行纖維只當對照（第 7 段，不在六步驟裡）
+function makeMicro(onChange) {
+  const V = (x, y, z) => new THREE.Vector3(x, y, z);
+  const scene = new THREE.Scene(), cam = new THREE.PerspectiveCamera(38, 1, 0.1, 200), ctl = new OrbitControls(cam, canvas);
+  ctl.enableDamping = true; ctl.dampingFactor = 0.1; ctl.minDistance = 2; ctl.maxDistance = 120; ctl.zoomToCursor = true; ctl.enabled = false;
+  ctl.target.clampLength = function () { return this; };   // 同主模型：不然靜止時 update() 每格都回報有動
+  scene.add(new THREE.HemisphereLight(0xffffff, 0x8899aa, 1.6));
+  const dl = new THREE.DirectionalLight(0xffffff, 1.4); dl.position.set(6, 12, -8); scene.add(dl);
+
+  // 座標（示意）：x＝葉片長軸（平行纖維方向）、y＝深度（往上是軟腦膜）、z＝橫向（Purkinje 樹突扇面方向）
+  const LAY = { wm: [-2, 0], gr: [0, 3], pk: [3, 3.6], mol: [3.6, 8.6] }, XR = [-9, 9], ZR = [-2.6, 6.6];
+  const layers = [["wm", "白質", 0xb9b2a6], ["gr", "顆粒層", 0xe9b48f], ["pk", "Purkinje 細胞層", 0xe48fa0], ["mol", "分子層", 0x9cc3e6]];
+  for (const [k, , col] of layers) {
+    const [y0, y1] = LAY[k], g = new THREE.BoxGeometry(XR[1] - XR[0], y1 - y0, ZR[1] - ZR[0]);
+    const m = new THREE.Mesh(g, new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.1, depthWrite: false, side: THREE.DoubleSide }));
+    m.position.set(0, (y0 + y1) / 2, (ZR[0] + ZR[1]) / 2); m.renderOrder = -1; scene.add(m);
+    const e = new THREE.LineSegments(new THREE.EdgesGeometry(g), new THREE.LineBasicMaterial({ color: col, transparent: true, opacity: 0.55 }));
+    e.position.copy(m.position); scene.add(e);
+  }
+
+  // 幾何小工具
+  const up = V(0, 1, 0);
+  function cyl(a, b, r0, r1 = r0) {
+    const d = b.clone().sub(a), L = d.length(), g = new THREE.CylinderGeometry(r1, r0, L, 6, 1);
+    g.applyQuaternion(new THREE.Quaternion().setFromUnitVectors(up, d.normalize())); g.translate(...a.clone().add(b).multiplyScalar(0.5).toArray()); return g;
+  }
+  const sph = (p, r, sx = 1, sy = 1, sz = 1) => { const g = new THREE.SphereGeometry(r, 14, 10); g.scale(sx, sy, sz); g.translate(p.x, p.y, p.z); return g; };
+  const curve = pts => new THREE.CatmullRomCurve3(pts, false, "catmullrom", 0.3);
+  const tube = (c, r) => new THREE.TubeGeometry(c, Math.max(8, Math.round(c.getLength() * 6)), r, 6, false);
+  let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+
+  // 細胞登錄：每個 id 一個材質，狀態 rest／active／boost／inhib
+  const CELLS = {}, pickables = [];
+  const C_ACT = new THREE.Color(0xffb547), C_INH = new THREE.Color(0x4b5d80), C_INH_E = new THREE.Color(0x1d3a80);
+  function cell(id, name, info, color, geos) {
+    const mat = new THREE.MeshStandardMaterial({ color, roughness: 0.6, metalness: 0, emissive: 0x000000 });
+    const mesh = new THREE.Mesh(mergeGeometries(geos.map(g => g.index ? g.toNonIndexed() : g)), mat);
+    mesh.userData.id = id; scene.add(mesh); pickables.push(mesh);
+    CELLS[id] = { id, name, info, base: new THREE.Color(color), mat, mesh, state: "rest", tc: new THREE.Color(color), te: new THREE.Color(0), ti: 0 };
+    return CELLS[id];
+  }
+  function setState(id, st) {
+    if (id === "p1") setState("p1c", st);   // 平常 P1 四顆一起變
+    const c = CELLS[id]; c.state = st;
+    if (st === "active" || st === "boost") { c.tc.copy(c.base).lerp(C_ACT, st === "boost" ? 0.75 : 0.55); c.te.copy(C_ACT); c.ti = st === "boost" ? 1.25 : 0.75; }
+    else if (st === "inhib") { c.tc.copy(c.base).lerp(C_INH, 0.75).multiplyScalar(0.7); c.te.copy(C_INH_E); c.ti = 0.35; }
+    else { c.tc.copy(c.base); c.te.set(0); c.ti = 0; }
+  }
+
+  // 苔狀纖維＋突觸小球
+  const R = V(0.2, 0.9, 0);   // rosette
+  const mossyC = curve([V(-9, -1.3, -1.8), V(-5, -1.2, -1.4), V(-1.8, -0.8, -0.6), V(-0.2, 0.3, -0.1), R]);
+  const rosette = [sph(R, 0.26)]; for (let i = 0; i < 7; i++) { const a = i / 7 * Math.PI * 2; rosette.push(sph(R.clone().add(V(Math.cos(a) * 0.28, Math.sin(a * 2) * 0.12, Math.sin(a) * 0.28)), 0.12)); }
+  // 側枝：苔狀纖維在白質分出側枝，直接興奮深部核（「踩油門」）
+  const DNA = [V(-1.6, -5, 0.4), V(0, -5.25, -0.1), V(1.6, -5, 0.3)], DNB = [V(-1, -5.1, 4.2), V(1, -5, 4.6)];
+  const mColA = curve([V(-4.2, -1.25, -1.3), V(-3.2, -2.8, -0.6), V(-2.2, -4.3, 0.1), DNA[0].clone().add(V(-0.2, 0.25, 0))]);
+  const mColB = curve([V(-4.2, -1.25, -1.3), V(-3.4, -2.9, 1.6), V(-1.9, -4.4, 3.8), DNB[0].clone().add(V(-0.25, 0.2, 0))]);
+  cell("mossy", "苔狀纖維", "下橄欖核以外的所有傳入（脊髓小腦徑、橋腦核、前庭等）。終末（rosette）在顆粒層形成突觸小球，興奮顆粒細胞；在白質分出側枝，直接興奮深部核。不直接接 Purkinje 細胞。", 0xc8553d, [tube(mossyC, 0.08), ...rosette, tube(mColA, 0.04), tube(mColB, 0.04)]);
+  const glia = new THREE.Mesh(new THREE.SphereGeometry(0.95, 24, 16), new THREE.MeshStandardMaterial({ color: 0x9fb8a8, transparent: true, opacity: 0.22, depthWrite: false }));
+  glia.position.copy(R); glia.userData.id = "glom"; scene.add(glia); pickables.push(glia);
+  CELLS.glom = { id: "glom", name: "突觸小球（glomerulus）", info: "苔狀纖維終末（rosette）＋顆粒細胞樹突＋高基氏細胞軸突，外面包膠細胞（半透明球）。高基氏細胞的軸突直接修飾這個終端（axon 接 axon），所以抑制得很快；平常顆粒細胞處在被抑制的狀態，苔狀纖維的訊號要夠強才能活化它。", mat: null };
+
+  // 顆粒細胞＋平行纖維（同一條苔狀纖維活化的一群 → 一束）
+  const GR = [[V(0.7, 1.95, -0.5), 4.8], [V(-0.4, 1.85, 0.05), 6.1], [V(1.0, 1.75, 0.5), 7.4]];
+  const grGeo = [], pfGeo = [], grAx = [], pfL = [], pfR = [];
+  GR.forEach(([p, py]) => {
+    grGeo.push(sph(p, 0.2));
+    for (let k = 0; k < 3; k++) grGeo.push(cyl(p, R.clone().add(V((k - 1) * 0.18, 0.12, (k - 1) * 0.1)), 0.035));   // 爪狀樹突伸進小球
+    const top = V(p.x, py, p.z), ax = curve([p, V(p.x, 2.6, p.z), V(p.x, py - 0.6, p.z), top]); grAx.push(ax); grGeo.push(tube(ax, 0.035));
+    const l = curve([top, V(XR[0], py, p.z)]), r = curve([top, V(XR[1], py, p.z)]); pfL.push(l); pfR.push(r);
+    pfGeo.push(tube(l, 0.035), tube(r, 0.035));
+  });
+  cell("gr", "顆粒細胞", "顆粒層。小腦皮質唯一的興奮性神經元；軸突上行到分子層，T 形分岔成平行纖維。", 0xd9774f, grGeo);
+  [[4.3, -0.25], [5.4, 0.35], [6.8, -0.3], [8.0, 0.2], [5.9, -0.6], [7.0, 0.6]].forEach(([y, z]) => pfGeo.push(tube(curve([V(XR[0], y, z), V(XR[1], y, z)]), 0.025)));   // 束裡其他顆粒細胞的平行纖維（本體不畫）
+  cell("pf", "平行纖維", "顆粒細胞的軸突。沿葉片長軸走成一束，穿過扇面朝向與它垂直的一整排 Purkinje 細胞樹突，一次活化很多個。", 0xe0957a, pfGeo);
+
+  // 束外：別條苔狀纖維的突觸小球＋不相關的顆粒細胞（平行纖維不經過 P1、P2）
+  const R2 = V(4.3, 0.9, 4.3);
+  const mossy2C = curve([V(9, -1.35, 5.9), V(7, -1.25, 5.4), V(5.3, -0.4, 4.7), R2]);
+  const m2Geo = [tube(mossy2C, 0.06), sph(R2, 0.22)]; for (let i = 0; i < 6; i++) { const a = i / 6 * Math.PI * 2; m2Geo.push(sph(R2.clone().add(V(Math.cos(a) * 0.24, Math.sin(a * 2) * 0.1, Math.sin(a) * 0.24)), 0.1)); }
+  cell("mossy2", "別條苔狀纖維", "帶的是跟這個動作不相關的訊號，終末在另一個突觸小球。", 0x9a8a84, m2Geo);
+  const glia2 = new THREE.Mesh(new THREE.SphereGeometry(0.8, 24, 16), glia.material); glia2.position.copy(R2); glia2.userData.id = "glom"; scene.add(glia2); pickables.push(glia2);
+  const gr2Geo = [];
+  [[V(3.7, 1.85, 4.0), 5.0], [V(4.9, 1.95, 4.65), 6.3]].forEach(([p, py]) => {
+    gr2Geo.push(sph(p, 0.18));
+    for (let k = 0; k < 3; k++) gr2Geo.push(cyl(p, R2.clone().add(V((k - 1) * 0.16, 0.1, (k - 1) * 0.09)), 0.03));
+    const top = V(p.x, py, p.z); gr2Geo.push(tube(curve([p, V(p.x, 2.6, p.z), V(p.x, py - 0.6, p.z), top]), 0.03));
+    gr2Geo.push(tube(curve([top, V(p.x - 1.8, py, p.z)]), 0.028), tube(curve([top, V(p.x + 1.8, py, p.z)]), 0.028));
+  });
+  cell("gr2", "不相關的顆粒細胞", "不在這次動作上的顆粒細胞。被束外的高基氏細胞（Go2）保持抑制，次要動作與雜訊就不會被放大。", 0xc99a80, gr2Geo);
+
+  // Purkinje：扇形樹突在 y–z 平面（與平行纖維垂直）
+  function purkinje(x, z) {
+    const s = V(x, 3.3, z), g = [sph(s, 0.32, 1, 1.25, 1)], top = V(x, 4.2, z); g.push(cyl(s, top, 0.11, 0.08));
+    const grow = (p, ang, len, r, d) => {
+      const q = V(x, Math.min(p.y + Math.cos(ang) * len, 8.4), Math.max(z - 1.45, Math.min(z + 1.45, p.z + Math.sin(ang) * len)));
+      g.push(cyl(p, q, r, r * 0.8));
+      if (d < 5) { const sp = 0.35 + rnd() * 0.3; grow(q, ang - sp, len * 0.78, r * 0.78, d + 1); grow(q, ang + sp, len * 0.78, r * 0.78, d + 1); if (d >= 3 && rnd() < 0.5) grow(q, ang + (rnd() - 0.5) * 0.4, len * 0.6, r * 0.7, d + 1); }
+    };
+    grow(top, -0.7, 1.3, 0.07, 1); grow(top, 0.7, 1.3, 0.07, 1); grow(top, 0, 1.4, 0.07, 2);
+    return { s, g };
+  }
+  const P1X = [-6, -2, 2, 6], P2X = [-4, 0], P2Z = 4.5;
+  const p1ax = [], p1Geo = [], p1cGeo = [], p2Geo = [];
+  P1X.forEach((x, i) => {
+    const G = x === 2 ? p1cGeo : p1Geo, { s, g } = purkinje(x, 0); G.push(...g);   // x=2 那顆被爬行纖維纏住，拆開才能單獨亮
+    const d = DNA[[0, 1, 1, 2][i]];
+    const c = curve([s.clone().add(V(0, -0.35, 0)), V(x, -1.5, 0), V(x * 0.55 + d.x * 0.45, -3.6, d.z * 0.6), d]); p1ax.push(c); G.push(tube(c, 0.05));
+  });
+  const colC = curve([V(-2, 1.25, 0), V(-2.5, 1.7, -0.25), V(-2.95, 2.2, -0.4)]); p1Geo.push(tube(colC, 0.035));   // 側枝 → 高基氏
+  P2X.forEach((x, i) => {
+    const { s, g } = purkinje(x, P2Z); p2Geo.push(...g);
+    p2Geo.push(tube(curve([s.clone().add(V(0, -0.35, 0)), V(x, -1.5, P2Z), V(x * 0.5, -3.6, P2Z - 0.1), DNB[i]]), 0.05));
+  });
+  const P1_INFO = "唯一的輸出，抑制性。被這束平行纖維活化；軸突抑制相對應的深部核，側枝抑制高基氏細胞。";
+  cell("p1", "Purkinje 細胞（P1，在平行纖維束上）", P1_INFO, 0x4f5f78, p1Geo);
+  cell("p1c", "Purkinje 細胞（P1，在平行纖維束上）", P1_INFO + "這一顆的樹突也被一條爬行纖維纏住。", 0x4f5f78, p1cGeo);
+  cell("p2", "Purkinje 細胞（P2，在平行纖維束旁）", "不在這束平行纖維上，沒被活化；被星狀細胞（樹突）、籃狀細胞（胞體）抑制 → 它對應的深部核不被抑制，維持活化。", 0x6d7a90, p2Geo);
+
+  // 爬行纖維（對照，不在六步驟裡）：白質上來，穿過顆粒層不形成突觸，在分子層纏住一個 Purkinje 細胞的樹突
+  const CFX = 2, CF0 = V(4.6, -1.7, -1.6);
+  const cfUp = curve([CF0, V(3.6, -0.6, -0.9), V(2.6, 1.0, -0.35), V(2.25, 2.6, -0.2), V(CFX + 0.14, 3.4, 0.1)]);
+  const wrap = pts => curve(pts.map(([y, z], i) => V(CFX + (i % 2 ? -0.13 : 0.13), y, z)));
+  const cfA = wrap([[3.4, 0.1], [3.8, -0.1], [4.2, 0.08], [4.6, -0.3], [5.0, -0.62], [5.4, -0.84], [5.8, -1.05], [6.2, -1.18], [6.6, -1.3]]);
+  const cfB = wrap([[4.2, 0.08], [4.6, 0.3], [5.0, 0.6], [5.4, 0.84], [5.8, 1.05], [6.3, 1.2], [6.8, 1.32]]);
+  const cfCol = curve([CF0, V(3.2, -3, -0.9), V(1.2, -4.4, -0.4), DNA[1].clone().add(V(0.25, 0.25, 0))]);
+  const cf = cell("cf", "爬行纖維（對照）", "只來自對側下橄欖核（橄欖小腦纖維，經小腦下腳）。穿過顆粒層但不在那裡形成突觸，直接在分子層纏住 Purkinje 細胞的樹突，一條只接一個；也分出側枝興奮深部核。和苔狀纖維「一條活化一大群」正好相反；它帶的是動作有沒有做對的回饋。", 0x8e55a8, [tube(cfUp, 0.05), tube(cfA, 0.035), tube(cfB, 0.035), tube(cfCol, 0.04)]);
+  cf.mat.transparent = true; cf.mat.opacity = 0.18; cf.mat.depthWrite = false;
+
+  // 星狀、籃狀細胞（分子層，在束上；軸突橫走到束旁）
+  const S = V(0, 7.25, 0.25), B = V(-4, 4.15, 0.2);
+  const sAx = curve([S, V(0, 7.15, 1.6), V(0, 7.05, 2.8), V(0, 7.0, 3.55)]);
+  const sGeo = [sph(S, 0.18)]; for (let i = 0; i < 6; i++) { const a = i / 6 * Math.PI * 2; sGeo.push(cyl(S, S.clone().add(V(Math.cos(a) * 0.7, Math.sin(a) * 0.5, Math.sin(a + 1) * 0.3)), 0.03)); }
+  sGeo.push(tube(sAx, 0.03));
+  cell("s", "星狀細胞（S）", "分子層外側。抑制性：被平行纖維活化後，抑制束旁 Purkinje 細胞的樹突。", 0x5b8f7b, sGeo);
+  const bAx = curve([B, V(-4, 3.95, 1.8), V(-4, 3.75, 3.4), V(-4, 3.5, 4.1)]);
+  const bGeo = [sph(B, 0.2)]; for (let i = 0; i < 4; i++) { const a = -0.9 + i * 0.6; bGeo.push(cyl(B, B.clone().add(V((i - 1.5) * 0.25, Math.cos(a) * 1.4, Math.sin(a) * 0.9)), 0.03)); }
+  bGeo.push(tube(bAx, 0.03));
+  const P2B = V(-4, 3.3, P2Z);   // 籃子：包住 P2 胞體
+  for (let i = 0; i < 5; i++) { const a = i / 5 * Math.PI * 2; bGeo.push(tube(curve([V(-4, 3.5, 4.1), P2B.clone().add(V(Math.cos(a) * 0.45, 0.2, Math.sin(a) * 0.45)), P2B.clone().add(V(Math.cos(a + 0.6) * 0.42, -0.25, Math.sin(a + 0.6) * 0.42))]), 0.022)); }
+  cell("b", "籃狀細胞（B）", "分子層內側。抑制性：軸突橫走，像籃子包住束旁 Purkinje 細胞的胞體並抑制它。", 0x4f8a8f, bGeo);
+
+  // 高基氏細胞（顆粒層）：兩顆。只畫軸突進突觸小球、Go1 被 Purkinje 側枝抑制
+  function golgi(P, ax) {
+    const g = [sph(P, 0.3)]; for (let i = 0; i < 5; i++) { const a = i / 5 * Math.PI * 2; g.push(cyl(P, P.clone().add(V(Math.cos(a) * 0.8, 0.25 + Math.sin(a) * 0.35, Math.sin(a) * 0.6)), 0.04)); }
+    g.push(tube(ax, 0.04)); return g;
+  }
+  const GO = V(-3.1, 2.3, -0.45), GO2 = V(6.4, 2.3, 3.6);
+  const goAx = curve([GO, V(-2.4, 1.5, -0.5), V(-1.2, 0.95, -0.25), R.clone().add(V(-0.38, 0.05, 0))]);
+  const go2Ax = curve([GO2, V(5.9, 1.5, 3.9), V(5.1, 0.95, 4.2), R2.clone().add(V(0.34, 0.05, 0))]);
+  cell("go", "高基氏細胞（Go1，束上）", "顆粒層，抑制性，軸突進這一束的突觸小球。被活化的 P1 側枝抑制 → 不能再終止這一束顆粒細胞的活化，主要動作得以持續（抑制你的抑制＝活化）。", 0x7a6aa0, golgi(GO, goAx));
+  cell("go2", "高基氏細胞（Go2，束外）", "顆粒層，抑制性。P1 沒有支配到它，所以它照常作用：軸突在突觸小球裡終止不相關顆粒細胞的活化（負回饋），讓次要動作保持抑制。", 0x7a6aa0, golgi(GO2, go2Ax));
+
+  // 深部核（白質深處）、前庭核
+  const dnShell = new THREE.Mesh(new THREE.SphereGeometry(1, 24, 16), new THREE.MeshStandardMaterial({ color: 0xb08a6a, transparent: true, opacity: 0.16, depthWrite: false }));
+  dnShell.scale.set(3.4, 1.0, 3.6); dnShell.position.set(0, -5.1, 2.2); scene.add(dnShell);
+  cell("dna", "深部核（P1 對應的神經元）", "苔狀纖維側枝興奮它；P1 被活化後選擇性抑制它（踩煞車）。", 0xa86b4a, DNA.map(p => sph(p, 0.3)));
+  cell("dnb", "深部核（P2 對應的神經元）", "苔狀纖維側枝興奮它；管它的 P2 被星狀、籃狀細胞抑制，所以它不被抑制，維持活化（踩油門）。", 0xa86b4a, DNB.map(p => sph(p, 0.3)));
+  const vn = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(2.2, 1.2, 2.2)), new THREE.LineDashedMaterial({ color: 0x8a96a0, dashSize: 0.2, gapSize: 0.15 }));
+  vn.position.set(11.2, -5, 2.2); vn.computeLineDistances(); scene.add(vn);
+  const vnL = new THREE.Line(new THREE.BufferGeometry().setFromPoints([V(8.6, -1.6, 2.2), V(10.4, -4.4, 2.2)]), new THREE.LineDashedMaterial({ color: 0x8a96a0, dashSize: 0.25, gapSize: 0.18 }));
+  vnL.computeLineDistances(); scene.add(vnL);
+
+  // 突觸記號（靜態）：紅＝興奮性、藍＝抑制性
+  const syn = (p, k) => { const m = new THREE.Mesh(new THREE.SphereGeometry(0.11, 10, 8), new THREE.MeshBasicMaterial({ color: k === "e" ? 0xd23b2e : 0x2c63c4 })); m.position.copy(p); scene.add(m); };
+  syn(R.clone().add(V(0, 0.3, 0)), "e");
+  P1X.forEach(x => GR.forEach(([p, py]) => syn(V(x, py, p.z), "e")));
+  syn(V(0, 7.35, 0.4), "e"); syn(V(-4, 4.85, 0.3), "e");   // 平行纖維 → 星狀、籃狀
+  DNA.forEach(p => syn(p.clone().add(V(0, 0.36, 0)), "i")); syn(V(-2.95, 2.2, -0.4), "i");
+  syn(V(0, 7.0, 3.55), "i"); syn(P2B.clone().add(V(0, 0.45, 0)), "i"); syn(R.clone().add(V(-0.38, 0.05, 0)), "i");
+  syn(mColA.getPointAt(1), "e"); syn(mColB.getPointAt(1), "e"); syn(R2.clone().add(V(0.34, 0.05, 0)), "i");
+  DNB.forEach(p => syn(p.clone().add(V(0, 0.36, 0)), "i"));
+
+  // 標籤（st＝哪幾步顯示；7＝爬行纖維對照；noAll＝總覽不標）
+  const box = $("#mlabels"); box.innerHTML = "";
+  const LABS = [
+    ["苔狀纖維", V(-6.5, -1.3, -1.6), [1]], ["突觸小球", V(0.2, 0.0, -0.9), [1, 5]], ["顆粒細胞", V(1.9, 1.9, -0.5), [1, 2, 6]],
+    ["平行纖維（一束）", V(7.6, 8.1, 0), [2, 4, 6]], ["P1（束上）", V(6, 2.6, 0), [2, 3, 7]], ["P2（束旁）", V(0, 2.6, P2Z), [4]],
+    ["星狀細胞 S", V(0, 7.95, 0.3), [4]], ["籃狀細胞 B", V(-4.9, 4.3, 0.2), [4]], ["高基氏 Go1（束上）", V(-3.6, 2.85, -0.45), [6]],
+    ["高基氏 Go2（束外）", V(6.9, 2.85, 3.6), [5]], ["不相關的顆粒細胞", V(3.1, 1.3, 4.6), [5]], ["別條苔狀纖維", V(7.6, -1.9, 5.6), [5]],
+    ["苔狀纖維側枝", V(-3.9, -3.0, 0.4), [1, 3, 4]], ["爬行纖維", V(3.4, -0.6, -1.3), [7]], ["只接這一個 Purkinje", V(2, 7.2, -1.3), [7]],
+    ["深部核：被抑制", V(-3.6, -5.1, 0.2), [3]], ["深部核：維持活化", V(2.7, -5.1, 5.2), [4]], ["深部核", V(-3.5, -5.1, 1.2), [1, 7]],
+    ["前庭核（絨球小結葉直達）", V(11.2, -6, 2.2), []], ["側枝", V(-2.65, 1.45, -0.3), [6]],
+  ].map(([t, p, st]) => { const el = document.createElement("div"); el.className = "mlab"; el.textContent = t; box.appendChild(el); return { el, p, st, noAll: /^(爬行纖維|只接|深部核：)/.test(t) }; });
+  layers.forEach(([k, t]) => { const el = document.createElement("div"); el.className = "mlab layer"; el.textContent = t; box.appendChild(el); LABS.push({ el, p: V(XR[0] - 0.2, (LAY[k][0] + LAY[k][1]) / 2, ZR[0]), st: "all" }); });
+
+  // 光點
+  const glowTex = (() => { const c = document.createElement("canvas"); c.width = c.height = 64; const x = c.getContext("2d"), g = x.createRadialGradient(32, 32, 0, 32, 32, 32);
+    g.addColorStop(0, "rgba(255,255,255,1)"); g.addColorStop(0.35, "rgba(255,255,255,.55)"); g.addColorStop(1, "rgba(255,255,255,0)"); x.fillStyle = g; x.fillRect(0, 0, 64, 64); return new THREE.CanvasTexture(c); })();
+  const COL = { e: new THREE.Color(0xff3b2b), i: new THREE.Color(0x2f6dff) }, WHITE = new THREE.Color(0xffffff);
+  const pool = [];
+  function dot() {
+    const g = new THREE.Group(), core = new THREE.Mesh(new THREE.SphereGeometry(0.1, 10, 8), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true }));
+    const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending })); sp.scale.set(0.9, 0.9, 1);
+    g.add(core, sp); g.visible = false; scene.add(g); return { g, core, sp };
+  }
+
+  // 六步驟的時間軸（文字在 L03 的 steps）：p＝[曲線, 開始秒, 秒數, e/i]；s＝[秒, 細胞, 狀態]
+  const N = 6, CF = N;   // 爬行纖維對照＝第 7 段
+  const pfSweep = (t0, out) => {   // 顆粒細胞軸突上行 → 平行纖維往兩端，經過 P1 時 P1 亮
+    GR.forEach((_, i) => { out.p.push([grAx[i], t0 + i * 0.12, 0.7, "e"], [pfL[i], t0 + 0.7 + i * 0.12, 1.5, "e"], [pfR[i], t0 + 0.7 + i * 0.12, 1.5, "e"]); });
+    out.s.push([t0 + 0.7, "pf", "active"]);
+  };
+  function build(n) {
+    const o = { p: [], s: [] };
+    if (n === 0) {
+      for (let k = 0; k < 3; k++) o.p.push([mossyC, k * 0.3, 1.6, "e"]);
+      for (let k = 0; k < 2; k++) o.p.push([mColA, 0.45 + k * 0.3, 1.2, "e"], [mColB, 0.45 + k * 0.3, 1.3, "e"]);   // 側枝 → 深部核
+      o.s.push([0, "mossy", "active"], [1.7, "gr", "active"], [1.75, "dna", "active"], [1.85, "dnb", "active"]);
+    } else if (n === 1) {
+      pfSweep(0, o); o.s.push([0.95, "p1", "active"]);
+    } else if (n === 2) {
+      p1ax.forEach((c, i) => o.p.push([c, i * 0.1, 1.8, "i"], [c, 0.45 + i * 0.1, 1.8, "i"]));
+      o.s.push([2.0, "dna", "inhib"]);
+    } else if (n === 3) {
+      o.p.push([curve([V(0, 7.4, 0.5), V(0, 7.3, 0.3)]), 0, 0.35, "e"], [curve([V(-4, 4.8, -0.25), V(-4, 4.35, 0.2)]), 0, 0.35, "e"]);
+      o.s.push([0.4, "s", "active"], [0.4, "b", "active"]);
+      for (let k = 0; k < 2; k++) o.p.push([sAx, 0.5 + k * 0.3, 1.2, "i"], [bAx, 0.5 + k * 0.3, 1.2, "i"]);
+      o.s.push([1.9, "p2", "inhib"]);
+      o.p.push([mColB, 1.9, 1.3, "e"]);   // P2 不再踩煞車，側枝的興奮讓它維持活化
+      o.s.push([3.2, "dnb", "boost"]);
+    } else if (n === 4) {
+      o.s.push([0, "go2", "active"]);
+      for (let k = 0; k < 3; k++) o.p.push([go2Ax, 0.2 + k * 0.3, 1.1, "i"]);
+      o.s.push([1.5, "gr2", "inhib"]);
+    } else if (n === 5) {
+      for (let k = 0; k < 2; k++) o.p.push([colC, k * 0.3, 0.8, "i"]);
+      o.s.push([1.0, "go", "inhib"]);
+      o.p.push([mossyC, 0, 1.3, "e"]);
+      pfSweep(1.4, o);
+    } else if (n === CF) {
+      for (let k = 0; k < 2; k++) { const a = k * 0.5; o.p.push([cfUp, a, 1.0, "e"], [cfA, a + 1.0, 1.0, "e"], [cfB, a + 1.15, 0.85, "e"], [cfCol, a + 0.15, 1.4, "e"]); }
+      o.s.push([0, "cf", "active"], [1.15, "p1c", "active"], [1.55, "dna", "active"]);
+    }
+    o.end = Math.max(...o.p.map(p => p[1] + p[2]), ...o.s.map(s => s[0])) + 0.2;
+    return o;
+  }
+  const CAMS = {   // [位置, 目標]
+    all: [V(19, 13, -19), V(0.5, 1.2, 2)],
+    0: [V(5, 1, -11), V(-1.4, -1.6, 0.6)], 1: [V(12, 11, -12), V(0, 5, 1)], 2: [V(13, 2, -13), V(0, -1.8, 1.5)],
+    3: [V(-15, 6, 10), V(-1.5, 1.5, 2.6)], 4: [V(13, 6, -5), V(4.6, 1.5, 3.8)], 5: [V(-6.5, 5, -9), V(-1.5, 2.5, 0)],
+    [CF]: [V(12, 6, -12), V(2.2, 1.8, -0.2)],
+  };
+
+  // 播放：單步／全部（1→6 連播）＋反覆播。自動運鏡：自己轉、縮放就暫停，按「鏡頭回正」才恢復；播放全部只在開始時運鏡
+  let stepIdx = -1, tl = null, t0 = 0, camAnim = null, seq = false, loop = false, bg = [], autoCam = true, busy = 0;
+  const HOLD = 1.2;   // 每段播完停留秒數
+  const wake = () => { busy = 90; };   // 顏色漸變要畫幾十格才收斂
+  function stopAutoCam() { autoCam = false; camAnim = null; }
+  ctl.addEventListener("start", stopAutoCam);   // 拖曳、滾輪、觸控捏合
+  const resetStates = () => Object.keys(CELLS).forEach(id => CELLS[id].mat && setState(id, "rest"));
+  function snapColors() { for (const id in CELLS) { const c = CELLS[id]; if (!c.mat) continue; c.mat.color.copy(c.tc); c.mat.emissive.copy(c.te); c.mat.emissiveIntensity = c.ti; } }
+  function stateBefore(n) { resetStates(); for (let i = 0; i < n; i++) build(i).s.forEach(([, id, st]) => setState(id, st === "boost" ? "active" : st)); snapColors(); }
+  const camAt = k => { const [p0, t] = CAMS[k], f = Math.max(1, 1.45 / cam.aspect); return [p0.clone().sub(t).multiplyScalar(f).add(t), t]; };
+  function flyTo(k) { const [p, t] = camAt(k); camAnim = { p0: cam.position.clone(), t0c: ctl.target.clone(), p, t, s: performance.now(), d: REDUCED ? 1 : 900 }; wake(); }
+  const camTo = k => { if (autoCam) flyTo(k); };
+  const showCF = on => { cf.mat.opacity = on ? 1 : 0.18; cf.mat.depthWrite = on; };
+  function changed() {
+    LABS.forEach(L => L.el.classList.toggle("dim", !(L.st === "all" || (stepIdx < 0 ? !L.noAll : L.st.includes(stepIdx + 1)))));
+    wake(); onChange();
+  }
+  function play(n, { keepSeq = false, cam: c = true } = {}) {
+    if (!keepSeq) seq = false;
+    stepIdx = n; if (c) camTo(n < 0 ? "all" : n);
+    pool.forEach(d => d.g.visible = false); showCF(n === CF);
+    bg = n > 0 && n < CF ? [...Array(n).keys()].map(i => { const b = build(i); return { p: b.p, per: b.end + 0.6 }; }) : [];
+    if (n < 0) { tl = null; resetStates(); snapColors(); changed(); return; }
+    if (n === CF) { resetStates(); snapColors(); } else stateBefore(n);
+    tl = build(n); tl.done = new Set(); t0 = performance.now() + (REDUCED ? 0 : 500);
+    if (REDUCED) { bg = []; tl.s.forEach(([, id, st]) => setState(id, st)); snapColors(); tl = null; if (seq) { seq = false; play(N - 1, { cam: false }); return; } }
+    changed();
+  }
+  function onEnd() {   // 一段播完（含停留）
+    if (seq && stepIdx < N - 1) play(stepIdx + 1, { keepSeq: true, cam: false });
+    else if (seq && loop) play(0, { keepSeq: true, cam: false });
+    else if (!seq && loop) play(stepIdx, { cam: false });
+    else { seq = false; changed(); }
+  }
+  function stop() { seq = false; tl = null; bg = []; camAnim = null; pool.forEach(d => d.g.visible = false); }
+  function playAll() { if (seq) { stop(); changed(); } else { seq = true; camTo("all"); play(0, { keepSeq: true, cam: false }); } }
+
+  // 點細胞 → 名稱與作用（主程式的 pointerup 判斷是點擊才呼叫）
+  const PICK0 = "點 3D 裡的細胞或纖維，這裡會顯示名稱與作用。";
+  let pickHtml = PICK0;
+  const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
+  function pick(e) {
+    const r = canvas.getBoundingClientRect(); ndc.set((e.clientX - r.left) / r.width * 2 - 1, -(e.clientY - r.top) / r.height * 2 + 1);
+    ray.setFromCamera(ndc, cam); const h = ray.intersectObjects(pickables)[0], c = h && CELLS[h.object.userData.id];
+    pickHtml = c ? `<b>${esc(c.name)}</b><br>${esc(c.info)}` : PICK0;
+  }
+
+  function resize() { const w = stage.clientWidth, h = stage.clientHeight; if (!w || !h) return; cam.aspect = w / h; cam.updateProjectionMatrix(); wake(); }
+  const tmp = new THREE.Vector3();
+  function frame(now) {
+    let move = false;
+    if (camAnim) {
+      const u = Math.min(1, (now - camAnim.s) / camAnim.d), e = u < 0.5 ? 2 * u * u : 1 - (-2 * u + 2) ** 2 / 2;
+      cam.position.lerpVectors(camAnim.p0, camAnim.p, e); ctl.target.lerpVectors(camAnim.t0c, camAnim.t, e); if (u >= 1) camAnim = null;
+      move = true;
+    }
+    if (ctl.update()) move = true;
+    const run = tl || bg.length;
+    if (!move && !run && busy <= 0) return;   // 靜止時不重畫
+    if (busy > 0) busy--;
+    if (run) {   // 停止播放後背景仍照跑（停在第 n 步時前幾步持續進行）
+      const t = (now - t0) / 1000;
+      if (tl) tl.s.forEach((s, i) => { if (t >= s[0] && !tl.done.has(i)) { tl.done.add(i); setState(s[1], s[2]); busy = 90; } });
+      let k = 0;
+      const put = (c, u, kind, faint) => {
+        const D = pool[k] || (pool[k] = dot()); k++;
+        D.g.visible = true; D.g.position.copy(c.getPointAt(u)); D.g.scale.setScalar(faint ? 0.6 : 1);
+        D.core.material.color.copy(COL[kind]).lerp(WHITE, 0.35); D.sp.material.color.copy(COL[kind]);
+        D.core.material.opacity = D.sp.material.opacity = faint ? 0.32 : 1;
+      };
+      const tb = t + 0.5;   // 背景：前幾步照原本節奏一直循環
+      bg.forEach(b => { const tt = tb % b.per; b.p.forEach(([c, a, d, kind]) => { const u = (tt - a) / d; if (u >= 0 && u <= 1) put(c, u, kind, true); }); });
+      if (tl) tl.p.forEach(([c, a, d, kind]) => { const u = (t - a) / d; if (u >= 0 && u <= 1) put(c, u, kind, false); });
+      for (let j = k; j < pool.length; j++) pool[j].g.visible = false;
+      if (tl && t > tl.end + HOLD) { tl = null; onEnd(); }
+    }
+    for (const id in CELLS) { const c = CELLS[id]; if (!c.mat) continue; c.mat.color.lerp(c.tc, 0.12); c.mat.emissive.lerp(c.te, 0.12); c.mat.emissiveIntensity += (c.ti - c.mat.emissiveIntensity) * 0.12; }
+    try { renderer.render(scene, cam); } catch (e) { if (!frame.warned) { console.warn("micro render", e); showErr("render " + e.message); frame.warned = true; } }
+    const w = stage.clientWidth, h = stage.clientHeight;
+    LABS.forEach(L => { tmp.copy(L.p).project(cam); const vis = tmp.z < 1; L.el.style.display = vis ? "" : "none";
+      if (vis) { L.el.style.left = ((tmp.x + 1) / 2 * w).toFixed(1) + "px"; L.el.style.top = ((1 - tmp.y) / 2 * h).toFixed(1) + "px"; } });
+  }
+
+  resize(); { const [p, t] = camAt("all"); cam.position.copy(p); ctl.target.copy(t); }
+  resetStates(); snapColors();
+  return { scene, cam, ctl, N, CF, frame, resize, pick, play, stop, stopAutoCam, playAll, wake, CELLS,
+    get pickHtml() { return pickHtml; }, get step() { return stepIdx; }, get seq() { return seq; }, get loop() { return loop; }, get autoCam() { return autoCam; }, get camAnim() { return camAnim; },
+    toggleLoop() { loop = !loop; changed(); }, home() { autoCam = true; flyTo(stepIdx < 0 ? "all" : stepIdx); },
+    replay() { if (stepIdx >= 0) play(stepIdx, { cam: false }); }, toggleCF() { play(stepIdx === CF && !seq ? -1 : CF); } };
+}
+function isMicro(P) { return !!(P && P.micro); }
+function microSync() {   // 顯微場景換段 → 面板步驟、路徑圖跟著標
+  if (!microOn || !focus || focus.kind !== "path") return;
+  stepIdx = M.step >= 0 && M.step < M.N ? M.step : -1; stepSet = null; renderGuide();
+}
+function enterMicro() {
+  if (!M) M = makeMicro(microSync);
+  if (microOn) return;
+  microOn = true; select(null); stage.classList.add("micro"); controls.enabled = false; M.ctl.enabled = true;
+  M.scene.background = new THREE.Color(css("--stage")); M.resize(); M.wake();
+}
+function leaveMicro(restore = true) {   // restore＝false：馬上要換路徑，不用重畫面板
+  if (!microOn) return;
+  microOn = false; M.stop(); M.ctl.enabled = false; controls.enabled = true; stage.classList.remove("micro");
+  if (restore && focus && focus.kind === "path" && isMicro(PATHS.find(p => p.id === focus.id))) setStep(stepIdx, false);   // 大腦這邊亮同一步的構造
+  invalidate();
+}
+function microStep(i) { enterMicro(); M.play(i); }
+function microBack() { leaveMicro(); if (focus && focus.kind === "path") flyToIds([...(stepSet || focus.ids)]); }
+function microPanel(P) {   // 路徑面板裡顯微模式的控制列＋步驟後的說明（文字照施耀翔老師投影片六步驟）
+  if (!microOn) return { ctl: `<div class="mctl"><button class="btn" data-m="enter" aria-pressed="false">看顯微動態圖</button></div>`, more: "" };
+  const st = stepIdx, on = s => st >= 0 && s.includes(st + 1) ? " on" : "";
+  return {
+    ctl: `<div class="mctl"><button class="btn" data-m="playall" aria-pressed="${M.seq}">${M.seq ? "■ 停止" : "▶ 播放全部"}</button><button class="btn" data-m="replay"${M.step < 0 ? " disabled" : ""}>↻ 重播這一步</button>` +
+      `<button class="btn" data-m="loop" aria-pressed="${M.loop}" title="開著：單步或全部播完會自動重來">反覆播</button><button class="btn" data-m="home">鏡頭回正</button>` +
+      `<button class="btn" data-m="cf" aria-pressed="${M.step === M.CF}" title="不在六步驟裡，只當對照">爬行纖維（對照）</button><button class="btn" data-m="back">← 回到大腦</button></div>`,
+    more: `<div class="lbl">點到的細胞</div><div id="mpick">${M.pickHtml}</div>` +
+      `<div class="lbl">最後造成什麼</div>` +
+      `<div class="mres${on([1, 2, 3, 6])}"><b>結果一　抑制某些深部核（踩煞車）</b>1 → 2 → 3，加上 6：P1 抑制它對應的深部核；P1 同時抑制 Go1，這一束顆粒細胞維持放電，主要動作持續。</div>` +
+      `<div class="mres${on([1, 2, 4])}"><b>結果二　讓某些深部核維持活化（踩油門）</b>1 → 2 → 4：S、B 抑制 P2，P2 管的深部核不被抑制，靠苔狀纖維側枝的興奮維持活化（抑制你的抑制＝活化）；不相干的 Purkinje 細胞也被壓掉，路徑更專一。</div>` +
+      `<div class="mres${on([5])}"><b>負回饋　壓掉不相關的顆粒細胞</b>5：P1 沒支配到的 Go2 終止不相關顆粒細胞的活化，次要動作保持抑制。</div>` +
+      `<p class="gnote" style="margin-top:6px">一個動作的完成，需要抑制某些深部核、刺激某些深部核。</p>` +
+      `<div class="lbl">動作怎麼被修正</div><p class="gnote">肌肉收縮 → 肌梭 → 感覺神經元（苔狀纖維）→ 顆粒細胞 → Purkinje 細胞 → 深部核 → 再調整收縮，快速反覆修正到動作完成。小腦就是用這套比較「想做的動作」和「實際的動作」，所以連很小的姿勢變化都察覺得到。<br>例：伸手拿杯子。手還沒到位 → 苔狀纖維一直送訊號，P1 抑制 Go1，這一束顆粒細胞持續活化；到位了 → 高基氏細胞終止顆粒細胞的活化，這一輪結束。</p>` +
+      `<div class="lbl">容易錯</div><ul class="gnote" style="padding-left:18px;margin-top:0"><li>苔狀纖維不直接接 Purkinje 細胞；直接接的是爬行纖維。</li><li>籃狀細胞抑制 Purkinje 的胞體，星狀細胞抑制樹突。</li><li>高基氏細胞：記「終止顆粒細胞的活化（負回饋）」和「被 Purkinje 細胞抑制」。</li></ul>`,
+  };
+}
+function microWire(g) {
+  const act = { enter: () => microStep(stepIdx), playall: () => { enterMicro(); M.playAll(); }, replay: () => M.replay(), loop: () => M.toggleLoop(), home: () => M.home(), cf: () => M.toggleCF(), back: microBack };
+  g.querySelectorAll("[data-m]").forEach(b => b.onclick = () => act[b.dataset.m]());
+}
+$("#mback").onclick = microBack;
 const kick = f => (...a) => { const r = f(...a); invalidate(); return r; };
 $("#bKg").onclick = () => setKg(!kgOn); if (kgOn) setKg(true);
 window.__neuro = { THREE, camera, controls, flyTo: kick(flyTo), OBJ, openSection: kick(openSection), select: kick(select), renderer, invalidate, ensureGeom,
   kg: { KG, setKg, kgIds, kgNodes, get on() { return kgOn; } },
+  micro: { get on() { return microOn; }, get M() { return M; }, enter: enterMicro, leave: leaveMicro, step: microStep },
   lab: { set: setLab, compute: computeLabels, get on() { return labOn; },
          get list() { return labs.map(L => ({ k: L.k, name: L.el.firstChild.textContent, kn: L.el.querySelector("b")?.textContent || "", shown: L.el.style.display !== "none" })); } } };
-if (location.hash) { const s = D.sections.find(x => x.id === location.hash.slice(1)); if (s) openSection(s); }
+if (location.hash) {   // #切面 id，或 #路徑 id／路徑中文名（例：#cb_cortex、#小腦皮質迴路 直接進顯微模式）
+  const h = decodeURIComponent(location.hash.slice(1)), s = D.sections.find(x => x.id === h);
+  if (s) openSection(s); else { const P = PATHS.find(p => p.id === h || p.zh.replace(/（.*?）/g, "") === h); if (P) setFocus({ kind: "path", id: P.id }); }
+}
 </script>
 </body>
 </html>
