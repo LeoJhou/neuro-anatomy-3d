@@ -390,7 +390,7 @@ input[type=range] { width: 100%; accent-color: var(--accent); }
       <button class="btn" data-v="right">右側</button>
       <button class="btn" data-v="top">由上往下</button>
       <button class="btn" data-v="oblique">斜前方</button>
-      <div id="vcams" hidden><span>鏡頭：</span><button class="btn" data-c="oblique">前斜</button><button class="btn" data-c="front">前面</button><button class="btn" data-c="left">外側</button><button class="btn" data-c="top">上面</button><button class="btn" data-c="medial">內側</button><button class="btn" data-c="bottom">底面</button><button class="btn" data-c="back">後面</button></div>
+      <div id="vcams" hidden><span>鏡頭：</span><button class="btn" data-c="oblique">前斜</button><button class="btn" data-c="front">前面</button><button class="btn" data-c="left">外側</button><button class="btn" data-c="top">上面</button><button class="btn" data-c="medial">內側</button><button class="btn" data-c="bottom">底面</button><button class="btn" data-c="back">後面</button><button class="btn" data-c="dorsolat">後外上</button></div>
     </div>
     <canvas id="gizmo" width="224" height="224"></canvas>
     <div id="hint">拖曳旋轉 · 右鍵／雙指平移 · 滾輪／捏合縮放 · 點構造看名稱</div>
@@ -860,7 +860,7 @@ function setPreset(id) {
 }
 const sulTags = () => vcam && (presetV() || {}).rims;   // 腦溝名稱：只在「腦溝（整顆）」這類有溝口細帶的多鏡頭視角標
 // 課本視角「腦溝（整顆）」的四個鏡頭：[鏡頭方向, 標名稱的半球（+1 病人左）]。內側＝正中矢狀切開（保留病人右半），從左側看右半球內側面
-const VCAM = { left: ["left", 1], top: ["top", 1], medial: ["left", -1], bottom: ["bottom", 1], oblique: ["oblique", 1], front: ["front", 1], back: ["back", 1] };   // oblique：基底核視角（V119.2）；front：L05 中腦視角（V120）；back：L06 硬膜竇（V122）
+const VCAM = { left: ["left", 1], top: ["top", 1], medial: ["left", -1], bottom: ["bottom", 1], oblique: ["oblique", 1], front: ["front", 1], back: ["back", 1], dorsolat: ["dorsolat", 1] };   // oblique：基底核視角（V119.2）；front：L05 中腦視角（V120）；back：L06 硬膜竇（V122）；dorsolat：L03 視丘後外上（V128）
 let vcam = null, vcamSag = false;
 function setVcam(k) {
   const V = presetV(); if (!V || !V.cams) return;
@@ -1050,7 +1050,7 @@ function setFocus(f) {
   if (f && dorsMode) setDors(false);
   if (f && !focus) focusSaved = snapOn();
   if (!f && focus && focusSaved) { restoreOn(focusSaved); focusSaved = null; }
-  focus = f; stepIdx = -1; lesionKey = ""; stepSet = null; stepGang = "";
+  focus = f; stepIdx = -1; lesionKey = ""; stepSet = null; stepGang = ""; stepPaint(null);
   if (f) {
     select(null);
     const ids = focusIds(f); f.ids = ids;
@@ -1062,11 +1062,21 @@ function setFocus(f) {
   if (f) requestAnimationFrame(() => flyToIds([...f.ids]));
   if (f && f.kind === "path" && isMicro(PATHS.find(p => p.id === f.id))) microStep(-1);   // 小腦皮質迴路：直接進顯微模式
 }
+// 路徑步驟換色（V128）：step 第 4 個元素 {paint: {id: 色}, legend: [[色, 文字]…]}（L03 視丘各核的「總覽」）；換步驟、病灶、離開路徑時還原
+let stepPainted = false;
+function stepPaint(st) {
+  const o = st && st[3];
+  if (!o && !stepPainted) return;
+  paintView(o); stepPainted = !!o;
+  if (o && o.legend) { $("#legend").innerHTML = `<div>${o.legend.map(([c, t]) => `<span><i style="background:${c}"></i>${t}</span>`).join("")}</div>`; $("#legend").hidden = false; }
+  else $("#legend").hidden = true;
+}
 function setStep(i, fly = true) {
   const P = PATHS.find(p => p.id === focus.id);
   stepIdx = i; lesionKey = ""; lesSlices(P, null);
   if (i < 0) stepSet = null;
   else { const st = P.steps[i], s = new Set(st[2]); st[1].forEach(k => ndIds(P.nodes.find(n => n[0] === k)).forEach(i => s.add(i))); stepSet = s; }
+  stepPaint(i >= 0 && P.steps[i]);
   refreshVis(); renderGuide();
   if (fly) flyToIds([...(stepSet || focus.ids)]);
 }
@@ -1074,7 +1084,7 @@ function setStep(i, fly = true) {
 const lesIds = (P, L) => { const n = P.nodes.find(n => n[0] === L[2]); return new Set([...(n && n[2] === L[4] ? ndIds(n) : [L[4]]), ...(L[6] || [])]); };
 function setLesion(k) {
   const P = PATHS.find(p => p.id === focus.id);
-  lesionKey = lesionKey === k ? "" : k; stepIdx = -1;
+  lesionKey = lesionKey === k ? "" : k; stepIdx = -1; stepPaint(null);
   const L = (P.lesions || []).find(l => l[0] === lesionKey);
   stepSet = L ? lesIds(P, L) : null; lesSlices(P, L);
   refreshVis(); renderGuide();
@@ -1784,7 +1794,7 @@ const HOME = new THREE.Vector3(0, 4, 0);
 const lecHome = () => D.lectures.filter(l => lecAny(l.id) && l.home && (!l.home.solo || lecOn.size === 1)).pop()?.home;
 const setHome = () => HOME.set(...(lecHome()?.c || [0, 4, 0]));
 setHome();
-const VIEWS = { front: [0, 0.05, 1], back: [0, 0.05, -1], left: [1, 0.05, 0], right: [-1, 0.05, 0], top: [0, 1, 0.02], bottom: [0, -1, 0.02], oblique: [-0.55, 0.3, 0.78], sc_top: [0.3, 0.85, 0.45], sc_back: [0.5, 0.3, -0.8] };   // sc_top：L04 從前上方看 C1 平切斷面（畫面上方＝背側）；sc_back：L04 從左後斜看灰質
+const VIEWS = { front: [0, 0.05, 1], back: [0, 0.05, -1], left: [1, 0.05, 0], right: [-1, 0.05, 0], top: [0, 1, 0.02], bottom: [0, -1, 0.02], oblique: [-0.55, 0.3, 0.78], dorsolat: [0.6, 0.6, -0.55], sc_top: [0.3, 0.85, 0.45], sc_back: [0.5, 0.3, -0.8] };   // sc_top：L04 從前上方看 C1 平切斷面（畫面上方＝背側）；sc_back：L04 從左後斜看灰質
 document.querySelectorAll("#views [data-v]").forEach(b => b.onclick = () => flyTo(activeSec ? new THREE.Vector3(...activeSec.c) : HOME, new THREE.Vector3(...VIEWS[b.dataset.v]), camera.position.distanceTo(controls.target)));
 // 舞台 0 尺寸（背景分頁、App 面板還沒排好）時比例當 1：以前 0.8 / 0 → 距離 Infinity → 鏡頭 NaN → three 報「firstElem.toArray is not a function」全黑
 const homeDist = () => { const r = stage.getBoundingClientRect(), a = r.width / r.height;
