@@ -92,6 +92,9 @@ details.subgrp[open] > summary.subh::before { transform: rotate(90deg); }
 #labels { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
 #labels span { pointer-events: auto; cursor: pointer; position: absolute; transform: translate(-50%, -50%); font-size: 11px; line-height: 15px; padding: 0 4px; border-radius: 3px; white-space: nowrap;
   background: color-mix(in srgb, var(--panel) 82%, transparent); border-left: 3px solid var(--c); color: var(--ink); }
+#flowTags { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+#flowTags span { position: absolute; transform: translate(-50%, -50%); font-size: 11px; line-height: 15px; padding: 0 4px; border-radius: 3px; white-space: nowrap;
+  background: color-mix(in srgb, var(--panel) 82%, transparent); border-left: 3px solid #7fd8f0; color: var(--mute); font-style: italic; }
 #labels span b { font: 600 10px var(--f-mono); color: var(--kg-ink); background: var(--kg); border-radius: 3px; padding: 0 4px; margin-left: 4px; }
 .resetrow { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 8px; }
 .resetrow .wide { grid-column: 1 / -1; }
@@ -127,7 +130,7 @@ details.subgrp[open] > summary.subh::before { transform: rotate(90deg); }
 #legend i { display: inline-block; width: 18px; height: 5px; border-radius: 1px; margin-right: 5px; vertical-align: middle; }
 #hint { position: absolute; right: 10px; bottom: 8px; font-size: 11px; color: var(--mute); text-align: right; }
 /* 顯微模式（小腦皮質迴路）：同一個 canvas 換場景，大腦的疊層都收起來 */
-#stage.micro :is(#labels,#tags,#views,#gizmo,#hint,#info,#legend,#offbar){display:none!important}
+#stage.micro :is(#labels,#flowTags,#tags,#views,#gizmo,#hint,#info,#legend,#offbar){display:none!important}
 #stage:not(.micro) :is(#mlabels,#mlegend,#mnote){display:none}
 #stage:not(.micro):not(.mpath) #mback{display:none}
 #mlabels { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
@@ -312,6 +315,11 @@ dialog::backdrop { background: rgba(0,0,0,.35); }
 #helpDlg table { width: 100%; font-size: 13px; font-variant-numeric: normal; }
 #helpDlg td { padding: 4px 6px; vertical-align: top; }
 #helpDlg td:first-child { white-space: nowrap; width: 1%; }
+#newsBox { margin-top: 12px; font-size: 13px; }
+#newsBox summary { cursor: pointer; color: var(--mute); font-weight: 600; }
+#newsBox .newsVer { margin: 6px 0 2px; font-weight: 600; }
+#newsBox ul { margin: 2px 0 0; padding-left: 20px; }
+#newsBox li { margin: 2px 0; }
 kbd { font-family: var(--f-mono); font-size: 12px; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 0 5px; background: var(--bg); }
 input[type=range] { width: 100%; accent-color: var(--accent); }
 @media (max-width: 1180px) and (min-width: 821px) { #app { --lw: 250px; --bw: 310px; } }
@@ -346,7 +354,7 @@ input[type=range] { width: 100%; accent-color: var(--accent); }
     <button class="btn" id="bKg" aria-pressed="false" title="國考標記（快捷鍵 K）">國考</button>
     <button class="btn" id="bShare" hidden title="複製本頁網址">分享</button>
     <button class="btn" id="bAbout">資料來源</button>
-    <button class="btn" id="bHelp" aria-label="說明與快捷鍵" title="說明與快捷鍵">?</button>
+    <button class="btn" id="bHelp" aria-label="說明、快捷鍵與更新紀錄" title="說明、快捷鍵與更新紀錄">?</button>
     <div id="author"><small>作者</small>INMU_KING_2026</div>
   </header>
 
@@ -381,6 +389,7 @@ input[type=range] { width: 100%; accent-color: var(--accent); }
   <main id="stage">
     <canvas class="main" id="cv"></canvas>
     <div id="labels"></div>
+    <div id="flowTags"></div>
     <div id="tags"></div>
     <div id="loading"><b>載入模型資料中…</b><div class="bar"><i></i></div><div class="num">0.0 MB</div></div>
     <div id="views">
@@ -441,7 +450,7 @@ input[type=range] { width: 100%; accent-color: var(--accent); }
 
 <dialog id="helpDlg" aria-labelledby="helpH">
   <form method="dialog"><button class="btn" aria-label="關閉">✕</button></form>
-  <h2 id="helpH">說明與快捷鍵</h2>
+  <h2 id="helpH">說明、快捷鍵與更新紀錄</h2>
   <h3>操作</h3>
   <table>
     <tr><td>旋轉／平移／縮放</td><td>拖曳 3D 旋轉；右鍵拖曳或兩指拖曳平移；滾輪或捏合縮放。下方「前（腹側）」「左側」「由上往下」等按鈕轉到固定方向，左下角的小座標顯示目前方向</td></tr>
@@ -461,6 +470,49 @@ input[type=range] { width: 100%; accent-color: var(--accent); }
   </table>
   <h3>快捷鍵</h3>
   <table id="keyTbl"></table>
+  <!-- 本版更新：只放最新一版，舊的不留 -->
+  <details id="newsBox">
+    <summary>本版更新</summary>
+    <p class="newsVer">10/29｜Version 129＋129.1　腦室與腦膜（L06）</p>
+    <ul>
+      <li>新視角「側腦室各壁」：鄰接構造依壁上色</li>
+      <li>「正中矢狀：第三、第四腦室」依壁上色；「腦室系統」標出脈絡叢在哪裡（導水管沒有）</li>
+      <li>「CSF 的流動」加光點，跟著步驟從脈絡叢流到靜脈竇；模擬阻塞時上游堆積；亮色主題光點改深藍</li>
+      <li>室間孔、外側孔、正中孔加英文名；硬膜反摺、靜脈竇、腦膜各層、CSF 成分的說明與表補充</li>
+      <li>固定名稱互相錯開、不超出畫面；圖上名稱避開兩行的名稱</li>
+      <li>「CSF 的流動」最後一步放大楔形切面；穹窿改灰米色</li>
+      <li>工具列視角按鈕會框住該視角的構造；手機打開面板時模型移到面板上方</li>
+    </ul>
+    <p class="newsVer">10/30｜Version 130　神經解剖學實驗（L08）</p>
+    <ul>
+      <li>新課堂「神解實驗」：大腦模型上要認的構造都標進這堂</li>
+      <li>新視角：胼胝體與穹窿各段、胼胝體上面的縱紋、海馬與穹窿、豆狀核、紋狀體（新紋狀體、舊紋狀體分色）</li>
+      <li>新路徑「切面上的基底核：由外往內」「一眼判切面」，附紋狀體名詞表與判切面表</li>
+      <li>內囊、放射冠、海馬的說明補上分解模型上看到的樣子</li>
+    </ul>
+    <p class="newsVer">10/30｜Version 131　顱底解剖（L07）</p>
+    <ul>
+      <li>新課堂「顱底」：新增 11 個孔（盲孔、前後篩孔、棘孔、破裂孔、頸動脈管、翼管、眶下裂、岩大神經裂孔、髁管、乳突孔）、SCA／AICA／PICA、眼動脈、篩動脈、眼靜脈、海綿間竇、蝶竇、篩小房</li>
+      <li>新視角：三顱窩分色、海綿竇、蝶竇後壁、腦幹腹側與後循環、腦幹背側與小腦腳</li>
+      <li>新路徑：三個顱窩、顱底出入孔（前 → 後逐區放大）、翼腭窩與三條岩神經、海綿竇與 ICA、腦幹地標與小腦腳、鼻竇開口，附 13 張表</li>
+      <li>「顱底出入孔（由上往下）」視角標出圓 → 卵 → 棘的排列；小孔改在 L07 路徑看，名稱不再擠成一團</li>
+      <li>考古題新增解剖、胚胎題庫</li>
+    </ul>
+    <p class="newsVer">10/30｜Version 132　腦皮質功能（L14）</p>
+    <ul>
+      <li>新課堂「腦皮質功能」：腦葉、邊緣系統、網狀活化系統、睡眠相關核團都標進這堂</li>
+      <li>新視角：Brodmann 分區（外側、內側上色加號碼）、睡醒開關的核團、海馬內部</li>
+      <li>新路徑：Brodmann 分區、語言迴路與失語症、視覺的兩條路徑、裂腦、清醒開關、睡眠開關與睡眠週期、記憶的形成、海馬三突觸迴路與 LTP、Papez 迴路、情緒、中腦邊緣多巴胺，附 13 張表</li>
+      <li>胼胝體、中央前迴、邊緣系統的說明補充；考古題掛上這堂</li>
+    </ul>
+    <p class="newsVer">10/30｜Version 133　運動生理（L15）</p>
+    <ul>
+      <li>新課堂「運動生理」：脊髓灰質、下行徑、運動皮質、小腦、基底核都標進這堂</li>
+      <li>新視角：皮質運動區（M1、S1、後頂葉上色）、腹角的體部定位（內側管軀幹、外側管手指）</li>
+      <li>新路徑：運動控制的階層、肌梭與腱器官、五種脊髓反射、下行運動路徑、皮質運動區、小腦比對修正迴路、基底核與四種疾病，附 16 張表</li>
+      <li>脊髓反射、小腦、基底核的路徑與視角也放進這堂；考古題掛上這堂</li>
+    </ul>
+  </details>
 </dialog>
 
 <dialog id="pathDlg" aria-labelledby="pathDlgH">
@@ -626,9 +678,9 @@ $("#stage").addEventListener("wheel", e => {
 }, { capture: true, passive: false });
 scene.add(new THREE.HemisphereLight(0xffffff, 0x8a8f99, 1.6));
 const key = new THREE.DirectionalLight(0xffffff, 1.4); scene.add(key);
-let M = null, microOn = false;   // 顯微場景（小腦皮質迴路，第一次進才建）；要在 applyTheme() 之前宣告
+let M = null, microOn = false, FL = null;   // 顯微場景（小腦皮質迴路，第一次進才建）、CSF 光點（L06）；要在 applyTheme() 之前宣告
 let dirty = 3, labDirty = true; function invalidate() { dirty = Math.max(dirty, 3); labDirty = true; }   // labDirty：圖上名稱要重挑
-function applyTheme() { scene.background = new THREE.Color(css("--stage")); invalidate(); if (M) { M.scene.background = new THREE.Color(css("--stage")); M.wake(); } }
+function applyTheme() { scene.background = new THREE.Color(css("--stage")); flowRecolor(); invalidate(); if (M) { M.scene.background = new THREE.Color(css("--stage")); M.wake(); } }
 applyTheme();
 const onTheme = () => { applyTheme(); if (focus && focus.kind === "path") renderGuide(); };   // 路徑圖畫的時候用 css() 寫死顏色，換主題要重畫
 matchMedia("(prefers-color-scheme: dark)").addEventListener("change", onTheme);
@@ -1058,14 +1110,14 @@ function setFocus(f) {
     setTab("guide");
     if (isDesk()) setPanel("bench", true); else if (!$("#bench").classList.contains("open")) openSheet("bench");
   }
-  syncModeSel(); refreshVis(); renderGuide();
+  syncModeSel(); refreshVis(); renderGuide(); flowSync();
   if (f) requestAnimationFrame(() => flyToIds([...f.ids]));
   if (f && f.kind === "path" && isMicro(PATHS.find(p => p.id === f.id))) microStep(-1);   // 小腦皮質迴路：直接進顯微模式
 }
 // 路徑步驟換色（V128）：step 第 4 個元素 {paint: {id: 色}, legend: [[色, 文字]…]}（L03 視丘各核的「總覽」）；換步驟、病灶、離開路徑時還原
 let stepPainted = false;
 function stepPaint(st) {
-  const o = st && st[3];
+  const o = st && st[3] && (st[3].paint || st[3].legend) ? st[3] : null;   // 只有 fit 的步驟不換色
   if (!o && !stepPainted) return;
   paintView(o); stepPainted = !!o;
   if (o && o.legend) { $("#legend").innerHTML = `<div>${o.legend.map(([c, t]) => `<span><i style="background:${c}"></i>${t}</span>`).join("")}</div>`; $("#legend").hidden = false; }
@@ -1078,7 +1130,7 @@ function setStep(i, fly = true) {
   else { const st = P.steps[i], s = new Set(st[2]); st[1].forEach(k => ndIds(P.nodes.find(n => n[0] === k)).forEach(i => s.add(i))); stepSet = s; }
   stepPaint(i >= 0 && P.steps[i]);
   refreshVis(); renderGuide();
-  if (fly) flyToIds([...(stepSet || focus.ids)]);
+  if (fly) flyToIds(i >= 0 && (P.steps[i][3] || {}).fit || [...(stepSet || focus.ids)]);   // s[3].fit：這一步鏡頭只框這些（V129.1，CSF 楔形切面）
 }
 // 病灶構造＋（病灶構造就是節點的構造時）那個節點一起亮的構造＋L[6]
 const lesIds = (P, L) => { const n = P.nodes.find(n => n[0] === L[2]); return new Set([...(n && n[2] === L[4] ? ndIds(n) : [L[4]]), ...(L[6] || [])]); };
@@ -1795,7 +1847,10 @@ const lecHome = () => D.lectures.filter(l => lecAny(l.id) && l.home && (!l.home.
 const setHome = () => HOME.set(...(lecHome()?.c || [0, 4, 0]));
 setHome();
 const VIEWS = { front: [0, 0.05, 1], back: [0, 0.05, -1], left: [1, 0.05, 0], right: [-1, 0.05, 0], top: [0, 1, 0.02], bottom: [0, -1, 0.02], oblique: [-0.55, 0.3, 0.78], dorsolat: [0.6, 0.6, -0.55], sc_top: [0.3, 0.85, 0.45], sc_back: [0.5, 0.3, -0.8] };   // sc_top：L04 從前上方看 C1 平切斷面（畫面上方＝背側）；sc_back：L04 從左後斜看灰質
-document.querySelectorAll("#views [data-v]").forEach(b => b.onclick = () => flyTo(activeSec ? new THREE.Vector3(...activeSec.c) : HOME, new THREE.Vector3(...VIEWS[b.dataset.v]), camera.position.distanceTo(controls.target)));
+// 開著有 fit 的視角（側腦室各壁等）：工具列方向照視角的框，不回全腦中心（V129.1）
+document.querySelectorAll("#views [data-v]").forEach(b => b.onclick = () => { const V = !activeSec && presetV();
+  if (V && V.fit) return flyToDir(V.fit, VIEWS[b.dataset.v], V.fity, V.pad);
+  flyTo(activeSec ? new THREE.Vector3(...activeSec.c) : HOME, new THREE.Vector3(...VIEWS[b.dataset.v]), camera.position.distanceTo(controls.target)); });
 // 舞台 0 尺寸（背景分頁、App 面板還沒排好）時比例當 1：以前 0.8 / 0 → 距離 Infinity → 鏡頭 NaN → three 報「firstElem.toArray is not a function」全黑
 const homeDist = () => { const r = stage.getBoundingClientRect(), a = r.width / r.height;
   return (lecHome()?.d || 240) * (a > 0 && Number.isFinite(a) ? Math.max(1, 0.8 / a) : 1); };
@@ -1832,13 +1887,32 @@ function subHidden(t) {
   const d = _tn.copy(camera.position).sub(t.v);
   return d.dot(t.n) < 0 || (d.normalize().x * Math.sign(t.v.x) < -0.5 && clipPlane.distanceToPoint(_tm.set(-t.v.x, t.v.y, t.v.z)) >= -0.5);
 }
+// 固定名稱（.pin：構造部位、視角 vtags）互相錯開（V129.1）：照 TAGS 順序放，撞到先放的就往上或往下推到貼齊；整個名稱留在畫面內
 function placeTags() {
-  const w = stage.clientWidth, h = stage.clientHeight, ts = keptSide(tagSide);
+  const w = stage.clientWidth, h = stage.clientHeight, ts = keptSide(tagSide), put = [];
   for (const t of TAGS) {
     v3.copy(t.v).project(camera);
     const off = v3.z > 1 || clipPlane.distanceToPoint(t.v) < -0.5 || (ts && t.v.x * ts < -0.5) || (t.n && subHidden(t));
-    t.el.hidden = off;
-    if (!off) { t.el.style.left = ((v3.x + 1) / 2 * w) + "px"; t.el.style.top = ((1 - v3.y) / 2 * h) + "px"; }
+    t.el.hidden = off; if (off) continue;
+    let x = (v3.x + 1) / 2 * w, y = (1 - v3.y) / 2 * h;
+    if (t.el.classList.contains("pin")) {
+      if (!t.ow) { t.ow = t.el.offsetWidth; t.oh = t.el.offsetHeight; }
+      const hw = t.ow / 2, hh = t.oh / 2;
+      x = Math.max(2 + hw, Math.min(x, w - 2 - hw)); y = Math.max(2 + hh, Math.min(y, h - 2 - hh));
+      // 第一次撞到就決定往上或往下，之後同方向推（夾在兩個名稱中間時才不會上下來回彈）；推出畫面就改反方向
+      const y0 = y; let d = 0;
+      for (let pass = 0; pass < 2; pass++) {
+        y = y0; if (pass) d = -d;
+        for (let k = 0; k < 12; k++) {
+          const b = put.find(b => Math.abs(b.x - x) < b.hw + hw + 2 && Math.abs(b.y - y) < b.hh + hh + 1); if (!b) break;
+          if (!d) d = y >= b.y ? 1 : -1;
+          y = d > 0 ? b.y + b.hh + hh + 1 : b.y - b.hh - hh - 1;
+        }
+        if (!d || (y - hh >= 0 && y + hh <= h)) break;
+      }
+      put.push({ x, y, hw, hh });
+    }
+    t.el.style.left = x + "px"; t.el.style.top = y + "px";
   }
 }
 $("#bTags").onclick = e => { showPinTags = !showPinTags; e.currentTarget.setAttribute("aria-pressed", showPinTags); buildTags(); };
@@ -1869,6 +1943,7 @@ function idMat(ix, cap) {
   return m;
 }
 const LAB_NT = new Set(["cn_nucleus", "nucleus", "tract"]);   // 切面上的核團、徑路：門檻降低
+const NOLAB = new Set(["mw_link"]);   // 輔助線（楔形切面連接線）不是構造，不標圖上名稱
 const isLobeKey = k => k.startsWith("lobe:");
 function computeLabels() {
   labDirty = false;
@@ -1936,7 +2011,7 @@ function computeLabels() {
   const fixed = s => (s.labels || []).length || (showPinTags && s.pins.length) || (sulTags() && s.sub === "sulcus" && s.rim.length && sulcusTags(s, vcam).length) || tagTxt.has(short(s));
   const cand = [], only = (presetV() || {}).labs || (activeSec && activeSec.only_labels ? activeSec.labels : null);   // only_labels 切片：只標投影片有標的
   G.forEach((k, g) => {
-    const s = !isLobeKey(k) && OBJ[k].s; if (s && fixed(s)) return;
+    const s = !isLobeKey(k) && OBJ[k].s; if (s && (fixed(s) || NOLAB.has(s.id))) return;
     if (only && !must.has(k) && (!s || !only.includes(k))) return;
     const L = st[2 * g], R = st[2 * g + 1], n = (L ? L.n : 0) + (R ? R.n : 0), cap = (L ? L.cap : 0) + (R ? R.cap : 0), m = must.has(k);
     if (m || n >= minPx || (s && LAB_NT.has(s.group) && cap >= 4)) cand.push({ k, n, m, r: !R || (L && L.n >= R.n) ? L : R });
@@ -1976,14 +2051,14 @@ const _lv = new THREE.Vector3();
 function placeLabels() {
   if (!labs.length) return;
   const w = canvas.clientWidth, h = canvas.clientHeight, boxes = [];
-  for (const t of TAGS) if (t.n && !t.el.hidden) boxes.push([parseFloat(t.el.style.left), parseFloat(t.el.style.top), 9]);   // 鉤的位置先占住，名稱避開
+  for (const t of TAGS) if (t.ow && !t.el.hidden) boxes.push([parseFloat(t.el.style.left), parseFloat(t.el.style.top), t.ow / 2, t.oh / 2]);   // 固定名稱整條先占住，圖上名稱避開
   for (const L of labs) {
     _lv.copy(L.p).project(camera);
     if (_lv.z > 1 || Math.abs(_lv.x) > 1 || Math.abs(_lv.y) > 1 || clipPlane.distanceToPoint(L.p) < -0.5 || !L.ms.some(m => m.parent && m.parent.visible && m.material.visible)) { L.el.style.display = "none"; continue; }
     // 名稱碰到畫面右邊就往左移（V116.1）、碰到左邊就往右移（V116.2），整個名稱留在畫面內
     const ow2 = (L.ow || L.w) / 2, y = (1 - _lv.y) / 2 * h, hw = L.w / 2, x = Math.max(2 + ow2, Math.min((_lv.x + 1) / 2 * w, w - 2 - ow2));
-    if (boxes.some(b => Math.abs(b[0] - x) < hw + b[2] && Math.abs(b[1] - y) < 17)) { L.el.style.display = "none"; continue; }   // 重疊：先放的（選取的、面積大的）留著
-    boxes.push([x, y, hw]); L.el.style.display = ""; L.el.style.left = x + "px"; L.el.style.top = y + "px";
+    if (boxes.some(b => Math.abs(b[0] - x) < hw + b[2] && Math.abs(b[1] - y) < (b[3] || 8) + 9)) { L.el.style.display = "none"; continue; }   // 重疊：先放的（選取的、面積大的）留著
+    boxes.push([x, y, hw, 8]); L.el.style.display = ""; L.el.style.left = x + "px"; L.el.style.top = y + "px";
   }
 }
 // 第一次是關的，之後記在這台瀏覽器（同國考 K）
@@ -2307,19 +2382,121 @@ $("#bAbout").onclick = () => {
   $("#about").showModal();
 };
 
+// ---------- CSF 流動光點（L06 csf_flow，V129；移植全身模型的血流光點，中心線在 L06 CSF_FLOW） ----------
+// 跟步驟：第 n 步流到第 n 步的站，前幾步的站淡光點持續流；病灶：阻塞那站起下游消失（單側阻塞只斷那側那一站），前一站堆積在末端、更上游變慢。
+// 腦室內、竇內的光點透視（不被半透明腦室擋），腦表面與楔形切面的做深度測試。切走路徑就 dispose。
+// 亮色主題用深一點的青／藍，淺底上才看得到（V129.1）
+const FL_COL = { csf: [0.8, 0.97, 1], sas: [0.8, 0.97, 1], wedge: [0.8, 0.97, 1], vein: [0.62, 0.7, 1], wvein: [0.62, 0.7, 1] },
+  FL_COL_L = { csf: [0, 0.62, 0.86], sas: [0, 0.62, 0.86], wedge: [0, 0.62, 0.86], vein: [0.2, 0.3, 0.95], wvein: [0.2, 0.3, 0.95] };
+const flCol = k => (new THREE.Color(css("--stage")).getHSL({}).l > 0.5 ? FL_COL_L : FL_COL)[k];
+function flowRecolor() { if (FL) for (const o of FL.objs) { o.parts.forEach((p, i) => o.pts.geometry.attributes.aCol.array.set(flCol(p.r.k), i * 3)); o.pts.geometry.attributes.aCol.needsUpdate = true; } }
+function flowMat(xray) {
+  return new THREE.ShaderMaterial({ uniforms: { uScale: { value: 500 } }, transparent: true, depthWrite: false, depthTest: !xray, clipping: true, clippingPlanes: clipArr,
+    vertexShader: `#include <clipping_planes_pars_vertex>
+      attribute vec3 aCol; attribute float aA; attribute float aS; uniform float uScale; varying vec3 vC; varying float vA;
+      void main() { vC = aCol; vA = aA; vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+        #include <clipping_planes_vertex>
+        gl_Position = projectionMatrix * mvPosition; gl_PointSize = aA < 0.01 ? 0.0 : clamp(uScale * aS / -mvPosition.z, 3.0, 13.0); }`,
+    fragmentShader: `#include <clipping_planes_pars_fragment>
+      varying vec3 vC; varying float vA; void main() {
+        #include <clipping_planes_fragment>
+        float r = length(gl_PointCoord - 0.5) * 2.0; if (r > 1.0 || vA < 0.01) discard;
+        gl_FragColor = vec4(r < 0.58 ? vC : vC * 0.28, vA * smoothstep(1.0, 0.78, r)); }` });
+}
+function flowBuild(P) {
+  const F = P.flow, groups = [[], []];   // [透視, 深度測試]
+  for (const r of F.runs) {
+    const p = r.p.map(a => new THREE.Vector3(...a)), cum = [0];
+    for (let i = 1; i < p.length; i++) cum.push(cum[i - 1] + p[i].distanceTo(p[i - 1]));
+    const R = { ...r, p, cum, len: cum[cum.length - 1] || 1, rank: F.rank[r.st] }, n = Math.max(2, Math.round(R.len / r.gap));
+    const g = groups[r.k === "sas" || r.k === "wedge" || r.k === "wvein" ? 1 : 0];
+    for (let i = 0; i < n; i++) g.push({ r: R, q: i / n, off: (i + Math.random() * 0.6) * R.len / n });
+  }
+  const objs = groups.map((parts, gi) => {
+    const N = Math.max(parts.length, 1), g = new THREE.BufferGeometry();
+    g.setAttribute("position", new THREE.BufferAttribute(new Float32Array(N * 3), 3));
+    g.setAttribute("aCol", new THREE.BufferAttribute(new Float32Array(N * 3), 3));
+    g.setAttribute("aA", new THREE.BufferAttribute(new Float32Array(N), 1));
+    g.setAttribute("aS", new THREE.BufferAttribute(new Float32Array(N), 1));
+    parts.forEach((o, i) => { g.attributes.aCol.array.set(flCol(o.r.k), i * 3); g.attributes.aS.array[i] = o.r.k[0] === "w" ? 0.8 : 1.5; });
+    const pts = new THREE.Points(g, flowMat(gi === 0)); pts.frustumCulled = false; pts.renderOrder = 7; scene.add(pts);
+    return { pts, parts };
+  });
+  const tags = F.tags.map(t => { const el = document.createElement("span"); el.textContent = t.zh; $("#flowTags").appendChild(el); return { ...t, v: new THREE.Vector3(...t.p), el }; });
+  return { P, objs, tags };
+}
+function flowOff() {
+  if (!FL) return;
+  for (const o of FL.objs) { scene.remove(o.pts); o.pts.geometry.dispose(); o.pts.material.dispose(); }
+  $("#flowTags").innerHTML = ""; FL = null; invalidate();
+}
+function flowSync() {
+  const P = focus && focus.kind === "path" && PATHS.find(p => p.id === focus.id);
+  if (P && P.flow) { if (!FL || FL.P !== P) { flowOff(); FL = flowBuild(P); } } else flowOff();
+}
+const _fp = new THREE.Vector3();
+function flowState() {   // 每站：0＝不顯示、1＝淡、2＝亮；病灶的阻塞站與側
+  const P = FL.P, F = P.flow, on = {}, L = lesionKey && F.block[lesionKey];
+  if (stepIdx >= 0) { P.steps.slice(0, stepIdx).forEach(s => s[1].forEach(k => on[k] = 1)); P.steps[stepIdx][1].forEach(k => on[k] = 2); }
+  return { on: stepIdx >= 0 ? on : null, blk: L ? { rank: F.rank[L[0]], side: L[1] } : null };
+}
+function flowFrame(now) {
+  const S = flowState(), t = now / 1000;
+  for (const o of FL.objs) {
+    const pos = o.pts.geometry.attributes.position.array, A = o.pts.geometry.attributes.aA.array;
+    o.parts.forEach((p, i) => {
+      const r = p.r, sideHit = S.blk && (!S.blk.side || r.side === S.blk.side);
+      let a = S.on ? [0, 0.32, 0.95][S.on[r.st] || 0] : 0.95, u;
+      if (sideHit && (S.blk.side ? r.rank === S.blk.rank : r.rank >= S.blk.rank)) a = 0;   // 單側阻塞（室間孔）只斷那側那一站：對側照樣流進第三腦室以下
+      else if (sideHit && r.rank === S.blk.rank - 1 && r.rank >= 0) {   // 堵在這站末端：擠在後 45%、原地抖
+        const q = (p.q + 0.04 * Math.sin(t * 1.7 + i)) % 1; u = r.len * (1 - 0.45 * Math.pow(Math.abs(q), 1.6));
+      }
+      if (u === undefined) { const v = S.blk && sideHit ? r.v * 0.3 : r.v; u = (p.off + v * t) % r.len; }
+      A[i] = a; if (!a) return;
+      const c = r.cum; let lo = 0, hi = c.length - 1;
+      while (hi - lo > 1) { const m = (lo + hi) >> 1; if (c[m] <= u) lo = m; else hi = m; }
+      _fp.lerpVectors(r.p[lo], r.p[hi], Math.min(1, Math.max(0, (u - c[lo]) / ((c[hi] - c[lo]) || 1))));
+      pos[i * 3] = _fp.x; pos[i * 3 + 1] = _fp.y; pos[i * 3 + 2] = _fp.z;
+    });
+    o.pts.geometry.attributes.position.needsUpdate = o.pts.geometry.attributes.aA.needsUpdate = true;
+    o.pts.material.uniforms.uScale.value = canvas.clientHeight / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)));
+  }
+  FL.tagOn = FL.tags.map(g => !S.on || !!S.on[g.st]);
+}
+function flowTagPlace() {
+  const w = canvas.clientWidth, h = canvas.clientHeight;
+  FL.tags.forEach((g, i) => {
+    _fp.copy(g.v).project(camera);
+    const show = FL.tagOn && FL.tagOn[i] && _fp.z < 1 && Math.abs(_fp.x) < 0.95 && Math.abs(_fp.y) < 0.95;
+    g.el.style.display = show ? "" : "none";
+    if (show) { const hw = g.el.offsetWidth / 2 + 2;   // 夾在畫面內：手機窄螢幕不被右緣切掉
+      g.el.style.left = Math.min(w - hw, Math.max(hw, (_fp.x + 1) / 2 * w)) + "px"; g.el.style.top = (1 - _fp.y) / 2 * h + "px"; }
+  });
+}
+
 // ---------- loop ----------
 function resize() { const w = stage.clientWidth, h = stage.clientHeight; if (!w || !h) return;   // 背景分頁剛開時舞台是 0 尺寸：aspect 會變 NaN、畫面全黑
   if (renderer.getPixelRatio() !== DPR()) renderer.setPixelRatio(DPR());
-  renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix(); invalidate(); lastMove = performance.now();
+  renderer.setSize(w, h, false); camera.aspect = w / h;
+  // 手機底部面板（圖層／切面導覽）打開時蓋住下半：畫面往上移到面板上方、縮到放得下（V129.1），收起就還原
+  const sh = [$("#layers"), $("#bench")].find(e => e.classList.contains("open") && getComputedStyle(e).position === "fixed"),
+    cover = sh ? Math.max(0, Math.min(h * 0.75, stage.getBoundingClientRect().bottom - sh.getBoundingClientRect().top)) : 0;
+  if (cover > 8) { camera.setViewOffset(w, h, 0, cover / 2, w, h); camera.zoom = Math.max(0.25, (h - cover) / h); }
+  else { camera.clearViewOffset(); camera.zoom = 1; }
+  camera.updateProjectionMatrix(); invalidate(); lastMove = performance.now(); labDirty = true;
   if (M) M.resize();
   if (homeLate) { homeLate = false; camStart(); } }
 new ResizeObserver(resize).observe(stage);
+for (const e of [$("#layers"), $("#bench")]) {   // 面板是滑入（尺寸不變），開關與滑完都要重算
+  new ResizeObserver(resize).observe(e); new MutationObserver(resize).observe(e, { attributes: true, attributeFilter: ["class"] }); e.addEventListener("transitionend", resize);
+}
 // 有變動才重畫：相機在動（拖曳、阻尼、飛行）、選取的脈衝、或剛有操作（點擊、輸入、按鍵、滾輪）之後幾格。
 // 畫面靜止時不再每秒畫 60 次，筆電、平板比較省電。程式裡改了 3D 狀態卻沒有使用者操作時，呼叫 invalidate()。
 function tick(now) {
   requestAnimationFrame(tick);   // 先排下一格：單一格出錯也不會讓畫面停住
   if (microOn) { M.frame(now); return; }   // 顯微模式：只畫顯微場景
   if (anim) { anim(now); dirty = Math.max(dirty, 2); }
+  if (FL) { flowFrame(now); dirty = Math.max(dirty, 1); }   // CSF 光點：路徑開著就每格畫
   if (controls.update()) dirty = Math.max(dirty, 2);
   if (!finite(camera.position) || !finite(camera.quaternion) || !finite(controls.target)) {   // 鏡頭壞掉（NaN）就回起始視角，不讓 render 每格出錯
     if (!tick.cwarned) { console.warn("camera not finite → home"); tick.cwarned = true; }
@@ -2330,7 +2507,7 @@ function tick(now) {
     dirty--; pulseHighlight(now);
     key.position.copy(camera.position).add(new THREE.Vector3(30, 60, 20));
     try { renderer.render(scene, camera); } catch (e) { if (!tick.warned) { console.warn("render", e); showErr("render " + e.message); tick.warned = true; } }
-    placeTags(); placeLabels(); drawGizmo(); placeInfo();
+    placeTags(); placeLabels(); drawGizmo(); placeInfo(); if (FL) flowTagPlace();
   }
   if (labOn && labDirty && now - lastMove > 220) try { computeLabels(); } catch (e) { if (!tick.lwarned) { console.warn("labels", e); showErr("labels " + e.message); tick.lwarned = true; } }   // 鏡頭停 220 ms 後重挑名稱
 }
@@ -2733,6 +2910,9 @@ $("#bKg").onclick = () => setKg(!kgOn); if (kgOn) setKg(true);
 window.__neuro = { THREE, camera, controls, flyTo: kick(flyTo), OBJ, openSection: kick(openSection), select: kick(select), renderer, invalidate, ensureGeom,
   kg: { KG, setKg, kgIds, kgNodes, get on() { return kgOn; } },
   micro: { get on() { return microOn; }, get M() { return M; }, enter: enterMicro, leave: leaveMicro, step: microStep },
+  view: id => setPreset(id), setStep: i => setStep(i), get preset() { return preset; }, get sec() { return activeSec; },
+  step: (k = 1, dt = 300) => { let t = performance.now(); for (let i = 0; i < k; i++) tick(t += dt); },   // 除錯：分頁在背景（rAF 停）時手動跑 k 格
+  flow: { get FL() { return FL; }, state: () => FL && flowState(), frame: now => { if (!FL) return; flowFrame(now); renderer.render(scene, camera); flowTagPlace(); } },   // 除錯：分頁在背景時手動跑一格
   lab: { set: setLab, compute: computeLabels, get on() { return labOn; },
          get list() { return labs.map(L => ({ k: L.k, name: L.el.firstChild.textContent, kn: L.el.querySelector("b")?.textContent || "", shown: L.el.style.display !== "none" })); } } };
 if (location.hash) {   // #切面 id，或 #路徑 id／路徑中文名（例：#cb_cortex、#小腦皮質迴路 直接進顯微模式）
