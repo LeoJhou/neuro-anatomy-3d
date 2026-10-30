@@ -189,6 +189,15 @@ details.subgrp[open] > summary.subh::before { transform: rotate(90deg); }
 #paneGuide .ptab th { color: var(--mute); font-weight: 600; white-space: nowrap; }
 #paneGuide .ptab td:first-child { white-space: nowrap; }
 #paneGuide .ptab tr.on td { background: var(--chip); font-weight: 600; }
+@media (max-width: 520px) {   /* 4 欄以上的表在窄螢幕改堆疊：每列一張小卡，第一格當卡名，其他格前面寫欄名（V139） */
+  #paneGuide .ptab.stk thead { display: none; }
+  #paneGuide .ptab.stk, #paneGuide .ptab.stk tbody, #paneGuide .ptab.stk tr, #paneGuide .ptab.stk td { display: block; }
+  #paneGuide .ptab.stk tr { border: 1px solid var(--line); border-radius: 6px; margin: 0 0 6px; padding: 3px 0; }
+  #paneGuide .ptab.stk td { border: 0; padding: 1px 7px; white-space: normal; }
+  #paneGuide .ptab.stk td:first-child { font-weight: 600; }
+  #paneGuide .ptab.stk td:empty { display: none; }
+  #paneGuide .ptab.stk td[data-h]::before { content: attr(data-h) "："; color: var(--mute); font-weight: 600; }
+}
 #paneGuide .pg { color: var(--mute); }
 .vfsvg { width: 100%; max-width: 340px; display: block; margin: 2px auto 0; }
 .vfcap { font-size: 11.5px; color: var(--mute); text-align: center; margin-bottom: 6px; } .vfcap i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; vertical-align: -1px; margin: 0 3px 0 6px; }
@@ -250,6 +259,9 @@ details.subgrp[open] > summary.subh::before { transform: rotate(90deg); }
 .fold[open] > summary { margin-bottom: 3px; }
 #info .fold > .cmp { margin-top: 0; }
 #info .fold > .warnbox { margin: 0; }
+.fold.fs { font-size: inherit; }   /* 跨堂段落（V139）：內容和主段同大小，標題（課名）比一般摺疊深 */
+.fold.fs > summary { color: var(--ink); font-weight: 600; }
+#paneGuide .fold.fs { font-size: 12.5px; color: var(--mute); }
 #info details.rank { font-size: 13px; }
 #info details.rank > summary { color: inherit; }
 .pg { font-family: var(--f-mono); font-size: 11.5px; }
@@ -478,12 +490,28 @@ input[type=range] { width: 100%; accent-color: var(--accent); }
   <!-- 本版更新：只放最新一版，舊的不留 -->
   <details id="newsBox">
     <summary>本版更新</summary>
-    <p class="newsVer">10/30｜Version 137　NMJ 疾病（L18）</p>
+    <p class="newsVer">10/30｜Version 141　健檢 4：資料瘦身</p>
     <ul>
-      <li>新課堂「NMJ 疾病」：腦幹、脊髓前角與前根、外側皮質脊髓徑、眼與延髓的運動核和神經都標進這堂</li>
-      <li>新路徑：運動單元與無力定位（UMN、前角、周邊神經、NMJ、肌肉五個位置可點病灶比較）、ACh 傳遞與五個病灶（肉毒、LEMS、有機磷、重症肌無力、蛇毒，分突觸前、突觸、突觸後）、重症肌無力侵犯哪些肌肉（眼、延髓、近端肢體）</li>
-      <li>7 張表：無力定位、後天肌病變分類、CK 速查、後天 NMJ 疾病、MG 與 LEMS 比較、有機磷症狀、MG 的抗體與胸腺</li>
-      <li>NMJ 與肌肉模型裡沒有 3D，步驟與病灶借前根標出往肌肉去的運動軸突</li>
+      <li>切面輪廓、血管曲線管、MNI 傳導束簡化點數（看起來一樣），資料檔從 4.8 MB 降到 4.1 MB，載入快一點</li>
+      <li>手機與平板寬度重新檢查過：卡片、表格、說明框都在畫面內，不會左右滑</li>
+    </ul>
+    <p class="newsVer">10/30｜Version 140　健檢 3：內容與用字整理</p>
+    <ul>
+      <li>同一張卡片裡講兩次的事只留一次；好幾張卡片共用的長句（靜脈竇與 CSF 流向、基底核分類、視丘分群、椎骨與節段）改成各卡寫自己的重點，整條流向或全表指到對應路徑、視角</li>
+      <li>各堂老師說法不同的地方加註並列：corpus striatum 是否含蒼白球、蒼白球內外節的血管分區、脊髓丘腦徑在哪一節交叉、網狀脊髓徑走前索</li>
+      <li>路徑步驟不再照抄表格數字（CSF 壓力、重症肌無力抗體、IIH 與低顱壓），改成說明 3D 上亮了什麼、數字看表</li>
+      <li>拿掉治療用藥、內部備註與「考古答案」字樣；用字統一：迴（中央後迴、舌迴、顳橫迴…）、脊髓丘腦徑、三叉丘腦徑、眶上裂、同名偏盲、杏仁核、帕金森、前角／後角、mL、%</li>
+    </ul>
+    <p class="newsVer">10/30｜Version 139　健檢 2：卡片依課堂分段</p>
+    <ul>
+      <li>構造卡、路徑說明裡「別堂課也講到」的段落，改成一堂一段：目前選的課堂展開、排在最前面；其他堂收成一行「基底核（L05）」這樣的標題，點開才看；沒選課程時全部收起來</li>
+      <li>手機等窄螢幕上，4 欄以上的對照表改成一列一張小卡，每格前面標欄名，不用再左右捲</li>
+    </ul>
+    <p class="newsVer">10/30｜Version 138　健檢 1：跨堂加掛</p>
+    <ul>
+      <li>各堂共用的構造、路徑、視角補掛到有講到的課堂：例如顱底解剖看得到硬膜靜脈竇、腦膜、腦脊髓液循環、視路、淚腺、唾液腺與腮腺的副交感路徑；神解實驗看得到切面上標到的外側／內側膝狀體、紅核、黑質、底視丘、齒狀核、乳頭視丘束</li>
+      <li>間腦那堂補上視丘、膝狀體、下視丘、乳頭體、韁核、上視丘、小腦與小腦腳；腦皮質功能看得到斷聯症候群、純失讀與額、顳、枕葉病灶路徑；運動生理看得到頂葉病灶、小腦皮質迴路</li>
+      <li>「光照 → 松果體」的上頸交感神經節、運動生理「下行運動路徑」的皮質延髓徑，路徑圖節點現在可以點、3D 會亮</li>
     </ul>
   </details>
 </dialog>
@@ -531,10 +559,11 @@ window.__neuroData = (async () => {
   if (new TextDecoder().decode(new Uint8Array(buf, 0, 4)) !== "NEU3") throw new Error("data.txt 格式不符（舊版快取？請重新載入）");
   const n = new DataView(buf).getUint32(4, true), D = JSON.parse(new TextDecoder().decode(new Uint8Array(buf, 8, n)));
   D.M = new Uint8Array(buf, 8 + n + (-n & 3));   // meshopt 編碼的 part（vo／io＝位元組偏移）
-  // 切面輪廓存成整數差分（單位 cutq mm）：還原成 [u0, v0, u1, v1, …] mm
-  const cq = D.meta.cutq, unpack = cuts => { for (const id in cuts) cuts[id] = cuts[id].map(L => {
-    const out = new Float32Array(L.length); let u = 0, v = 0;
-    for (let i = 0; i < L.length; i += 2) { u += L[i]; v += L[i + 1]; out[i] = u * cq; out[i + 1] = v * cq; }
+  // 切面輪廓存成整數差分（單位 cutq mm）：還原成 [u0, v0, u1, v1, …] mm；cuta＝每圈開頭兩個數是錨點（單位 cutq／cuta；簡化前的頂點平均，標籤、切塊歸屬用）
+  const cq = D.meta.cutq, a0 = D.meta.cuta ? 2 : 0, unpack = cuts => { for (const id in cuts) cuts[id] = cuts[id].map(L => {
+    const out = new Float32Array(L.length - a0); let u = 0, v = 0;
+    for (let i = a0; i < L.length; i += 2) { u += L[i]; v += L[i + 1]; out[i - a0] = u * cq; out[i - a0 + 1] = v * cq; }
+    if (a0) out.c = [L[0] * cq / D.meta.cuta, L[1] * cq / D.meta.cuta];
     return out; }); };
   for (const sec of D.sections) unpack(sec.cuts); unpack(D.sagittal.cuts);
   num.textContent = "建立模型中…";
@@ -1230,8 +1259,8 @@ let tabOpen = new Set(), tabFor = "";
 function pathTable(T, pid) {
   if (!T) return "";
   if (tabFor !== pid) { tabFor = pid; tabOpen = new Set(); }
-  return (Array.isArray(T) ? T : [T]).map((t, i) => `<details class="fold ptabw" data-t="${i}"${tabOpen.has(i) ? " open" : ""}><summary>表：${esc(t.title)}</summary><div><table class="ptab"><thead><tr>${t.head.map(h => `<th>${esc(h)}</th>`).join("")}</tr></thead>` +
-    `<tbody>${t.rows.map(r => `<tr${r[0] === t.hl ? ' class="on"' : ""}>${r.map(c => `<td>${esc(c)}</td>`).join("")}</tr>`).join("")}</tbody></table></div></details>`).join("");
+  return (Array.isArray(T) ? T : [T]).map((t, i) => `<details class="fold ptabw" data-t="${i}"${tabOpen.has(i) ? " open" : ""}><summary>表：${esc(t.title)}</summary><div><table class="ptab${t.head.length > 3 ? " stk" : ""}"><thead><tr>${t.head.map(h => `<th>${esc(h)}</th>`).join("")}</tr></thead>` +
+    `<tbody>${t.rows.map(r => `<tr${r[0] === t.hl ? ' class="on"' : ""}>${r.map((c, j) => `<td${j && r[0] !== "註" ? ` data-h="${esc(t.head[j]).replace(/"/g, "&quot;")}"` : ""}>${esc(c)}</td>`).join("")}</tr>`).join("")}</tbody></table></div></details>`).join("");
 }
 // ---------- 國考標記（data/kaoguo.json，tools/kaoguo_map.py 產生；開關 K）：關掉時不加任何元素 ----------
 // rows[].at：["s", 構造]｜["lobe", 葉]｜["p", 路徑]｜["ps", 路徑, 步驟]｜["pl", 路徑, 病灶]；每題只掛一處
@@ -1362,7 +1391,7 @@ function renderGuide() {
     const nP = kgOn ? kgNq(KG.rows.filter(r => r.at[0][0] === "p" && r.at[1] === P.id)) : 0;
     const mp = isMicro(P) ? microPanel(P) : null, mOn = mp && microOn, goStep = mOn ? i => M.play(i) : setStep;   // 顯微模式：點第 n 步播第 n 段
     const tog = i => i === stepIdx && !(mOn && M.seq) ? -1 : i;
-    g.innerHTML = `<h3>${esc(P.zh)}${nP ? `<button class="kgb" aria-expanded="${kgOpen}" title="這條路徑的國考題">國考 ${nP}</button>` : ""}</h3>${P.en ? `<div class="en">${esc(P.en)}</div>` : ""}${nP && kgOpen ? kgPathList(P) : ""}${P.fn ? `<p class="gfn"><b>功能</b>：${esc(P.fn)}</p>` : ""}${P.note ? `<p class="gnote">${esc(P.note).replace(/\n/g, "<br>")}</p>` : ""}` + pathTable(P.table, P.id) + `<div class="pzbar"><button class="btn pzoom" data-g="zoom" title="放大路徑圖">放大</button></div>` + pathSvg(P) + (P.vf ? vfSvg(P) : "") +
+    g.innerHTML = `<h3>${esc(P.zh)}${nP ? `<button class="kgb" aria-expanded="${kgOpen}" title="這條路徑的國考題">國考 ${nP}</button>` : ""}</h3>${P.en ? `<div class="en">${esc(P.en)}</div>` : ""}${nP && kgOpen ? kgPathList(P) : ""}${P.fn ? `<p class="gfn"><b>功能</b>：${esc(P.fn)}</p>` : ""}${P.note ? `<p class="gnote">${esc(P.note).replace(/\n/g, "<br>")}</p>` : ""}${fsHtml(P.nfs, h => esc(h).replace(/\n/g, "<br>"))}` + pathTable(P.table, P.id) + `<div class="pzbar"><button class="btn pzoom" data-g="zoom" title="放大路徑圖">放大</button></div>` + pathSvg(P) + (P.vf ? vfSvg(P) : "") +
       `<div class="gctl"><button class="btn" data-g="prev">‹ 上一步</button><button class="btn" data-g="all" aria-pressed="${stepIdx < 0 && !lesionKey}">全部</button><button class="btn" data-g="next">下一步 ›</button></div>` + (mp ? mp.ctl : "") +
       `<ol class="steps">${P.steps.map((st, i) => `<li><button data-s="${i}" aria-pressed="${i === stepIdx}">${esc(st[0])}${kgOn ? kgX(kgAt("ps", P.id, i)) : ""}</button></li>`).join("")}</ol>` + (mp ? mp.more : "") +
       (P.lesions && P.lesions.length ? `<div class="lbl">模擬病灶</div><div class="lesbar">${P.lesions.map(l => `<button class="btn" data-l="${l[0]}" aria-pressed="${l[0] === lesionKey}">${esc(l[1])}${kgOn ? kgX(kgAt("pl", P.id, l[0])) : ""}</button>`).join("")}</div>${L ? `<div class="lesfx">${esc(L[3])}</div>` : ""}` : "") +
@@ -1672,7 +1701,7 @@ function rankHtml(s) {
   if (s.rank) return `<div class="rank">${s.rank.replace(/^([^：]+)：/, "<b>$1</b>：")}</div>`;
   return pr ? fold(pr[0], pr[1]) : "";
 }
-// fn：第一段照舊；第二段以後一段一行點開，標題用段首（「受損」「對照」…）；・開頭的行併入上一段。第二段只有一行的（mgb）不收
+// fn 主段（跨堂段落已由 build.py 切到 fs，見 fsHtml）：第一段照舊；第二段以後一段一行點開，標題用段首（「受損」「對照」…）；・開頭的行併入上一段。第二段只有一行的（mgb）不收
 const FN_FOLD = new Set(["mlf", "pprf", "rimlf", "inc", "prepositus", "stt", "ml", "ll", "vttt", "dttt", "stria_med_thal", "vpm", "vpl", "striae"]);
 // 不分段的長說明 7 張（10/19）：第一句照舊，後段依主題一段一行點開。[這段開頭的字, 標題（沒寫就用段首「X：」）, 分項（符合的字後面換行）]
 const FN_SPLIT = {
@@ -1693,7 +1722,14 @@ function fnSplit(s) {
     return fold(t, `<div>${li ? x.replace(li, "$1<br>") : x}</div>`);
   }).join("");
 }
-function fnHtml(s) {
+// 跨堂段落 fs（構造 fn）、nfs（路徑 note）：build.py 從「<br>課名（Lnn）：」切出（V139）。選了的課展開、排前面；其他堂各自摺起來；沒選課程全部摺起來
+function fsHtml(fs, f = x => x) {
+  if (!fs) return "";
+  const on = fs.filter(([l]) => lecOn.has(l));
+  return [...on, ...fs.filter(x => !on.includes(x))].map(([l, t, h]) => `<details class="fold fs"${lecOn.has(l) ? " open" : ""}><summary>${t}</summary><div>${f(h)}</div></details>`).join("");
+}
+function fnHtml(s) { return fnMain(s) + fsHtml(s.fs); }
+function fnMain(s) {
   if (!s.fn) return "";
   if (FN_SPLIT[s.id]) return fnSplit(s);
   if (!FN_FOLD.has(s.id)) return `<p>${s.fn}</p>`;
@@ -2086,11 +2122,12 @@ const secName = sec => LABL(sec) ? `${KZH[sec.kind] ? KZH[sec.kind] + " " : ""}$
 // 小腦橫切（L03）：整顆小腦當底，蚓部、旁蚓部、外側半球、小腦腳照分區上色
 const LAY = (sec, s) => LABL(sec) ? (s.id === "hemisphere" || s.id === "cerebellum" ? 0 : s.sub === "cerebellum" ? 1 : s.sub === "ventricle" ? 2 : s.group === "tract" || s.group === "nerve" ? 3 : 4) : CB(sec) ? (s.id === "cerebellum" ? 0 : s.sub === "cerebellum" ? 1 : LAYER(s)) : SC(sec) ? (s.id === "sc_dura" ? -1 : s.id === "sc_wm" ? 0 : LAYER(s)) : !COR(sec) ? LAYER(s) : s.id === "hemisphere" ? 0 : s.sub === "ventricle" ? 2 : s.group === "tract" || s.group === "nerve" ? 3 : 4;
 function secBasis(sec) { return { c: new THREE.Vector3(...sec.c), n: new THREE.Vector3(...sec.nrm), u: new THREE.Vector3(...sec.u), v: new THREE.Vector3(...sec.v) }; }
+// 切面輪廓的代表點：錨點（build 時簡化前的頂點平均）；沒有就算頂點平均
+function loopMid(L) { if (L.c) return L.c; let u = 0, v = 0; const n = L.length / 2; for (let i = 0; i < L.length; i += 2) { u += L[i]; v += L[i + 1]; } return [u / n, v / n]; }
 // 切成兩塊的腦迴：切面輪廓（重心）屬第幾塊（沒切塊＝null）；那一塊沒畫就不畫輪廓，顏色用那一塊的
 function loopPiece(id, L, B) {
   const o = OBJ[id]; if (!o.s.plobe) return null;
-  let u = 0, v = 0; const n = L.length / 2; for (let i = 0; i < L.length; i += 2) { u += L[i]; v += L[i + 1]; }
-  const P = B.c.clone().addScaledVector(B.u, u / n).addScaledVector(B.v, v / n);
+  const [u, v] = loopMid(L), P = B.c.clone().addScaledVector(B.u, u).addScaledVector(B.v, v);
   return pieceAt(o.s, P.x, P.y, P.z);
 }
 const pieceColor = (id, pc) => paintOf(id, pc) || (pc == null ? OBJ[id].s.color : OBJ[id].pieceCol[pc]);
@@ -2228,7 +2265,7 @@ function drawSvg() {
       if (inSel(id)) p.classList.add("selp");
       svg.append(p);
       // 背景層不標名稱；但投影片有標的（s.labels）照樣標（V116.2）
-      if ((!shell || (s.labels || []).includes(id)) && (!s.only_labels || s.labels.includes(id)) && L.length >= 6) { let cx = 0, cy = 0, n = L.length / 2; for (let i = 0; i < L.length; i += 2) { cx += L[i]; cy += L[i + 1]; } labs.push({ id, x: cx / n, y: cy / n }); }
+      if ((!shell || (s.labels || []).includes(id)) && (!s.only_labels || s.labels.includes(id)) && L.length >= 6) { const [x, y] = loopMid(L); labs.push({ id, x, y }); }
     }
   }
   for (const id in s.pins || {}) if (isOn(id)) for (const [u, v] of s.pins[id]) {
