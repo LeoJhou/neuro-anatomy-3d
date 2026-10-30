@@ -254,7 +254,7 @@ details.subgrp[open] > summary.subh::before { transform: rotate(90deg); }
 #info details.rank > summary { color: inherit; }
 .pg { font-family: var(--f-mono); font-size: 11.5px; }
 .seclist { display: grid; grid-template-columns: 1fr; gap: 4px; }
-.secbtn { display: grid; grid-template-columns: 22px minmax(0,1fr) auto; gap: 8px; align-items: center; text-align: left; border: 1px solid var(--line); background: var(--panel); border-radius: 6px; padding: 4px 8px; }
+.secbtn { display: grid; grid-template-columns: minmax(22px,auto) minmax(0,1fr) auto; gap: 8px; align-items: center; text-align: left; border: 1px solid var(--line); background: var(--panel); border-radius: 6px; padding: 4px 8px; }
 .secbtn .num { font: 500 12px var(--f-mono); min-width: 20px; padding: 0 3px; box-sizing: border-box; height: 20px; border-radius: 10px; display: grid; place-items: center; background: var(--chip); }
 .secbtn[aria-pressed="true"] { border-color: var(--accent); }
 .secbtn[aria-pressed="true"] .num { background: var(--accent); color: var(--accent-ink); }
@@ -274,6 +274,10 @@ details.subgrp[open] > summary.subh::before { transform: rotate(90deg); }
 .hit { font-size: 12px; border-radius: 4px; padding: 1px 6px; border: 1px solid var(--line); background: var(--panel); display: inline-flex; gap: 5px; align-items: center; }
 .hit .sw { width: 9px; height: 9px; border-radius: 2px; }
 .hit.miss { border-style: dashed; color: var(--mute); }
+#labPhoto summary { cursor: pointer; font: 500 12px var(--f-mono); color: var(--mute); margin: 8px 0 4px; }
+#labPhoto img { display: block; width: 100%; height: auto; border: 1px solid var(--line); border-radius: 4px; cursor: zoom-in; background: #fff; margin-top: 6px; }
+#photoDlg { max-width: min(1600px, calc(100% - 32px)); padding: 10px; }
+#photoDlg img { display: block; max-width: 100%; max-height: calc(100vh - 110px); height: auto; margin: 0 auto; background: #fff; }
 .hit.on { border-color: var(--accent); color: var(--accent); }
 /* 國考標記（開關 K）：徽章、步驟／病灶 ×N、收合清單、題目彈窗 */
 .kgb, .kgx, #info details.kq summary i { font: 600 11px var(--f-mono); color: var(--kg-ink); background: var(--kg); border-radius: 3px; padding: 0 5px; font-style: normal; white-space: nowrap; }
@@ -434,8 +438,9 @@ input[type=range] { width: 100%; accent-color: var(--accent); }
       <div class="note" id="secnote" style="margin:6px 0"></div>
       <div class="lbl">這層切到（點名稱看說明）</div>
       <div class="hitlist" id="hits"></div>
-      <div class="lbl">投影片這頁有標示的構造</div>
+      <div class="lbl" id="slideLbl">投影片這頁有標示的構造</div>
       <div class="hitlist" id="slideLabs"></div>
+      <details id="labPhoto" hidden><summary></summary><div class="hitlist" id="labFind"></div><div class="note" id="labXtra" hidden></div><div id="labImg"></div></details>
     </div>
     <div class="note" id="secIntro" style="margin-top:10px">選一層：模型會從那個平面切開，切面上以各構造的顏色填色；小圖可以直接對照投影片（畫面右邊＝病人左側）。腦幹橫切面是背側在上、從吻側往下看；大腦冠狀切片是從前面看。</div>
     </div>
@@ -473,44 +478,27 @@ input[type=range] { width: 100%; accent-color: var(--accent); }
   <!-- 本版更新：只放最新一版，舊的不留 -->
   <details id="newsBox">
     <summary>本版更新</summary>
-    <p class="newsVer">10/29｜Version 129＋129.1　腦室與腦膜（L06）</p>
+    <p class="newsVer">10/30｜Version 134　頭痛（L16）</p>
     <ul>
-      <li>新視角「側腦室各壁」：鄰接構造依壁上色</li>
-      <li>「正中矢狀：第三、第四腦室」依壁上色；「腦室系統」標出脈絡叢在哪裡（導水管沒有）</li>
-      <li>「CSF 的流動」加光點，跟著步驟從脈絡叢流到靜脈竇；模擬阻塞時上游堆積；亮色主題光點改深藍</li>
-      <li>室間孔、外側孔、正中孔加英文名；硬膜反摺、靜脈竇、腦膜各層、CSF 成分的說明與表補充</li>
-      <li>固定名稱互相錯開、不超出畫面；圖上名稱避開兩行的名稱</li>
-      <li>「CSF 的流動」最後一步放大楔形切面；穹窿改灰米色</li>
-      <li>工具列視角按鈕會框住該視角的構造；手機打開面板時模型移到面板上方</li>
+      <li>新課堂「頭痛」：腦膜血管與靜脈竇、三叉神經、TCC、視丘、下視丘、PAG 都標進這堂；開這堂時起始鏡頭改成左前斜</li>
+      <li>新構造：淺顳動脈（含額支，連到外頸動脈）、大枕神經、上頸交感神經節、岩上靜脈</li>
+      <li>新視角：頭痛的痛覺分區（顱骨半透明，幕上走 V1、後顱窩走 C2–C3、肌肉激痛點）、三叉神經核柱與三叉頸複合體</li>
+      <li>新路徑：三叉血管系統的上行與下行調控、偏頭痛機轉、三叉自律反射（叢發性頭痛）、緊縮型頭痛的周邊說與中樞說、三叉神經痛（血管壓迫）、顱內壓異常頭痛，附 6 張表</li>
+      <li>蝶腭神經節、小腦上動脈、靜脈竇、脊髓後角與下行止痛的路徑也放進這堂</li>
     </ul>
-    <p class="newsVer">10/30｜Version 130　神經解剖學實驗（L08）</p>
+    <p class="newsVer">10/30｜Version 135　CSF 生理（L17）</p>
     <ul>
-      <li>新課堂「神解實驗」：大腦模型上要認的構造都標進這堂</li>
-      <li>新視角：胼胝體與穹窿各段、胼胝體上面的縱紋、海馬與穹窿、豆狀核、紋狀體（新紋狀體、舊紋狀體分色）</li>
-      <li>新路徑「切面上的基底核：由外往內」「一眼判切面」，附紋狀體名詞表與判切面表</li>
-      <li>內囊、放射冠、海馬的說明補上分解模型上看到的樣子</li>
+      <li>新課堂「CSF 生理」：腦室、脈絡叢、腦池、靜脈竇、脊髓硬膜囊都標進這堂</li>
+      <li>新視角：CSF 的出口（蜘蛛膜顆粒、硬膜淋巴管、篩板與鼻黏膜淋巴、脊神經根）、脊髓硬膜囊與 SIH 漏點</li>
+      <li>新路徑：CSF 的生成與回收、壓力鏈與姿勢、顱內壓三模型（含 Duret 出血、Cushing 反射、兩種腦疝）、水腦症五級阻塞（可點病灶看光點停在哪）、常壓性水腦、特發性顱內高壓、自發性顱內低壓，附 19 張表</li>
+      <li>路徑步驟可以在模型上直接標名稱；CSF 流動、靜脈竇、腦膜層次的路徑與視角也放進這堂</li>
     </ul>
-    <p class="newsVer">10/30｜Version 131　顱底解剖（L07）</p>
+    <p class="newsVer">10/30｜Version 136　神經解剖學實驗後段：實體切片（L08）</p>
     <ul>
-      <li>新課堂「顱底」：新增 11 個孔（盲孔、前後篩孔、棘孔、破裂孔、頸動脈管、翼管、眶下裂、岩大神經裂孔、髁管、乳突孔）、SCA／AICA／PICA、眼動脈、篩動脈、眼靜脈、海綿間竇、蝶竇、篩小房</li>
-      <li>新視角：三顱窩分色、海綿竇、蝶竇後壁、腦幹腹側與後循環、腦幹背側與小腦腳</li>
-      <li>新路徑：三個顱窩、顱底出入孔（前 → 後逐區放大）、翼腭窩與三條岩神經、海綿竇與 ICA、腦幹地標與小腦腳、鼻竇開口，附 13 張表</li>
-      <li>「顱底出入孔（由上往下）」視角標出圓 → 卵 → 棘的排列；小孔改在 L07 路徑看，名稱不再擠成一團</li>
-      <li>考古題新增解剖、胚胎題庫</li>
-    </ul>
-    <p class="newsVer">10/30｜Version 132　腦皮質功能（L14）</p>
-    <ul>
-      <li>新課堂「腦皮質功能」：腦葉、邊緣系統、網狀活化系統、睡眠相關核團都標進這堂</li>
-      <li>新視角：Brodmann 分區（外側、內側上色加號碼）、睡醒開關的核團、海馬內部</li>
-      <li>新路徑：Brodmann 分區、語言迴路與失語症、視覺的兩條路徑、裂腦、清醒開關、睡眠開關與睡眠週期、記憶的形成、海馬三突觸迴路與 LTP、Papez 迴路、情緒、中腦邊緣多巴胺，附 13 張表</li>
-      <li>胼胝體、中央前迴、邊緣系統的說明補充；考古題掛上這堂</li>
-    </ul>
-    <p class="newsVer">10/30｜Version 133　運動生理（L15）</p>
-    <ul>
-      <li>新課堂「運動生理」：脊髓灰質、下行徑、運動皮質、小腦、基底核都標進這堂</li>
-      <li>新視角：皮質運動區（M1、S1、後頂葉上色）、腹角的體部定位（內側管軀幹、外側管手指）</li>
-      <li>新路徑：運動控制的階層、肌梭與腱器官、五種脊髓反射、下行運動路徑、皮質運動區、小腦比對修正迴路、基底核與四種疾病，附 16 張表</li>
-      <li>脊髓反射、小腦、基底核的路徑與視角也放進這堂；考古題掛上這堂</li>
+      <li>實驗課 Kilgore 14 張實體切片，各對到一個模型切面：冠狀 4 層、水平 3 層、25° CAT 斜切 4 層、旁矢狀 2 層、正中矢狀</li>
+      <li>新切面方向：水平與 25° CAT 從下往上看（前方在上）、旁矢狀從外側看、正中矢狀從左側看；小腦與腦幹一起切開</li>
+      <li>切面面板列出「實體切片上要找的」構造，點了 3D 亮起；屏狀核、外囊、最外囊模型沒有，切面圖上用虛線圈標出位置</li>
+      <li>私人版附 Kilgore 照片，點縮圖放大；公開網站不放照片</li>
     </ul>
   </details>
 </dialog>
@@ -520,6 +508,8 @@ input[type=range] { width: 100%; accent-color: var(--accent); }
   <h2 id="pathDlgH"></h2>
   <div id="pathBig"></div>
 </dialog>
+
+<dialog id="photoDlg"><img id="photoBig" alt=""><form method="dialog" style="margin-top:8px;text-align:right"><button class="btn">關閉</button></form></dialog>
 
 <dialog id="kgDlg">
   <div id="kgBody"></div>
@@ -1581,7 +1571,7 @@ $("#bReset").onclick = () => {
   if (sagOn) setSag(false);
   refreshVis();
   setHome();
-  flyTo(HOME, new THREE.Vector3(...VIEWS.oblique), homeDist());
+  flyTo(HOME, new THREE.Vector3(...homeDir()), homeDist());
 };
 
 // ---------- selection & info ----------
@@ -1854,7 +1844,8 @@ document.querySelectorAll("#views [data-v]").forEach(b => b.onclick = () => { co
 // 舞台 0 尺寸（背景分頁、App 面板還沒排好）時比例當 1：以前 0.8 / 0 → 距離 Infinity → 鏡頭 NaN → three 報「firstElem.toArray is not a function」全黑
 const homeDist = () => { const r = stage.getBoundingClientRect(), a = r.width / r.height;
   return (lecHome()?.d || 240) * (a > 0 && Number.isFinite(a) ? Math.max(1, 0.8 / a) : 1); };
-const camStart = () => camera.position.copy(new THREE.Vector3(...VIEWS.oblique).normalize().multiplyScalar(homeDist()).add(HOME));
+const homeDir = () => lecHome()?.dir || VIEWS.oblique;   // home.dir（L16 從左前斜）：起始方向，省略＝預設右前斜
+const camStart = () => camera.position.copy(new THREE.Vector3(...homeDir()).normalize().multiplyScalar(homeDist()).add(HOME));
 const camHome = () => { anim = null; controls.target.copy(HOME); camStart(); camera.lookAt(HOME); };   // 朝向也要重設：NaN 位置時 OrbitControls 的 lookAt 已讓 quaternion 變 NaN
 controls.target.copy(HOME); camStart();   // 目標點也要跟 home（L04 起始框整條脊髓，離預設的腦幹很遠）
 let homeLate = !(stage.clientWidth && stage.clientHeight);   // 載入時舞台 0 尺寸：第一次有尺寸時再照畫面比例重算起始距離
@@ -1880,6 +1871,9 @@ function buildTags() {
     }
   }
   const V = presetV(); if (labOn && V && V.vtags) for (const t of V.vtags) add(t.zh, t.p, "pin", null, null, t.n);
+  // s[3].tags：路徑這一步沒有 3D 的位置名稱（V135，L17 淋巴結、橋腦排尿中樞）；不管圖上名稱開關都標
+  const SP = focus && focus.kind === "path" && stepIdx >= 0 && PATHS.find(p => p.id === focus.id), st = SP && SP.steps[stepIdx];
+  if (st && st[3] && st[3].tags) for (const t of st[3].tags) add(t.zh, t.p, "pin", null, null, t.n);
 }
 const v3 = new THREE.Vector3(), _tn = new THREE.Vector3(), _tm = new THREE.Vector3();
 // 有法向的名稱（鉤）：那一面背對鏡頭、或鏡頭在對側而對側半球沒被切掉（隔著半球）就藏
@@ -2098,11 +2092,14 @@ const capGroup = new THREE.Group(); scene.add(capGroup);
 const LAYER = s => s.group === "skeleton" ? (shellIds.has(s.id) ? 0 : s.sub === "ventricle" && s.id !== "sup_med_velum" ? 2 : 1) : s.group === "tract" ? 3 : s.group === "nerve" ? 3 : 4;
 const secs = [...D.sections].sort((a, b) => a.lec.localeCompare(b.lec) || a.n - b.n);
 const COR = sec => sec && sec.kind === "cor", SC = sec => sec && sec.kind === "sc", CB = sec => sec && sec.kind === "cb";
-const secName = sec => COR(sec) ? `冠狀 ${sec.tag} ${esc(sec.zh)}` : SC(sec) ? `脊髓 ${esc(sec.zh)}` : CB(sec) ? `小腦 ${esc(sec.zh)}` : `第 ${sec.n} 層 ${esc(sec.zh)}`;
+// L08 實體切片（Kilgore）：水平、25° CAT、旁矢狀、正中矢狀；LABL＝L08 自己的切面（含兩層冠狀），小腦、腦幹都切
+const KZH = { cor: "冠狀", hor: "水平", cat: "25° CAT", psag: "旁矢狀", msag: "" };
+const LAB = sec => sec && sec.kind in KZH && sec.kind !== "cor", SAGK = sec => sec && (sec.kind === "psag" || sec.kind === "msag"), LABL = sec => sec && sec.lec === "L08";
+const secName = sec => LABL(sec) ? `${KZH[sec.kind] ? KZH[sec.kind] + " " : ""}${esc(sec.zh)}` : COR(sec) ? `冠狀 ${sec.tag} ${esc(sec.zh)}` : SC(sec) ? `脊髓 ${esc(sec.zh)}` : CB(sec) ? `小腦 ${esc(sec.zh)}` : `第 ${sec.n} 層 ${esc(sec.zh)}`;
 // 冠狀切片：只有大腦白質當底（外殼層），間腦、腦幹照一般構造上色
 // 脊髓橫切（L04）：硬膜囊墊最底、脊髓白質當底，其餘照一般圖層
 // 小腦橫切（L03）：整顆小腦當底，蚓部、旁蚓部、外側半球、小腦腳照分區上色
-const LAY = (sec, s) => CB(sec) ? (s.id === "cerebellum" ? 0 : s.sub === "cerebellum" ? 1 : LAYER(s)) : SC(sec) ? (s.id === "sc_dura" ? -1 : s.id === "sc_wm" ? 0 : LAYER(s)) : !COR(sec) ? LAYER(s) : s.id === "hemisphere" ? 0 : s.sub === "ventricle" ? 2 : s.group === "tract" || s.group === "nerve" ? 3 : 4;
+const LAY = (sec, s) => LABL(sec) ? (s.id === "hemisphere" || s.id === "cerebellum" ? 0 : s.sub === "cerebellum" ? 1 : s.sub === "ventricle" ? 2 : s.group === "tract" || s.group === "nerve" ? 3 : 4) : CB(sec) ? (s.id === "cerebellum" ? 0 : s.sub === "cerebellum" ? 1 : LAYER(s)) : SC(sec) ? (s.id === "sc_dura" ? -1 : s.id === "sc_wm" ? 0 : LAYER(s)) : !COR(sec) ? LAYER(s) : s.id === "hemisphere" ? 0 : s.sub === "ventricle" ? 2 : s.group === "tract" || s.group === "nerve" ? 3 : 4;
 function secBasis(sec) { return { c: new THREE.Vector3(...sec.c), n: new THREE.Vector3(...sec.nrm), u: new THREE.Vector3(...sec.u), v: new THREE.Vector3(...sec.v) }; }
 // 切成兩塊的腦迴：切面輪廓（重心）屬第幾塊（沒切塊＝null）；那一塊沒畫就不畫輪廓，顏色用那一塊的
 function loopPiece(id, L, B) {
@@ -2157,16 +2154,16 @@ function faceView() {
   if (!activeSec) return; const B = secBasis(activeSec);
   const dir = B.n.clone().multiplyScalar(keepUpper ? -1 : 1).add(B.v.clone().multiplyScalar(0.25));
   const ctr = CB(activeSec) ? B.c.clone().addScaledVector(B.v, 22) : B.c;   // 小腦橫切：切面中心在腦幹，往後移到小腦中間
-  flyTo(ctr, dir, (COR(activeSec) ? 420 : SC(activeSec) ? 55 : CB(activeSec) ? 170 : 75) * Math.max(1, 0.9 / camera.aspect));
+  flyTo(ctr, dir, (COR(activeSec) || LAB(activeSec) ? 420 : SC(activeSec) ? 55 : CB(activeSec) ? 170 : 75) * Math.max(1, 0.9 / camera.aspect));
 }
 // 依課程分組，只列開著的課程；L01＝腦幹 9 個橫切面，L02＝大腦 6 個冠狀切片
-const SECHEAD = { ax: n => `老師的 ${n} 個腦幹橫切面（尾側 → 吻側）`, cor: n => `大腦 ${n} 個冠狀切片（前 → 後）`, sc: n => `脊髓 ${n} 個橫切面（上 → 下）`, cb: n => `小腦 ${n} 個橫切面` };
+const SECHEAD = { lab: n => `實驗課 ${n} 個實體切片對照（Kilgore）`, ax: n => `老師的 ${n} 個腦幹橫切面（尾側 → 吻側）`, cor: n => `大腦 ${n} 個冠狀切片（前 → 後）`, sc: n => `脊髓 ${n} 個橫切面（上 → 下）`, cb: n => `小腦 ${n} 個橫切面` };
 function buildSecList() {
   const W = $("#seclist"); W.innerHTML = "";
   const vis = secs.filter(s => lecsOf(s).some(lecAny));   // 別堂的切面（also）併進原本那堂的一組，只列這幾堂用得到的層
   for (const lec of [...new Set(vis.map(s => s.lec))]) {
     const ss = vis.filter(s => s.lec === lec), lb = document.createElement("div"), L = document.createElement("div");
-    lb.className = "lbl"; lb.style.marginTop = "2px"; lb.textContent = SECHEAD[ss[0].kind](ss.length); L.className = "seclist";
+    lb.className = "lbl"; lb.style.marginTop = "2px"; lb.textContent = SECHEAD[lec === "L08" ? "lab" : ss[0].kind](ss.length); L.className = "seclist";
     for (const s of ss) {
       const b = document.createElement("button"); b.className = "secbtn"; b.dataset.id = s.id; b.setAttribute("aria-pressed", String(activeSec === s));
       b.innerHTML = `<span class="num">${s.tag}</span><span>${s.zh}</span>`; b.title = `${s.tag}. ${s.zh}`;
@@ -2180,9 +2177,9 @@ function openSection(s) {
   leaveMicro();
   if (sagOn) { sagOn = false; $("#bSag").setAttribute("aria-pressed", "false"); }
   activeSec = s; document.querySelectorAll(".secbtn").forEach(b => b.setAttribute("aria-pressed", b.dataset.id === s.id));
-  if (COR(s) || SC(s) || CB(s)) {   // 冠狀切片照投影片：大腦白質與投影片有標的構造打開（預設多半關著），小腦與腦溝關掉；脊髓、小腦橫切只補開投影片有標的
-    if (COR(s)) for (const id in OBJ) { const x = OBJ[id].s; if (x.sub === "cerebellum" || x.sub === "sulcus") OBJ[id].userOn = false; }
-    const want = new Set([...(COR(s) ? ["hemisphere"] : SC(s) ? ["sc_wm"] : []), ...s.labels]);
+  if (COR(s) || SC(s) || CB(s) || LABL(s)) {   // 冠狀切片照投影片：大腦白質與投影片有標的構造打開（預設多半關著），小腦與腦溝關掉；脊髓、小腦橫切只補開投影片有標的
+    if (COR(s) || LABL(s)) for (const id in OBJ) { const x = OBJ[id].s; if ((x.sub === "cerebellum" && !LABL(s)) || x.sub === "sulcus") OBJ[id].userOn = false; }   // L08 實體切片：小腦留著
+    const want = new Set([...(LABL(s) ? ["hemisphere", "cerebellum"] : COR(s) ? ["hemisphere"] : SC(s) ? ["sc_wm"] : []), ...s.labels]);
     for (const id of corAuto) if (!want.has(id)) OBJ[id].userOn = false;   // 上一張自動打開的關回去（使用者自己開的不動）
     corAuto = new Set([...corAuto].filter(id => want.has(id)));
     for (const id of want) if (!OBJ[id].userOn) { OBJ[id].userOn = true; corAuto.add(id); }
@@ -2211,7 +2208,8 @@ function closeSection() {
 }
 $("#bClip").onclick = e => { clipOn = !clipOn; e.currentTarget.setAttribute("aria-pressed", clipOn); setClip(); };
 // 「保留哪一半」：腦幹橫切面＝上／下半段；冠狀切片＝前／後半段（預設保留後半段、從前面看）
-function keepText() { $("#bKeep").textContent = COR(activeSec) ? (keepUpper ? "改看後半段" : "改看前半段") : (keepUpper ? "改看下半段" : "改看上半段"); }
+// L08：水平／CAT 預設保留上半（從下往上看）、旁矢狀保留內側段（從外側看）、正中矢狀保留右半（從左側看）
+function keepText() { const k = activeSec && activeSec.kind; $("#bKeep").textContent = k === "hor" || k === "cat" ? (keepUpper ? "改看上半段" : "改看下半段") : k === "psag" ? (keepUpper ? "改看內側段" : "改看外側段") : k === "msag" ? (keepUpper ? "改看右半" : "改看左半") : COR(activeSec) ? (keepUpper ? "改看後半段" : "改看前半段") : (keepUpper ? "改看下半段" : "改看上半段"); }
 $("#bKeep").onclick = e => { keepUpper = !keepUpper; e.currentTarget.setAttribute("aria-pressed", keepUpper); keepText(); setClip(); faceView(); };
 $("#bFace").onclick = faceView;
 $("#bSecOff").onclick = closeSection;
@@ -2221,13 +2219,13 @@ const NS = "http://www.w3.org/2000/svg";
 // 圖上短名：構造有 short 欄（L00／L01 的 add）就用它，否則去括號、顱神經只留「CN N」
 const short = s => s.short || s.zh.replace(/（.*?）/g, "").replace(/^CN (\S+) .*/, "CN $1");
 function drawSvg() {
-  const s = activeSec, W = $("#svgwrap"), cor = COR(s), cb = CB(s); W.innerHTML = "";
-  const frame = cor ? ["hemisphere", "midbrain", "pons"] : SC(s) ? ["sc_wm", "sc_dura"] : cb ? ["cerebellum", "pons", "mcp_shell"] : ["midbrain", "pons", "medulla", "cord"];
+  const s = activeSec, W = $("#svgwrap"), lab = LABL(s), sag = SAGK(s), cor = COR(s) || lab, cb = CB(s); W.innerHTML = "";
+  const frame = lab ? Object.keys(s.cuts) :cor ? ["hemisphere", "midbrain", "pons"] : SC(s) ? ["sc_wm", "sc_dura"] : cb ? ["cerebellum", "pons", "mcp_shell"] : ["midbrain", "pons", "medulla", "cord"];
   const all = []; for (const id in s.cuts) if (frame.includes(id)) for (const L of s.cuts[id]) for (let i = 0; i < L.length; i += 2) all.push([L[i], L[i + 1]]);
   let x0 = -14, x1 = 14, y0 = -12, y1 = 14;
   if (all.length) { x0 = Math.min(...all.map(p => p[0])); x1 = Math.max(...all.map(p => p[0])); y0 = Math.min(...all.map(p => p[1])); y1 = Math.max(...all.map(p => p[1])); }
   const k = cor ? 3 : cb ? 2.2 : 1;   // 冠狀切片約 130 mm 寬、小腦約 100 mm，字、間距、圓點都放大
-  const m = 2.5 * k, half = Math.min(24 * k * 1.1, Math.max(Math.abs(x0), Math.abs(x1))) + m; x0 = -half; x1 = half;
+  const m = 2.5 * k, half = Math.min((lab ? 34 : 24) * k * 1.1, Math.max(Math.abs(x0), Math.abs(x1))) + m; x0 = -half; x1 = half;
   y0 = (cor || cb ? y0 : Math.max(y0, -24)) - m; y1 = (cor || cb ? y1 : Math.min(y1, 26)) + m;
   if (svgLabels) x1 += 9 * k;   // room for the label column on the patient-left side
   const svg = document.createElementNS(NS, "svg"); svg.setAttribute("viewBox", `${x0} ${-y1} ${x1 - x0} ${y1 - y0}`);
@@ -2255,15 +2253,18 @@ function drawSvg() {
   if (svgLabels) {
     // one label per structure on the patient-left half; stack them in a column without overlap, inside the frame
     const seen = new Set(), L = [];
-    for (const l of labs.filter(l => l.x >= -0.3).sort((a, b) => b.y - a.y)) { if (!seen.has(l.id)) { seen.add(l.id); L.push(l); } }
+    const mk = (s.photo && s.photo.marks || []).map(q => ({ id: "", mark: q.zh, x: q.u, y: q.v }));   // 屏狀核、外囊、最外囊（模型沒有）：虛線圈＋名稱
+    for (const l of [...labs, ...mk].filter(l => sag || l.x >= -0.3).sort((a, b) => b.y - a.y)) { const key = l.mark || l.id; if (!seen.has(key)) { seen.add(key); L.push(l); } }
     const top = y1 - (cor ? 4 : 2.2) * k, bot = y0 + 0.8 * k, gap = Math.min(1.25 * k, (top - bot) / Math.max(1, L.length - 1));
     const fs = Math.min(1.05 * k, gap * 0.9);
     let prev = Infinity; L.forEach(l => { l.ty = Math.min(l.y, prev - gap, top); prev = l.ty; });
     L.forEach((l, i) => { l.ty = Math.max(l.ty, bot + (L.length - 1 - i) * gap); });   // push up from the bottom; gap guarantees the stack fits
     for (const l of L) {
-      const txt = short(OBJ[l.id].s);
+      const txt = l.mark || short(OBJ[l.id].s);
       const t = document.createElementNS(NS, "text"); t.setAttribute("x", x1 - 0.6 * k); t.setAttribute("y", -l.ty + fs * 0.35); t.setAttribute("text-anchor", "end");
-      t.setAttribute("font-size", fs); t.setAttribute("fill", css("--ink")); t.textContent = txt; t.dataset.id = l.id; t.style.cursor = "pointer"; t.onclick = () => select(l.id, null, false);
+      t.setAttribute("font-size", fs); t.setAttribute("fill", css(l.mark ? "--mute" : "--ink")); t.textContent = txt;
+      if (l.mark) { t.setAttribute("font-style", "italic"); const c = document.createElementNS(NS, "circle"); c.setAttribute("cx", l.x); c.setAttribute("cy", -l.y); c.setAttribute("r", 0.45 * k); c.setAttribute("fill", "none"); c.setAttribute("stroke", css("--ink")); c.setAttribute("stroke-dasharray", "1.5 1.5"); c.setAttribute("stroke-width", 1); c.setAttribute("vector-effect", "non-scaling-stroke"); svg.append(c); }
+      else { t.dataset.id = l.id; t.style.cursor = "pointer"; t.onclick = () => select(l.id, null, false); }
       const ln = document.createElementNS(NS, "line"); ln.setAttribute("x1", l.x); ln.setAttribute("y1", -l.y); ln.setAttribute("x2", x1 - 0.9 * k - txt.length * fs); ln.setAttribute("y2", -l.ty);
       ln.setAttribute("stroke", css("--mute")); ln.setAttribute("stroke-width", 0.6); ln.setAttribute("vector-effect", "non-scaling-stroke"); ln.setAttribute("stroke-opacity", 0.7);
       svg.append(ln, t);
@@ -2271,9 +2272,11 @@ function drawSvg() {
   }
   W.append(svg);
   const o = (txt, st) => { const e = document.createElement("div"); e.className = "o"; e.textContent = txt; Object.assign(e.style, st); W.append(e); };
-  o(cor ? "上 S" : "背側 D", { top: "4px", left: "50%", transform: "translateX(-50%)" }); o(cor ? "下 I" : "腹側 V", { bottom: "4px", left: "50%", transform: "translateX(-50%)" });
-  o("右 R", { left: "6px", top: "50%" }); o("左 L", { right: "6px", top: "4px" });
-  $("#secnote").innerHTML = `<b>${cor ? `冠狀切片 ${s.tag}：${s.zh}` : SC(s) ? `脊髓橫切 ${s.tag}：${s.zh}` : CB(s) ? `小腦橫切：${s.zh}` : `第 ${s.n} 層：${s.zh}`}</b><br>${s.note || ""}`;
+  const hc = LAB(s) && !sag;   // 水平、CAT：前方在上
+  o(hc ? "前 A" : cor || sag ? "上 S" : "背側 D", { top: "4px", left: "50%", transform: "translateX(-50%)" }); o(hc ? "後 P" : cor || sag ? "下 I" : "腹側 V", { bottom: "4px", left: "50%", transform: "translateX(-50%)" });
+  o(s.kind === "psag" ? "後 P" : s.kind === "msag" ? "前 A" : "右 R", { left: "6px", top: "50%" }); o(s.kind === "psag" ? "前 A" : s.kind === "msag" ? "後 P" : "左 L", { right: "6px", top: "4px" });
+  const VIEWZH = { cor: "從前面看，畫面右邊＝病人左側", hor: "從下往上看，前方在上，畫面右邊＝病人左側", cat: "從下往上看（前高後低 25°），前方在上，畫面右邊＝病人左側", psag: "病人右半球、從外側看，前方在右", msag: "保留右半、從左側看，前方在左" };
+  $("#secnote").innerHTML = lab ? `<b>${KZH[s.kind] ? KZH[s.kind] + "：" : ""}${esc(s.zh)}</b>（${VIEWZH[s.kind]}）<br>${s.note || ""}` : `<b>${cor ? `冠狀切片 ${s.tag}：${s.zh}` : SC(s) ? `脊髓橫切 ${s.tag}：${s.zh}` : CB(s) ? `小腦橫切：${s.zh}` : `第 ${s.n} 層：${s.zh}`}</b><br>${s.note || ""}`;
 }
 function hitChip(id, miss) {
   const st = OBJ[id].s, b = document.createElement("button"); b.className = "hit" + (miss ? " miss" : ""); b.dataset.id = id;
@@ -2286,8 +2289,26 @@ function fillHits() {
   const ids = [...cut].filter(id => OBJ[id].s.group !== "skeleton" || OBJ[id].s.sub !== "axis").sort((a, b) => LAY(s, OBJ[a].s) - LAY(s, OBJ[b].s) || OBJ[a].s.group.localeCompare(OBJ[b].s.group));
   ids.forEach(id => H.append(hitChip(id, false)));
   for (const id of s.labels) S.append(hitChip(id, !cut.has(id)));
+  $("#slideLbl").textContent = LABL(s) ? "實體切片上要找的（Kilgore 照片有標）" : "投影片這頁有標示的構造";
   const nMiss = s.labels.filter(id => !cut.has(id)).length;
-  if (nMiss) { const n = document.createElement("div"); n.className = "note"; n.style.width = "100%"; n.textContent = `虛線框 ${nMiss} 個＝投影片有標、模型這層沒切到（多半是模型核團的上下範圍和課本不同，點開看說明）。`; S.append(n); }
+  if (nMiss) { const n = document.createElement("div"); n.className = "note"; n.style.width = "100%"; n.textContent = LABL(s) ? `虛線框 ${nMiss} 個＝照片上有、模型這層沒切到（點開看說明）。` : `虛線框 ${nMiss} 個＝投影片有標、模型這層沒切到（多半是模型核團的上下範圍和課本不同，點開看說明）。`; S.append(n); }
+  fillPhoto(s, cut);
+}
+// 實體切片照片（Kilgore，商業圖譜）：只有私人 Artifact 帶照片檔（make_artifact.py 設 KILGORE_PHOTOS）；公開網站只有文字與 chips
+function fillPhoto(s, cut) {
+  const P = s.photo, B = $("#labPhoto"); B.hidden = !P; if (!P) return;
+  if (B.dataset.sec !== s.id) { B.dataset.sec = s.id; B.open = innerWidth > 820; }
+  B.querySelector("summary").textContent = P.title;
+  const F = $("#labFind"), X = $("#labXtra"), I = $("#labImg"); F.innerHTML = ""; X.hidden = true; I.innerHTML = "";
+  for (const id of P.find) F.append(hitChip(id, !cut.has(id)));
+  for (const [zh, why] of P.extra || []) {
+    const b = document.createElement("button"); b.className = "hit miss"; b.textContent = zh; b.title = "模型沒有這個構造（點開看說明）";
+    b.onclick = () => { X.hidden = false; X.innerHTML = `<b>${esc(zh)}</b>：${esc(why)}`; }; F.append(b);
+  }
+  if (window.KILGORE_PHOTOS) {
+    const im = document.createElement("img"); im.src = "kilgore/" + P.file; im.alt = P.title; im.loading = "lazy";
+    im.onclick = () => { $("#photoBig").src = im.src; $("#photoBig").alt = P.title; $("#photoDlg").showModal(); }; I.append(im);
+  } else I.innerHTML = `<div class="note">照片只在私人版。</div>`;
 }
 
 // ---------- mobile sheets ----------
