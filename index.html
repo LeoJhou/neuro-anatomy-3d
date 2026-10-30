@@ -129,6 +129,8 @@ details.subgrp[open] > summary.subh::before { transform: rotate(90deg); }
 #legend b { font-size: 11px; color: var(--mute); font-weight: 600; }
 #legend i { display: inline-block; width: 18px; height: 5px; border-radius: 1px; margin-right: 5px; vertical-align: middle; }
 #hint { position: absolute; right: 10px; bottom: 8px; font-size: 11px; color: var(--mute); text-align: right; }
+@media (max-width: 1099px) { #hint { display: none; } }   /* 寬度不夠、右欄開著時不顯示操作提示：會撞方向小座標、說明卡、圖例（V142） */
+#app:not(.hide-bench) #hint { display: none; }
 /* 顯微模式（小腦皮質迴路）：同一個 canvas 換場景，大腦的疊層都收起來 */
 #stage.micro :is(#labels,#flowTags,#tags,#views,#gizmo,#hint,#info,#legend,#offbar){display:none!important}
 #stage:not(.micro) :is(#mlabels,#mlegend,#mnote){display:none}
@@ -189,15 +191,17 @@ details.subgrp[open] > summary.subh::before { transform: rotate(90deg); }
 #paneGuide .ptab th { color: var(--mute); font-weight: 600; white-space: nowrap; }
 #paneGuide .ptab td:first-child { white-space: nowrap; }
 #paneGuide .ptab tr.on td { background: var(--chip); font-weight: 600; }
-@media (max-width: 520px) {   /* 4 欄以上的表在窄螢幕改堆疊：每列一張小卡，第一格當卡名，其他格前面寫欄名（V139） */
-  #paneGuide .ptab.stk thead { display: none; }
-  #paneGuide .ptab.stk, #paneGuide .ptab.stk tbody, #paneGuide .ptab.stk tr, #paneGuide .ptab.stk td { display: block; }
-  #paneGuide .ptab.stk tr { border: 1px solid var(--line); border-radius: 6px; margin: 0 0 6px; padding: 3px 0; }
-  #paneGuide .ptab.stk td { border: 0; padding: 1px 7px; white-space: normal; }
-  #paneGuide .ptab.stk td:first-child { font-weight: 600; }
-  #paneGuide .ptab.stk td:empty { display: none; }
-  #paneGuide .ptab.stk td[data-h]::before { content: attr(data-h) "："; color: var(--mute); font-weight: 600; }
-}
+/* 4 欄以上的表比右欄寬（要左右捲）時改堆疊：每列一張小卡，第一格當卡名，其他格前面寫欄名（V139）；
+   V142 起由 fitTabs 量右欄寬度加 .stack（以前只看視窗 ≤520，桌機右欄 451px 也要捲） */
+#paneGuide .ptab.stack thead { display: none; }
+#paneGuide .ptab.stack, #paneGuide .ptab.stack tbody, #paneGuide .ptab.stack tr, #paneGuide .ptab.stack td { display: block; }
+#paneGuide .ptab.stack tr { border: 1px solid var(--line); border-radius: 6px; margin: 0 0 6px; padding: 3px 0; }
+#paneGuide .ptab.stack td { border: 0; padding: 1px 7px; white-space: normal; overflow-wrap: anywhere; }
+#paneGuide .ptab.stack td:first-child { font-weight: 600; }
+/* 3 欄以下的表比右欄寬時（第一欄、表頭不換行撐寬）：先讓它們換行（V142 fitTabs 加 .wrap） */
+#paneGuide .ptab.wrap th, #paneGuide .ptab.wrap td { white-space: normal; overflow-wrap: anywhere; }
+#paneGuide .ptab.stack td:empty { display: none; }
+#paneGuide .ptab.stack td[data-h]::before { content: attr(data-h) "："; color: var(--mute); font-weight: 600; }
 #paneGuide .pg { color: var(--mute); }
 .vfsvg { width: 100%; max-width: 340px; display: block; margin: 2px auto 0; }
 .vfcap { font-size: 11.5px; color: var(--mute); text-align: center; margin-bottom: 6px; } .vfcap i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; vertical-align: -1px; margin: 0 3px 0 6px; }
@@ -490,28 +494,12 @@ input[type=range] { width: 100%; accent-color: var(--accent); }
   <!-- 本版更新：只放最新一版，舊的不留 -->
   <details id="newsBox">
     <summary>本版更新</summary>
-    <p class="newsVer">10/30｜Version 141　健檢 4：資料瘦身</p>
+    <p class="newsVer">10/30｜Version 142　面板與標籤不再互相遮擋、3D 破片修正</p>
     <ul>
-      <li>切面輪廓、血管曲線管、MNI 傳導束簡化點數（看起來一樣），資料檔從 4.8 MB 降到 4.1 MB，載入快一點</li>
-      <li>手機與平板寬度重新檢查過：卡片、表格、說明框都在畫面內，不會左右滑</li>
-    </ul>
-    <p class="newsVer">10/30｜Version 140　健檢 3：內容與用字整理</p>
-    <ul>
-      <li>同一張卡片裡講兩次的事只留一次；好幾張卡片共用的長句（靜脈竇與 CSF 流向、基底核分類、視丘分群、椎骨與節段）改成各卡寫自己的重點，整條流向或全表指到對應路徑、視角</li>
-      <li>各堂老師說法不同的地方加註並列：corpus striatum 是否含蒼白球、蒼白球內外節的血管分區、脊髓丘腦徑在哪一節交叉、網狀脊髓徑走前索</li>
-      <li>路徑步驟不再照抄表格數字（CSF 壓力、重症肌無力抗體、IIH 與低顱壓），改成說明 3D 上亮了什麼、數字看表</li>
-      <li>拿掉治療用藥、內部備註與「考古答案」字樣；用字統一：迴（中央後迴、舌迴、顳橫迴…）、脊髓丘腦徑、三叉丘腦徑、眶上裂、同名偏盲、杏仁核、帕金森、前角／後角、mL、%</li>
-    </ul>
-    <p class="newsVer">10/30｜Version 139　健檢 2：卡片依課堂分段</p>
-    <ul>
-      <li>構造卡、路徑說明裡「別堂課也講到」的段落，改成一堂一段：目前選的課堂展開、排在最前面；其他堂收成一行「基底核（L05）」這樣的標題，點開才看；沒選課程時全部收起來</li>
-      <li>手機等窄螢幕上，4 欄以上的對照表改成一列一張小卡，每格前面標欄名，不用再左右捲</li>
-    </ul>
-    <p class="newsVer">10/30｜Version 138　健檢 1：跨堂加掛</p>
-    <ul>
-      <li>各堂共用的構造、路徑、視角補掛到有講到的課堂：例如顱底解剖看得到硬膜靜脈竇、腦膜、腦脊髓液循環、視路、淚腺、唾液腺與腮腺的副交感路徑；神解實驗看得到切面上標到的外側／內側膝狀體、紅核、黑質、底視丘、齒狀核、乳頭視丘束</li>
-      <li>間腦那堂補上視丘、膝狀體、下視丘、乳頭體、韁核、上視丘、小腦與小腦腳；腦皮質功能看得到斷聯症候群、純失讀與額、顳、枕葉病灶路徑；運動生理看得到頂葉病灶、小腦皮質迴路</li>
-      <li>「光照 → 松果體」的上頸交感神經節、運動生理「下行運動路徑」的皮質延髓徑，路徑圖節點現在可以點、3D 會亮</li>
+      <li>構造卡會避開方向小座標、圖例、視角按鈕和底部路徑抽屜，也不會超出畫面；手機上點 3D 構造時路徑抽屜自動收起，卡片不再被蓋住</li>
+      <li>路徑按「下一步」時，右欄（或抽屜）會自動捲到目前這一步；寬表格依右欄寬度改成一列一張小卡，長字會換行</li>
+      <li>圖上名稱、地標名稱避開構造卡和按鈕，和別的名稱撞到時先上下挪一行再決定要不要藏，畫面上看得到的名稱變多；螢幕較窄或開路徑時，右下角的操作提示先收起來</li>
+      <li>半透明的腦幹、小腦腳外殼不再出現灰白三角碎片；海馬旁迴旁邊一小塊脫離的碎片拿掉；邊緣系統等只開部分腦迴的視角，浮在腦外、旁邊沒有腦迴的溝線不畫</li>
     </ul>
   </details>
 </dialog>
@@ -709,6 +697,24 @@ const lobesOf = s => s.overlay ? null : s.plobe ? [...new Set(s.plobe)] : s.grou
 const shellIds = new Set(D.structures.filter(s => s.group === "skeleton" && (s.sub === "shell" || s.sub === "diencephalon" ||
   (s.sub === "cerebellum" && !s.id.startsWith("vermis_") && s.id !== "cereb_hemi"))).map(s => s.id));
 let shellScale = 1;
+// 深度預畫只套腦幹、脊髓的殼（op 0.35）和三個小腦腳殼：大腦半球、小腦殼很淡，套了會把後面的殼整片擋掉。
+// 值＝殼的 renderOrder：小腦腳排在腦幹之後，貼在腦幹表面外的那段才不會被腦幹殼蓋一層
+const PREPASS = new Map([["midbrain", 8.5], ["pons", 8.5], ["medulla", 8.5], ["cord", 8.5], ["scp_shell", 8.7], ["mcp_shell", 8.7], ["icp_shell", 8.7]]), DEPTH_PRE = [];
+// 每格畫之前同步：殼在 0.15～0.6 之間才預畫（視角裡淡化成 0.12 的腦幹不套：試過會變成一整塊暗影、把後面的構造擋掉）；renderOrder 8.4 以後，排在其他半透明構造（2）、X 光（5）、CSF 光點（7）之後，
+// 這些在殼裡面的東西先畫好、殼再蓋上去，不會被殼的深度擋掉
+function syncDepthPre() {
+  for (const me of DEPTH_PRE) {
+    const dm = me.userData.dm, m = me.material, op = m.opacity;
+    dm.visible = me.visible && m.visible && m.transparent && m.depthTest && op >= 0.15 && op < 0.6;
+    m.forceSinglePass = dm.visible;
+    // 只畫最前面一層會比以前（前後兩層疊起來）暗，用自發光補回亮度；選取高亮時（emissive 不是預設值）不動
+    const em = dm.visible ? m.userData.emPre : 0;
+    if (em !== m.userData.em0) { if (m.emissive.getHex() === m.userData.em0) m.emissive.setHex(em); m.userData.em0 = em; }
+    if (!dm.visible) continue;
+    const ro = PREPASS.get(me.userData.sid); dm.geometry = me.geometry; me.renderOrder = ro; dm.renderOrder = ro - 0.1;
+    if (dm.material.clippingPlanes !== m.clippingPlanes) { dm.material.clippingPlanes = m.clippingPlanes; dm.material.needsUpdate = true; }
+  }
+}
 for (const s of D.structures) {
   // userOn：構造的開關；partOff：切成兩塊的腦迴關掉的那一塊（整塊模式關掉一葉時），任何地方改 userOn 都會清掉
   const root = new THREE.Group(); root.name = s.id;
@@ -725,6 +731,11 @@ for (const s of D.structures) {
     if (s.segs) { mesh.userData.seg = i; m.userData.seg = s.segs[i]; }
     if (op < 1) mesh.renderOrder = 2;
     root.add(mesh); o.mats.push(m); o.meshes.push(mesh); pickables.push(mesh); o.bodies.push(mesh);
+    if (PREPASS.has(s.id)) {   // 半透明腦幹殼：先只寫深度（不上色），殼只畫最前面一層，網格內部的三角形不再透出成碎片（健檢 4-08）
+      const dm = new THREE.Mesh(EMPTY, new THREE.MeshBasicMaterial({ colorWrite: false, transparent: true, side: THREE.DoubleSide, clippingPlanes: clipArr }));
+      dm.visible = false; mesh.userData.dm = dm; root.add(dm); DEPTH_PRE.push(mesh);
+      m.userData.emPre = col.getHex();   // 自發光＝殼的顏色：亮度接近以前兩層疊起來的樣子（掃描時試 0.3／0.8／1.2 倍）
+    }
   }
   for (const q of s.pins) {
     const m = new THREE.MeshStandardMaterial({ color: new THREE.Color(s.color || "#fff"), emissive: 0x222222, clippingPlanes: clipArr });
@@ -748,7 +759,7 @@ for (const s of D.structures) {
         if (i && j % 2 === 0) { const u = (i - 1) * 6 + j, v = i * 6 + j; idx.push(u, u + 1, v, u + 1, v + 1, v); }
       }
       const geo = new THREE.BufferGeometry(); geo.setAttribute("position", new THREE.BufferAttribute(pos, 3)); geo.setAttribute("color", new THREE.BufferAttribute(col, 3)); geo.setIndex(idx);
-      const mesh = new THREE.Mesh(geo, RIM_MAT); mesh.renderOrder = 3; g.add(mesh);
+      const mesh = new THREE.Mesh(geo, RIM_MAT); mesh.renderOrder = 3; mesh.userData.idx = idx; mesh.userData.A = A; mesh.userData.B = B; g.add(mesh);
     }
     root.add(g); o.rim = g;
   }
@@ -801,7 +812,7 @@ const inLec = x => x.lec === "L00" || lecsOf(x).some(lecAny);
 const isOn = id => OBJ[id].userOn;
 function refreshVis() {
   for (const id in OBJ) { const v = shown(id); if (v) ensureGeom(OBJ[id]); OBJ[id].root.visible = v; rimVis(id); }
-  applyOpacity();
+  rimClip(); applyOpacity();
   document.querySelectorAll(".row").forEach(r => { const o = OBJ[r.dataset.id], other = !inLec(o.s);
     r.querySelector("input").checked = o.userOn; r.hidden = !matchesSearch(r.dataset.id);
     r.classList.toggle("other", other && !o.userOn); r.querySelector(".lec").hidden = !other; });
@@ -1134,6 +1145,7 @@ function setStep(i, fly = true) {
   else { const st = P.steps[i], s = new Set(st[2]); st[1].forEach(k => ndIds(P.nodes.find(n => n[0] === k)).forEach(i => s.add(i))); stepSet = s; }
   stepPaint(i >= 0 && P.steps[i]);
   refreshVis(); renderGuide();
+  if (i >= 0) $(`#paneGuide [data-s="${i}"]`)?.scrollIntoView({ block: "nearest" });   // 長路徑按「下一步」：目前步驟捲進右欄（抽屜）看得到的範圍（V142）
   if (fly) flyToIds(i >= 0 && (P.steps[i][3] || {}).fit || [...(stepSet || focus.ids)]);   // s[3].fit：這一步鏡頭只框這些（V129.1，CSF 楔形切面）
 }
 // 病灶構造＋（病灶構造就是節點的構造時）那個節點一起亮的構造＋L[6]
@@ -1256,6 +1268,14 @@ function dpWire(root) {
 }
 // 路徑對照表：一張一行「表：標題」，預設收起；換步驟會重畫，同一條路徑內記住哪幾張打開
 let tabOpen = new Set(), tabFor = "";
+// 4 欄以上的表：先照表格排，比右欄寬（要左右捲）才改堆疊（V142）。表收著、右欄沒顯示時量不到，略過
+function fitTabs() {
+  for (const t of document.querySelectorAll("#paneGuide .ptab")) {   // 比右欄寬：≥4 欄改堆疊，3 欄以下讓格子換行
+    const d = t.parentElement; if (!d.clientWidth) continue;
+    t.classList.remove("stack", "wrap"); if (d.scrollWidth > d.clientWidth + 1) t.classList.add(t.classList.contains("stk") ? "stack" : "wrap");
+  }
+}
+new ResizeObserver(() => fitTabs()).observe($("#paneGuide"));
 function pathTable(T, pid) {
   if (!T) return "";
   if (tabFor !== pid) { tabFor = pid; tabOpen = new Set(); }
@@ -1402,7 +1422,8 @@ function renderGuide() {
     g.querySelector('[data-g="all"]').onclick = () => goStep(-1);
     if (mp) microWire(g);
     g.querySelectorAll("[data-l]").forEach(b => b.onclick = () => setLesion(b.dataset.l));
-    g.querySelectorAll("details.ptabw").forEach(d => d.ontoggle = () => d.open ? tabOpen.add(+d.dataset.t) : tabOpen.delete(+d.dataset.t));
+    g.querySelectorAll("details.ptabw").forEach(d => d.ontoggle = () => { d.open ? tabOpen.add(+d.dataset.t) : tabOpen.delete(+d.dataset.t); fitTabs(); });
+    fitTabs();
     if (nP) {
       g.querySelector(".kgb").onclick = () => { kgOpen = !kgOpen; renderGuide(); };
       g.querySelectorAll("[data-ks]").forEach(b => b.onclick = () => goStep(tog(+b.dataset.ks)));
@@ -1627,6 +1648,33 @@ function clearHighlight() {
 }
 // 溝口細帶：選到這條溝，或課本視角「腦溝（整顆）」時顯示
 function rimVis(id) { const o = OBJ[id]; if (o.rim) o.rim.visible = (!!HL && HL.id === id) || !!(presetV() || {}).rims; }
+// 課本視角開溝口細帶時，細帶只畫在畫面上有的腦迴旁邊（RIM_NEAR mm 內）：邊緣系統只開扣帶迴、海馬旁迴，
+// 扣帶溝緣支、側副溝後段的另一岸（旁中央小葉、楔前葉、舌迴）沒開，整段浮在腦外（健檢 4-08）。單獨選到腦溝時照舊畫整條
+const RIM_NEAR = 5; let rimKey = null;
+function rimClip() {
+  const on = !!(presetV() || {}).rims, gy = on ? Object.values(OBJ).filter(o => o.s.group === "cortex" && o.s.sub !== "sulcus" && o.root.visible) : [];
+  const key = gy.map(o => o.s.id).join(); if (key === rimKey) return; rimKey = key;
+  const cell = new Map(), h = (x, y, z) => ((Math.floor(x / RIM_NEAR) + 500) * 1000 + Math.floor(y / RIM_NEAR) + 500) * 1000 + Math.floor(z / RIM_NEAR) + 500, v = new THREE.Vector3();
+  for (const o of gy) for (const m of o.bodies) {
+    const P = m.geometry.attributes.position; if (!P) continue; m.updateWorldMatrix(true, false);
+    for (let i = 0; i < P.count; i++) { v.fromBufferAttribute(P, i).applyMatrix4(m.matrixWorld); const k = h(v.x, v.y, v.z); (cell.get(k) || cell.set(k, []).get(k)).push(v.x, v.y, v.z); }
+  }
+  const near = p => { const cx = Math.floor(p.x / RIM_NEAR), cy = Math.floor(p.y / RIM_NEAR), cz = Math.floor(p.z / RIM_NEAR);
+    for (let a = -1; a <= 1; a++) for (let b = -1; b <= 1; b++) for (let c = -1; c <= 1; c++) {
+      const L = cell.get(((cx + a + 500) * 1000 + cy + b + 500) * 1000 + cz + c + 500); if (!L) continue;
+      for (let i = 0; i < L.length; i += 3) if ((L[i] - p.x) ** 2 + (L[i + 1] - p.y) ** 2 + (L[i + 2] - p.z) ** 2 < RIM_NEAR * RIM_NEAR) return true;
+    }
+    return false; };
+  for (const id in OBJ) { const g = OBJ[id].rim; if (!g) continue;
+    for (const m of g.children) {
+      const { idx, A, B } = m.userData; let use = idx;
+      if (cell.size) { m.updateWorldMatrix(true, false); const n = A.length / 3, ok = [];
+        for (let i = 0; i < n; i++) ok.push(near(v.set((A[3 * i] + B[3 * i]) / 2, (A[3 * i + 1] + B[3 * i + 1]) / 2, (A[3 * i + 2] + B[3 * i + 2]) / 2).applyMatrix4(m.matrixWorld)));
+        use = []; for (let t = 0; t < idx.length; t += 6) { const i = Math.floor(idx[t + 2] / 6); if (ok[i] && ok[i - 1]) use.push(...idx.slice(t, t + 6)); } }
+      m.geometry.setIndex(use);
+    }
+  }
+}
 function makeHighlight(id) {
   const L = selLobe && lobeCard(selLobe), c0 = L ? L.color : OBJ[id].s.color || "#ffffff", shell = !L && shellIds.has(id);
   const col = new THREE.Color(c0).lerp(new THREE.Color(0xffffff), 0.45);
@@ -1792,15 +1840,42 @@ function select(id, point, fly) {
 // card to whichever stage corner covers it least (with some hysteresis so it doesn't flicker while orbiting).
 let selBox = null, infoCorner = null;
 const _pv = new THREE.Vector3();
-function placeInfo(force) {
+// 舞台上的面板（舞台座標 [左, 上, 右, 下]）：說明卡、圖上名稱擺位時避開（V142）。
+// 方向小座標、圖例、操作提示、提示列、視角按鈕（一顆一顆算，按鈕列本身占滿整列）；手機開著的抽屜；withInfo 再加說明卡
+function panelRects(withInfo) {
+  const sr = stage.getBoundingClientRect(), out = [];
+  const add = el => { if (!el || el.hidden) return; const r = el.getBoundingClientRect(); if (r.width < 2 || r.height < 2) return;
+    out.push([r.left - sr.left, r.top - sr.top, r.right - sr.left, r.bottom - sr.top]); };
+  for (const q of ["#gizmo", "#legend", "#hint", "#offbar"]) add($(q));
+  document.querySelectorAll("#views > .btn, #vcams > *").forEach(add);
+  if (!isDesk()) add($("aside.open"));
+  if (withInfo) { const n = out.length; add($("#info")); if (out.length > n) out.info = out[n]; }
+  return out;
+}
+// 說明卡：試幾個角落，避開面板（往上／往下推到面板外，空間不夠就縮矮、卡內捲），挑蓋到選取構造最少的；換角落要明顯比較好才換（不來回跳）
+function placeInfo(force, PR) {
   const el = $("#info"), st = $("#stage");
   if (el.hidden || !selBox || selBox.isEmpty()) return;
-  const W = st.clientWidth, H = st.clientHeight, w = el.offsetWidth, h = el.offsetHeight;
+  const W = st.clientWidth, H = st.clientHeight, w = el.offsetWidth, narrow = !isDesk();
   const vw = $("#views"), top = vw.offsetTop + vw.offsetHeight + 6;   // below the view buttons (they wrap on phones)
-  const C = matchMedia("(max-width: 820px)").matches
-    ? { b: { bottom: 8, left: 10 }, t: { top, left: 10 } }
-    : { tr: { top, right: 10 }, tl: { top, left: 10 }, br: { bottom: 30, right: 10 }, bl: { bottom: 8, left: 128 } };
-  const rect = p => { const L = p.left ?? W - p.right - w, T = p.top ?? H - p.bottom - h; return [L, T, L + w, T + h]; };
+  const h0 = Math.min(el.scrollHeight + 2, narrow ? 0.45 * H : H - 64), obs = PR || panelRects();
+  const C = narrow
+    ? { b: { bottom: 8, left: 10 }, br: { bottom: 8, right: 10 }, t: { top, left: 10 } }
+    : { tr: { top, right: 10 }, tl: { top, left: 10 }, br: { bottom: 8, right: 10 }, bl: { bottom: 8, left: 128 } };
+  // 角落 → [左, 上, 右, 下, 高]：和卡同一欄、離錨定邊 m 以內的面板把卡推開，更遠的只限制高度（剩下的高度不到 h0 就縮）
+  const m = Math.min(120, h0), rect = p => {
+    const L = p.left ?? W - p.right - w, R = L + w, col = obs.filter(o => o[0] < R && o[2] > L);
+    let T, B;
+    if (p.top != null) {
+      T = p.top; for (let k = 0; k < 6; k++) { const o = col.find(o => o[3] > T && o[1] < T + m); if (!o || o[3] + 66 > H) break; T = o[3] + 6; }   // 推過去會出舞台（抽屜幾乎占滿）就不推，留在原位被蓋（點 3D 會收抽屜）
+      B = Math.min(H - 8, ...col.filter(o => o[1] >= T).map(o => o[1] - 6));
+    } else {
+      B = H - p.bottom; for (let k = 0; k < 6; k++) { const o = col.find(o => o[1] < B && o[3] > B - m); if (!o || o[1] - 66 < top) break; B = o[1] - 6; }
+      T = Math.max(top, ...col.filter(o => o[3] <= B).map(o => o[3] + 6));
+    }
+    const h = Math.min(h0, B - T);
+    return p.top != null ? [L, T, R, T + h, h] : [L, B - h, R, B, h];
+  };
   let x0 = W, y0 = H, x1 = 0, y1 = 0;
   for (let i = 0; i < 8; i++) {
     _pv.set(i & 1 ? selBox.max.x : selBox.min.x, i & 2 ? selBox.max.y : selBox.min.y, i & 4 ? selBox.max.z : selBox.min.z).project(camera);
@@ -1808,15 +1883,19 @@ function placeInfo(force) {
     x0 = Math.min(x0, sx); y0 = Math.min(y0, sy); x1 = Math.max(x1, sx); y1 = Math.max(y1, sy);
   }
   x0 = Math.max(x0, 0); y0 = Math.max(y0, 0); x1 = Math.min(x1, W); y1 = Math.min(y1, H);
-  const cover = r => Math.max(0, Math.min(r[2], x1) - Math.max(r[0], x0)) * Math.max(0, Math.min(r[3], y1) - Math.max(r[1], y0));
-  const fits = r => r[0] >= 0 && r[1] >= 0 && r[2] <= W && r[3] <= H;
+  // 分數＝蓋到選取構造的面積＋縮掉的高度（縮了要捲，算重一點）；高度不到 120 的角落不用
+  const score = r => r[4] < m ? Infinity : Math.max(0, Math.min(r[2], x1) - Math.max(r[0], x0)) * Math.max(0, Math.min(r[3], y1) - Math.max(r[1], y0)) + (h0 - r[4]) * w * 2;
+  const R = {}; for (const k in C) R[k] = rect(C[k]);
   if (!(infoCorner in C)) { infoCorner = Object.keys(C)[0]; force = true; }
-  const cur = cover(rect(C[infoCorner]));
+  const cur = score(R[infoCorner]);
   let best = infoCorner, bo = cur;
-  for (const k in C) { const r = rect(C[k]); if (!fits(r)) continue; const o = cover(r); if (o < bo) { bo = o; best = k; } }
-  if (best !== infoCorner && cur - bo > 0.15 * (x1 - x0) * (y1 - y0)) { infoCorner = best; force = true;
+  for (const k in C) { const o = score(R[k]); if (o < bo) { bo = o; best = k; } }
+  if (bo === Infinity) for (const k in C) if (R[k][4] > R[best][4]) best = k;   // 每個角落都太矮：用最高的
+  if (best !== infoCorner && (cur === Infinity || cur - bo > 0.15 * (x1 - x0) * (y1 - y0))) { infoCorner = best; force = true;
     if (!REDUCED) el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 180 }); }
-  if (force || (C[infoCorner].top != null && el.style.top !== C[infoCorner].top + "px")) { const p = C[infoCorner]; for (const k of ["top", "bottom", "left", "right"]) el.style[k] = p[k] != null ? p[k] + "px" : "auto"; }
+  const p = C[infoCorner], r = R[infoCorner];
+  const sty = { top: p.top != null ? r[1] + "px" : "auto", bottom: p.top != null ? "auto" : H - r[3] + "px", left: p.left != null ? p.left + "px" : "auto", right: p.left != null ? "auto" : p.right + "px", maxHeight: r[4] < h0 - 1 ? r[4] + "px" : "" };
+  for (const k in sty) if (force || el.style[k] !== sty[k]) el.style[k] = sty[k];
 }
 function groupName(s) { const g = D.groups.find(g => g.id === s.group); const sub = g && g.subs.find(x => x.id === s.sub); return g ? (g.zh + (sub && g.id !== "tract" ? "・" + sub.zh : "")) : ""; }
 
@@ -1836,6 +1915,7 @@ canvas.addEventListener("pointerup", e => {
   const h = opaque || hits[0];
   let sid = h && h.object.userData.sid, part = h && h.object.userData.part;
   if (h && !h.object.userData.pin) lastPick = { id: sid, part, point: h.point.clone() };
+  if (h && !isDesk() && $("aside.open")) openSheet("");   // 手機：在 3D 上點到構造就收起抽屜，說明卡才不會被蓋住（V142；以前只有清單裡的按鈕會收）
   if (h && selWhole && OBJ[sid].lobes && !h.object.userData.pin) return select("lobe:" + OBJ[sid].lobes[part], h.point, false);   // 整塊：選到整個腦葉
   select(h ? sid : null, h ? h.point : null, false);
 });
@@ -1903,8 +1983,9 @@ function subHidden(t) {
   return d.dot(t.n) < 0 || (d.normalize().x * Math.sign(t.v.x) < -0.5 && clipPlane.distanceToPoint(_tm.set(-t.v.x, t.v.y, t.v.z)) >= -0.5);
 }
 // 固定名稱（.pin：構造部位、視角 vtags）互相錯開（V129.1）：照 TAGS 順序放，撞到先放的就往上或往下推到貼齊；整個名稱留在畫面內
-function placeTags() {
-  const w = stage.clientWidth, h = stage.clientHeight, ts = keptSide(tagSide), put = [];
+// 面板（說明卡、視角按鈕、圖例…）占的地方：固定名稱推開，其他名稱（區域、骨、節段、溝）蓋到就藏（V142）
+function placeTags(PR = panelRects(true)) {
+  const w = stage.clientWidth, h = stage.clientHeight, ts = keptSide(tagSide), put = PR.map(r => ({ x: (r[0] + r[2]) / 2, y: (r[1] + r[3]) / 2, hw: (r[2] - r[0]) / 2, hh: (r[3] - r[1]) / 2 })), np = put.length;
   for (const t of TAGS) {
     v3.copy(t.v).project(camera);
     const off = v3.z > 1 || clipPlane.distanceToPoint(t.v) < -0.5 || (ts && t.v.x * ts < -0.5) || (t.n && subHidden(t));
@@ -1925,7 +2006,15 @@ function placeTags() {
         }
         if (!d || (y - hh >= 0 && y + hh <= h)) break;
       }
+      if (y - hh < 0 || y + hh > h) {   // 兩個方向都推出畫面：回原位；原位在面板底下就先不顯示（V142）
+        y = y0; if (put.slice(0, np).some(b => Math.abs(b.x - x) < b.hw + hw && Math.abs(b.y - y) < b.hh + hh)) { t.el.hidden = true; continue; }
+      }
       put.push({ x, y, hw, hh });
+    } else {
+      if (!t.ow) { t.ow = t.el.offsetWidth; t.oh = t.el.offsetHeight; }
+      const hw = t.ow / 2, hh = t.oh / 2;
+      x = Math.max(2 + hw, Math.min(x, w - 2 - hw)); y = Math.max(2 + hh, Math.min(y, h - 2 - hh));   // 整個名稱留在畫面內
+      if (put.slice(0, np).some(b => Math.abs(b.x - x) < b.hw + hw && Math.abs(b.y - y) < b.hh + hh)) { t.el.hidden = true; continue; }
     }
     t.el.style.left = x + "px"; t.el.style.top = y + "px";
   }
@@ -1981,6 +2070,8 @@ function computeLabels() {
     }
   }
   for (const c of capGroup.children) {
+    // 透明度 < 0.2 的構造，切面也不擋後面的（V142：腦幹矢狀切口改成整塊後，sw_nuc 的腦幹網狀結構名稱被它擋掉）
+    if (OBJ[c.userData.sid].mats[0].opacity < 0.2) { c.visible = false; hid.push(c); continue; }
     const m = c.material, im = idMat(labIx(c.userData.sid, c.userData.part), 1);
     im.polygonOffset = true; im.polygonOffsetFactor = m.polygonOffsetFactor; im.polygonOffsetUnits = m.polygonOffsetUnits;
     saved.push([c, m]); c.material = im; B.push(c);
@@ -2063,16 +2154,18 @@ function computeLabels() {
   placeLabels();
 }
 const _lv = new THREE.Vector3();
-function placeLabels() {
+function placeLabels(PR = panelRects(true)) {
   if (!labs.length) return;
-  const w = canvas.clientWidth, h = canvas.clientHeight, boxes = [];
+  const w = canvas.clientWidth, h = canvas.clientHeight, boxes = PR.map(r => [(r[0] + r[2]) / 2, (r[1] + r[3]) / 2, (r[2] - r[0]) / 2, (r[3] - r[1]) / 2]);   // 面板占的地方不放名稱（V142）
   for (const t of TAGS) if (t.ow && !t.el.hidden) boxes.push([parseFloat(t.el.style.left), parseFloat(t.el.style.top), t.ow / 2, t.oh / 2]);   // 固定名稱整條先占住，圖上名稱避開
   for (const L of labs) {
     _lv.copy(L.p).project(camera);
     if (_lv.z > 1 || Math.abs(_lv.x) > 1 || Math.abs(_lv.y) > 1 || clipPlane.distanceToPoint(L.p) < -0.5 || !L.ms.some(m => m.parent && m.parent.visible && m.material.visible)) { L.el.style.display = "none"; continue; }
     // 名稱碰到畫面右邊就往左移（V116.1）、碰到左邊就往右移（V116.2），整個名稱留在畫面內
-    const ow2 = (L.ow || L.w) / 2, y = (1 - _lv.y) / 2 * h, hw = L.w / 2, x = Math.max(2 + ow2, Math.min((_lv.x + 1) / 2 * w, w - 2 - ow2));
-    if (boxes.some(b => Math.abs(b[0] - x) < hw + b[2] && Math.abs(b[1] - y) < (b[3] || 8) + 9)) { L.el.style.display = "none"; continue; }   // 重疊：先放的（選取的、面積大的）留著
+    const ow2 = (L.ow || L.w) / 2, y0 = Math.max(10, Math.min((1 - _lv.y) / 2 * h, h - 10)), hw = L.w / 2, x = Math.max(2 + ow2, Math.min((_lv.x + 1) / 2 * w, w - 2 - ow2));
+    // 重疊：先放的（選取的、面積大的）留著；後放的先試上下挪一行（V142），都撞到才藏
+    const y = [y0, y0 + 18, y0 - 18].find(y => y >= 10 && y <= h - 10 && !boxes.some(b => Math.abs(b[0] - x) < hw + b[2] && Math.abs(b[1] - y) < (b[3] || 8) + 9));
+    if (y == null) { L.el.style.display = "none"; continue; }
     boxes.push([x, y, hw, 8]); L.el.style.display = ""; L.el.style.left = x + "px"; L.el.style.top = y + "px";
   }
 }
@@ -2526,6 +2619,8 @@ function resize() { const w = stage.clientWidth, h = stage.clientHeight; if (!w 
     cover = sh ? Math.max(0, Math.min(h * 0.75, stage.getBoundingClientRect().bottom - sh.getBoundingClientRect().top)) : 0;
   if (cover > 8) { camera.setViewOffset(w, h, 0, cover / 2, w, h); camera.zoom = Math.max(0.25, (h - cover) / h); }
   else { camera.clearViewOffset(); camera.zoom = 1; }
+  const lc = sh ? Math.max(0, stage.getBoundingClientRect().bottom - sh.getBoundingClientRect().top) : 0;   // 圖例用實際蓋住的高度（cover 上限 75%）
+  for (const g of [$("#legend"), $("#mlegend")]) g.style.bottom = lc > 8 ? Math.min(lc + 8, h - g.offsetHeight - 4) + "px" : "";   // 圖例跟著移到抽屜上方，但不超出舞台頂（V142）
   camera.updateProjectionMatrix(); invalidate(); lastMove = performance.now(); labDirty = true;
   if (M) M.resize();
   if (homeLate) { homeLate = false; camStart(); } }
@@ -2549,8 +2644,9 @@ function tick(now) {
   if (dirty > 0) {
     dirty--; pulseHighlight(now);
     key.position.copy(camera.position).add(new THREE.Vector3(30, 60, 20));
+    syncDepthPre();
     try { renderer.render(scene, camera); } catch (e) { if (!tick.warned) { console.warn("render", e); showErr("render " + e.message); tick.warned = true; } }
-    placeTags(); placeLabels(); drawGizmo(); placeInfo(); if (FL) flowTagPlace();
+    const PR = panelRects(true); placeTags(PR); placeLabels(PR); drawGizmo(); placeInfo(false, PR.filter(r => r !== PR.info)); if (FL) flowTagPlace();
   }
   if (labOn && labDirty && now - lastMove > 220) try { computeLabels(); } catch (e) { if (!tick.lwarned) { console.warn("labels", e); showErr("labels " + e.message); tick.lwarned = true; } }   // 鏡頭停 220 ms 後重挑名稱
 }
