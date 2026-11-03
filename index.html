@@ -494,12 +494,11 @@ input[type=range] { width: 100%; accent-color: var(--accent); }
   <!-- 本版更新：只放最新一版，舊的不留 -->
   <details id="newsBox">
     <summary>本版更新</summary>
-    <p class="newsVer">10/30｜Version 142　面板與標籤不再互相遮擋、3D 破片修正</p>
+    <p class="newsVer">11/03｜Version 143　新課：神經系統的血管供應（鍾嘉勵）</p>
     <ul>
-      <li>構造卡會避開方向小座標、圖例、視角按鈕和底部路徑抽屜，也不會超出畫面；手機上點 3D 構造時路徑抽屜自動收起，卡片不再被蓋住</li>
-      <li>路徑按「下一步」時，右欄（或抽屜）會自動捲到目前這一步；寬表格依右欄寬度改成一列一張小卡，長字會換行</li>
-      <li>圖上名稱、地標名稱避開構造卡和按鈕，和別的名稱撞到時先上下挪一行再決定要不要藏，畫面上看得到的名稱變多；螢幕較窄或開路徑時，右下角的操作提示先收起來</li>
-      <li>半透明的腦幹、小腦腳外殼不再出現灰白三角碎片；海馬旁迴旁邊一小塊脫離的碎片拿掉；邊緣系統等只開部分腦迴的視角，浮在腦外、旁邊沒有腦迴的溝線不畫</li>
+      <li>新增一堂「血管供應」：內頸動脈七段、Willis 環、前中後大腦動脈分段、椎基底系統與小腦三動脈、深部穿通支、腦的淺深靜脈、脊髓動靜脈，共 14 個視角和 12 條路徑</li>
+      <li>大腦皮質與深部構造的供應區、脊髓橫切面前 2/3 與後 1/3 的供應區都有配色；路徑裡可以模擬前交通、後交通動脈瘤、血管壓迫腦神經、竇匯阻塞、中胸分水嶺等 8 個病灶</li>
+      <li>別堂講過的血管、靜脈竇、腦神經、顱底孔，選「血管供應」也會出現；卡片多一段本堂內容，老師說法不同時並列；相關國考題改掛或新掛到這堂</li>
     </ul>
   </details>
 </dialog>
@@ -1937,7 +1936,7 @@ const HOME = new THREE.Vector3(0, 4, 0);
 const lecHome = () => D.lectures.filter(l => lecAny(l.id) && l.home && (!l.home.solo || lecOn.size === 1)).pop()?.home;
 const setHome = () => HOME.set(...(lecHome()?.c || [0, 4, 0]));
 setHome();
-const VIEWS = { front: [0, 0.05, 1], back: [0, 0.05, -1], left: [1, 0.05, 0], right: [-1, 0.05, 0], top: [0, 1, 0.02], bottom: [0, -1, 0.02], oblique: [-0.55, 0.3, 0.78], dorsolat: [0.6, 0.6, -0.55], sc_top: [0.3, 0.85, 0.45], sc_back: [0.5, 0.3, -0.8] };   // sc_top：L04 從前上方看 C1 平切斷面（畫面上方＝背側）；sc_back：L04 從左後斜看灰質
+const VIEWS = { front: [0, 0.05, 1], back: [0, 0.05, -1], left: [1, 0.05, 0], right: [-1, 0.05, 0], top: [0, 1, 0.02], bottom: [0, -1, 0.02], oblique: [-0.55, 0.3, 0.78], dorsolat: [0.6, 0.6, -0.55], sc_top: [0.3, 0.85, 0.45], sc_back: [0.5, 0.3, -0.8], sc_t6: [0.3, 0.8, 0.52] };   // sc_top：L04 從前上方看 C1 平切斷面（畫面上方＝背側）；sc_back：L04 從左後斜看灰質
 // 開著有 fit 的視角（側腦室各壁等）：工具列方向照視角的框，不回全腦中心（V129.1）
 document.querySelectorAll("#views [data-v]").forEach(b => b.onclick = () => { const V = !activeSec && presetV();
   if (V && V.fit) return flyToDir(V.fit, VIEWS[b.dataset.v], V.fity, V.pad);
@@ -2109,7 +2108,7 @@ function computeLabels() {
     if (d < r.best) { r.best = d; r.bx = x; r.by = y; }
   }
   // 必標：選取的構造（或腦葉）、路徑導覽時路徑上的構造（點了步驟／病灶＝那一步的構造）
-  const must = new Set(selId ? [selId] : []), minPx = 1200 / (f * f);
+  const must = new Set(selId ? [selId] : []), minPx = ((presetV() || {}).labmin || 1200) / (f * f);   // labmin：細血管視角放寬面積門檻（L09）
   if (focus) (stepSet || focus.ids || []).forEach(k => must.add(k));
   // 畫面上已有固定名稱的不再標：腦幹分區、脊髓節段等 s.labels；開著地標名稱時的出腦處等 pins；課本視角「腦溝（整顆）」標了的溝；
   // 和畫面上固定標籤同名的（分界線構造標了「中腦、橋腦、延腦」，中腦本身就不再標）
