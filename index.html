@@ -494,11 +494,11 @@ input[type=range] { width: 100%; accent-color: var(--accent); }
   <!-- 本版更新：只放最新一版，舊的不留 -->
   <details id="newsBox">
     <summary>本版更新</summary>
-    <p class="newsVer">11/03｜Version 143　新課：神經系統的血管供應（鍾嘉勵）</p>
+    <p class="newsVer">11/13｜Version 144　Willis 環簡約版</p>
     <ul>
-      <li>新增一堂「血管供應」：內頸動脈七段、Willis 環、前中後大腦動脈分段、椎基底系統與小腦三動脈、深部穿通支、腦的淺深靜脈、脊髓動靜脈，共 14 個視角和 12 條路徑</li>
-      <li>大腦皮質與深部構造的供應區、脊髓橫切面前 2/3 與後 1/3 的供應區都有配色；路徑裡可以模擬前交通、後交通動脈瘤、血管壓迫腦神經、竇匯阻塞、中胸分水嶺等 8 個病灶</li>
-      <li>別堂講過的血管、靜脈竇、腦神經、顱底孔，選「血管供應」也會出現；卡片多一段本堂內容，老師說法不同時並列；相關國考題改掛或新掛到這堂</li>
+      <li>「血管供應」的 Willis 環視角改成簡約版：只留成環的五段（前交通動脈、A1、內頸動脈末段、後交通動脈、P1），各一色並附圖例，每段都有名稱；環以外只留灰色短段</li>
+      <li>路徑「Willis 環」和視角用同一個畫面，換步驟、點動脈瘤病灶時整個環都留在畫面裡</li>
+      <li>前交通動脈接上兩側前大腦動脈（之前沒有接上）</li>
     </ul>
   </details>
 </dialog>
@@ -1065,6 +1065,9 @@ buildFc();
 // ---------- 導覽：路徑與反射／單一顱神經（只留相關構造，右側「導覽」分頁畫平面路徑圖，步驟與 3D 同步） ----------
 const FOCUS_CTX = new Set(["midbrain", "pons", "medulla", "cord"].filter(id => OBJ[id]));
 let focus = null, focusSaved = null, stepIdx = -1, lesionKey = "", stepSet = null;
+// 路徑的 view（L09 Willis 環簡約版）：進路徑時鏡頭、圖例、固定名稱照那個課本視角，不加腦幹背景；圖上名稱先打開，離開路徑時還原
+let focusLab = null;
+const focusV = () => { const P = focus && focus.kind === "path" && (D.paths || []).find(p => p.id === focus.id); return P && P.view ? (D.views || []).find(v => v.id === P.view) : null; };
 const PATHS = D.paths || [], CNV = D.cnview || [];
 const FC = (D.tables || []).find(t => t.id === "fc");
 const GANG = D.structures.filter(x => x.pairs);
@@ -1116,16 +1119,25 @@ function setFocus(f) {
   if (f && dorsMode) setDors(false);
   if (f && !focus) focusSaved = snapOn();
   if (!f && focus && focusSaved) { restoreOn(focusSaved); focusSaved = null; }
+  const FV0 = focusV();
   focus = f; stepIdx = -1; lesionKey = ""; stepSet = null; stepGang = ""; stepPaint(null);
+  const FV = focusV();
+  const lab = v => { labOn = v; $("#bLab").setAttribute("aria-pressed", labOn); if (!labOn) clearLabs(); };   // 和課本視角的 labs 一樣不寫進 localStorage
+  if (FV0 && !FV) { $("#legend").hidden = true; if (focusLab != null) { lab(focusLab); focusLab = null; } }
+  if (FV) {
+    if (focusLab == null) focusLab = labOn;
+    lab(true);
+    if (FV.legend) { $("#legend").innerHTML = `<div><b>${FV.zh}</b>${FV.legend.map(([c, t]) => `<span><i style="background:${c}"></i>${t}</span>`).join("")}</div>`; $("#legend").hidden = false; }
+  }
   if (f) {
     select(null);
     const ids = focusIds(f); f.ids = ids;
-    for (const id in OBJ) OBJ[id].userOn = ids.has(id) || FOCUS_CTX.has(id);
+    for (const id in OBJ) OBJ[id].userOn = ids.has(id) || (!FV && FOCUS_CTX.has(id));
     setTab("guide");
     if (isDesk()) setPanel("bench", true); else if (!$("#bench").classList.contains("open")) openSheet("bench");
   }
   syncModeSel(); refreshVis(); renderGuide(); flowSync();
-  if (f) requestAnimationFrame(() => flyToIds([...f.ids]));
+  if (f) requestAnimationFrame(() => FV ? flyToDir(FV.fit, VIEWS[FV.cam], FV.fity, FV.pad) : flyToIds([...f.ids]));
   if (f && f.kind === "path" && isMicro(PATHS.find(p => p.id === f.id))) microStep(-1);   // 小腦皮質迴路：直接進顯微模式
 }
 // 路徑步驟換色（V128）：step 第 4 個元素 {paint: {id: 色}, legend: [[色, 文字]…]}（L03 視丘各核的「總覽」）；換步驟、病灶、離開路徑時還原
@@ -1145,7 +1157,7 @@ function setStep(i, fly = true) {
   stepPaint(i >= 0 && P.steps[i]);
   refreshVis(); renderGuide();
   if (i >= 0) $(`#paneGuide [data-s="${i}"]`)?.scrollIntoView({ block: "nearest" });   // 長路徑按「下一步」：目前步驟捲進右欄（抽屜）看得到的範圍（V142）
-  if (fly) flyToIds(i >= 0 && (P.steps[i][3] || {}).fit || [...(stepSet || focus.ids)]);   // s[3].fit：這一步鏡頭只框這些（V129.1，CSF 楔形切面）
+  if (fly && !focusV()) flyToIds(i >= 0 && (P.steps[i][3] || {}).fit || [...(stepSet || focus.ids)]);   // 連到課本視角的路徑（L09 Willis 環）：換步驟不動鏡頭，整個環一直在畫面裡   // s[3].fit：這一步鏡頭只框這些（V129.1，CSF 楔形切面）
 }
 // 病灶構造＋（病灶構造就是節點的構造時）那個節點一起亮的構造＋L[6]
 const lesIds = (P, L) => { const n = P.nodes.find(n => n[0] === L[2]); return new Set([...(n && n[2] === L[4] ? ndIds(n) : [L[4]]), ...(L[6] || [])]); };
@@ -1158,7 +1170,7 @@ function setLesion(k) {
   if (!L) return;
   if (OBJ[L[4]] && OBJ[L[4]].s.les)   // 楔形切面的血塊：從正面框整塊楔形（L[6] 的 mma、ica 在顱內，一起框會縮成整顆頭）
     flyToDir(Object.keys(OBJ).filter(i => OBJ[i].s.sub === "wedge" && !OBJ[i].s.les), new THREE.Vector3(...VIEWS.front), null, 1.8);
-  else flyToIds([...stepSet]);
+  else if (!focusV()) flyToIds([...stepSet]);   // 連到課本視角的路徑：病灶也不拉近
 }
 const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;");
 function pathSvg(P, big) {   // big：放大視窗用（marker id 加 b，免得和側欄那張重複）
@@ -1970,7 +1982,7 @@ function buildTags() {
       s.pins.forEach((p, i) => { if (i === 0 || !s.id.startsWith("exit_")) add(txt, [p[0] + (p[0] >= 0 ? 1.2 : -1.2), p[1] + 1.2, p[2]], "pin", null, s.tag2); });
     }
   }
-  const V = presetV(); if (labOn && V && V.vtags) for (const t of V.vtags) add(t.zh, t.p, "pin", null, null, t.n);
+  const V = presetV() || focusV(); if (labOn && V && V.vtags) for (const t of V.vtags) add(t.zh, t.p, "pin", null, null, t.n);
   // s[3].tags：路徑這一步沒有 3D 的位置名稱（V135，L17 淋巴結、橋腦排尿中樞）；不管圖上名稱開關都標
   const SP = focus && focus.kind === "path" && stepIdx >= 0 && PATHS.find(p => p.id === focus.id), st = SP && SP.steps[stepIdx];
   if (st && st[3] && st[3].tags) for (const t of st[3].tags) add(t.zh, t.p, "pin", null, null, t.n);
@@ -2108,13 +2120,13 @@ function computeLabels() {
     if (d < r.best) { r.best = d; r.bx = x; r.by = y; }
   }
   // 必標：選取的構造（或腦葉）、路徑導覽時路徑上的構造（點了步驟／病灶＝那一步的構造）
-  const must = new Set(selId ? [selId] : []), minPx = ((presetV() || {}).labmin || 1200) / (f * f);   // labmin：細血管視角放寬面積門檻（L09）
+  const must = new Set(selId ? [selId] : []), minPx = ((presetV() || focusV() || {}).labmin || 1200) / (f * f);   // labmin：細血管視角放寬面積門檻（L09）
   if (focus) (stepSet || focus.ids || []).forEach(k => must.add(k));
   // 畫面上已有固定名稱的不再標：腦幹分區、脊髓節段等 s.labels；開著地標名稱時的出腦處等 pins；課本視角「腦溝（整顆）」標了的溝；
   // 和畫面上固定標籤同名的（分界線構造標了「中腦、橋腦、延腦」，中腦本身就不再標）
   const tagTxt = new Set([...tagBox.children].filter(e => !e.hidden).map(e => e.textContent.trim()));
   const fixed = s => (s.labels || []).length || (showPinTags && s.pins.length) || (sulTags() && s.sub === "sulcus" && s.rim.length && sulcusTags(s, vcam).length) || tagTxt.has(short(s));
-  const cand = [], only = (presetV() || {}).labs || (activeSec && activeSec.only_labels ? activeSec.labels : null);   // only_labels 切片：只標投影片有標的
+  const cand = [], only = (presetV() || focusV() || {}).labs || (activeSec && activeSec.only_labels ? activeSec.labels : null);   // only_labels 切片：只標投影片有標的
   G.forEach((k, g) => {
     const s = !isLobeKey(k) && OBJ[k].s; if (s && (fixed(s) || NOLAB.has(s.id))) return;
     if (only && !must.has(k) && (!s || !only.includes(k))) return;
