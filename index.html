@@ -127,6 +127,10 @@ details.subgrp[open] > summary.subh::before { transform: rotate(90deg); }
 #legend[hidden], #offbar[hidden], #offbar button[hidden] { display: none; }
 #legend > div { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 5px 8px; display: grid; gap: 2px; }
 #legend b { font-size: 11px; color: var(--mute); font-weight: 600; }
+#legend .cn { max-width: 300px; }
+#legend .cn span { white-space: normal; line-height: 1.45; color: var(--ink); }
+.steps.vdir button { padding-left: 8px; }
+.steps.vdir button::before { content: none; }
 #legend i { display: inline-block; width: 18px; height: 5px; border-radius: 1px; margin-right: 5px; vertical-align: middle; }
 #hint { position: absolute; right: 10px; bottom: 8px; font-size: 11px; color: var(--mute); text-align: right; }
 @media (max-width: 1099px) { #hint { display: none; } }   /* 寬度不夠、右欄開著時不顯示操作提示：會撞方向小座標、說明卡、圖例（V142） */
@@ -419,7 +423,7 @@ input[type=range] { width: 100%; accent-color: var(--accent); }
       <button class="btn" data-v="right">右側</button>
       <button class="btn" data-v="top">由上往下</button>
       <button class="btn" data-v="oblique">斜前方</button>
-      <div id="vcams" hidden><span>鏡頭：</span><button class="btn" data-c="oblique">前斜</button><button class="btn" data-c="front">前面</button><button class="btn" data-c="left">外側</button><button class="btn" data-c="top">上面</button><button class="btn" data-c="medial">內側</button><button class="btn" data-c="bottom">底面</button><button class="btn" data-c="back">後面</button><button class="btn" data-c="dorsolat">後外上</button></div>
+      <div id="vcams" hidden><span>鏡頭：</span><button class="btn" data-c="oblique">前斜</button><button class="btn" data-c="front">前面</button><button class="btn" data-c="towne">Towne</button><button class="btn" data-c="left">外側</button><button class="btn" data-c="top">上面</button><button class="btn" data-c="medial">內側</button><button class="btn" data-c="bottom">底面</button><button class="btn" data-c="back">後面</button><button class="btn" data-c="dorsolat">後外上</button></div>
     </div>
     <canvas id="gizmo" width="224" height="224"></canvas>
     <div id="hint">拖曳旋轉 · 右鍵／雙指平移 · 滾輪／捏合縮放 · 點構造看名稱</div>
@@ -494,11 +498,11 @@ input[type=range] { width: 100%; accent-color: var(--accent); }
   <!-- 本版更新：只放最新一版，舊的不留 -->
   <details id="newsBox">
     <summary>本版更新</summary>
-    <p class="newsVer">11/13｜Version 144　Willis 環簡約版</p>
+    <p class="newsVer">11/13｜Version 145　腦血管影像（林威辰）</p>
     <ul>
-      <li>「血管供應」的 Willis 環視角改成簡約版：只留成環的五段（前交通動脈、A1、內頸動脈末段、後交通動脈、P1），各一色並附圖例，每段都有名稱；環以外只留灰色短段</li>
-      <li>路徑「Willis 環」和視角用同一個畫面，換步驟、點動脈瘤病灶時整個環都留在畫面裡</li>
-      <li>前交通動脈接上兩側前大腦動脈（之前沒有接上）</li>
+      <li>新課堂「腦血管影像」：兩個血管攝影視角（左總頸動脈注射：AP、側面；右椎動脈注射：Towne、側面），每個鏡頭有方向說明與看得到的血管</li>
+      <li>新路徑「阻塞在哪、少了哪一區」：ACA、MCA、PCA、ICA 四步，各附少掉的供應區</li>
+      <li>鏡頭新增 Towne（由前上往後下看後循環）</li>
     </ul>
   </details>
 </dialog>
@@ -900,7 +904,7 @@ function paintView(V) {
 }
 function setPreset(id) {
   if (id && microOn) leaveMicro();
-  const V = id ? (D.views || []).find(v => v.id === id) : null, P0 = presetV() || {}, hadLeg = !!P0.legend;
+  const V = id ? (D.views || []).find(v => v.id === id) : null, P0 = presetV() || {}, hadLeg = !!(P0.legend || P0.camnote);
   if (vcam) { vcam = null; $("#vcams").hidden = true; if (vcamSag && sagOn) setSag(false); vcamSag = false; }
   if (V && solidMode) setSolid(false);
   if (V && dorsMode) setDors(false);
@@ -917,16 +921,36 @@ function setPreset(id) {
   paintView(V);
   if (lab != null && lab !== labOn) { labOn = lab; $("#bLab").setAttribute("aria-pressed", labOn); if (!labOn) clearLabs(); }
   if (V && V.legend) { $("#legend").innerHTML = `<div><b>${V.zh}</b>${V.legend.map(([c, t]) => `<span><i style="background:${c}"></i>${t}</span>`).join("")}</div>`; $("#legend").hidden = false; }
-  else if (hadLeg) $("#legend").hidden = true;
+  else if (hadLeg && !(V && V.camnote)) $("#legend").hidden = true;
   if (V) { const on = new Set(V.ids); for (const i in OBJ) OBJ[i].userOn = on.has(i); setShell(V.shell); setPinTags(V.tags); if (sagOn) setSag(false); }
   syncModeSel(); refreshVis();
   tagSide = V ? ({ left: 1, right: -1 }[V.cam] || 0) : 0;
-  if (V && V.cams) { const vc = $("#vcams"); vc.hidden = V.cams.length < 2; vc.querySelectorAll("[data-c]").forEach(b => b.hidden = !V.cams.includes(b.dataset.c)); setVcam(V.cams[0]); }
+  if (V && V.cams) { const vc = $("#vcams"); vc.hidden = V.cams.length < 2; vc.querySelectorAll("[data-c]").forEach(b => { b.hidden = !V.cams.includes(b.dataset.c); if (!b.dataset.t) b.dataset.t = b.textContent; b.textContent = (V.camlab || {})[b.dataset.c] || b.dataset.t; }); setVcam(V.cams[0]); }
   else if (V && !activeSec) requestAnimationFrame(() => flyToDir(V.fit, VIEWS[V.cam], V.fity, V.pad));
+  camLegend();
+  if (!focus && (vGuide(V) || vGuide(P0))) { renderGuide(); if (vGuide(V) && isDesk()) { setTab("guide"); setPanel("bench", true); } }
+}
+// 帶說明的視角（V145，L19 血管攝影）：V.camnote {鏡頭: 這個方向從哪裡看、看到什麼} 顯示在圖例位置並跟著鏡頭換；
+// V.camlab {鏡頭: 按鈕文字}；V.note、V.table 和各鏡頭說明一起列在導覽分頁（沒選路徑時）
+const vGuide = V => !!(V && (V.camnote || V.note || V.table));
+const camName = (V, k) => (V.camlab || {})[k] || (document.querySelector(`#vcams [data-c="${k}"]`) || {}).textContent || k;
+function camLegend() {
+  const V = presetV(); if (!V || !V.camnote || focus) return;
+  const k = vcam || V.cam, t = V.camnote[k];
+  $("#legend").innerHTML = t ? `<div class="cn"><b>${esc(V.zh)}・${esc(camName(V, k))}</b><span>${esc(t)}</span></div>` : ""; $("#legend").hidden = !t;
+}
+function viewGuide(g, V) {
+  const cn = V.camnote || {}, cams = (V.cams || [V.cam]).filter(k => cn[k]);
+  g.innerHTML = `<h3>${esc(V.zh)}</h3>${V.title ? `<p class="gfn">${esc(V.title)}</p>` : ""}` +
+    (cams.length ? `<div class="lbl">看的方向</div><ol class="steps vdir">${cams.map(k => `<li><button data-vc="${k}" aria-pressed="${k === (vcam || V.cam)}"><b>${esc(camName(V, k))}</b>　${esc(cn[k])}</button></li>`).join("")}</ol>` : "") +
+    (V.note ? `<p class="gnote" style="margin-top:8px">${esc(V.note).replace(/\n/g, "<br>")}</p>` : "") + pathTable(V.table, "v:" + V.id);
+  if (V.cams) g.querySelectorAll("[data-vc]").forEach(b => b.onclick = () => setVcam(b.dataset.vc));
+  g.querySelectorAll("details.ptabw").forEach(d => d.ontoggle = () => { d.open ? tabOpen.add(+d.dataset.t) : tabOpen.delete(+d.dataset.t); fitTabs(); });
+  fitTabs();
 }
 const sulTags = () => vcam && (presetV() || {}).rims;   // 腦溝名稱：只在「腦溝（整顆）」這類有溝口細帶的多鏡頭視角標
 // 課本視角「腦溝（整顆）」的四個鏡頭：[鏡頭方向, 標名稱的半球（+1 病人左）]。內側＝正中矢狀切開（保留病人右半），從左側看右半球內側面
-const VCAM = { left: ["left", 1], top: ["top", 1], medial: ["left", -1], bottom: ["bottom", 1], oblique: ["oblique", 1], front: ["front", 1], back: ["back", 1], dorsolat: ["dorsolat", 1] };   // oblique：基底核視角（V119.2）；front：L05 中腦視角（V120）；back：L06 硬膜竇（V122）；dorsolat：L03 視丘後外上（V128）
+const VCAM = { left: ["left", 1], top: ["top", 1], medial: ["left", -1], bottom: ["bottom", 1], oblique: ["oblique", 1], front: ["front", 1], back: ["back", 1], dorsolat: ["dorsolat", 1], towne: ["towne", 1] };   // oblique：基底核視角（V119.2）；front：L05 中腦視角（V120）；back：L06 硬膜竇（V122）；dorsolat：L03 視丘後外上（V128）
 let vcam = null, vcamSag = false;
 function setVcam(k) {
   const V = presetV(); if (!V || !V.cams) return;
@@ -935,6 +959,7 @@ function setVcam(k) {
   const sag = k === "medial";
   if (sag !== sagOn) setSag(sag);
   vcamSag = sag;
+  camLegend(); if (!focus && vGuide(V)) renderGuide();
   buildTags(); invalidate();
   if (!activeSec) requestAnimationFrame(() => flyToDir(V.fit, VIEWS[VCAM[k][0]], V.fity, V.pad));
 }
@@ -1414,6 +1439,7 @@ function vfApply() {
 function renderGuide() {
   const g = $("#paneGuide"); vfApply(); microBtn();
   if ((!focus || focus.kind !== "path") && $("#pathDlg").open) $("#pathDlg").close();
+  if (!focus && vGuide(presetV())) { viewGuide(g, presetV()); return; }
   if (!focus) { g.innerHTML = `<div class="note">在左邊「路徑與反射」或「單一顱神經」選一項，或在課本視角選「顱神經節與中樞核」，這裡會出現對應的路徑圖或清單，3D 只留相關構造。</div>`; return; }
   if (focus.kind === "path") {
     const P = PATHS.find(p => p.id === focus.id);
@@ -1603,10 +1629,12 @@ $("#modeSel").onchange = e => {
   else { setPreset(null); setSolid(false); setDors(false); if (focus && focus.kind === "gang") setFocus(null); }
 };
 $("#bReset").onclick = () => {
+  const hadVG = vGuide(presetV());
   preset = null; presetSaved = null; tagSide = 0; setPinTags(false); vcam = null; vcamSag = false; $("#vcams").hidden = true;
   solidMode = false; solidSaved = null;
   if (dorsMode) { dorsSaved = null; setDors(false); }
   if (focus) { focusSaved = null; setFocus(null); }
+  if (hadVG) { $("#legend").hidden = true; renderGuide(); }
   syncModeSel();
   offStack = []; $("#offbar").hidden = true;
   for (const id in OBJ) OBJ[id].userOn = defOn(id);
@@ -1948,7 +1976,7 @@ const HOME = new THREE.Vector3(0, 4, 0);
 const lecHome = () => D.lectures.filter(l => lecAny(l.id) && l.home && (!l.home.solo || lecOn.size === 1)).pop()?.home;
 const setHome = () => HOME.set(...(lecHome()?.c || [0, 4, 0]));
 setHome();
-const VIEWS = { front: [0, 0.05, 1], back: [0, 0.05, -1], left: [1, 0.05, 0], right: [-1, 0.05, 0], top: [0, 1, 0.02], bottom: [0, -1, 0.02], oblique: [-0.55, 0.3, 0.78], dorsolat: [0.6, 0.6, -0.55], sc_top: [0.3, 0.85, 0.45], sc_back: [0.5, 0.3, -0.8], sc_t6: [0.3, 0.8, 0.52] };   // sc_top：L04 從前上方看 C1 平切斷面（畫面上方＝背側）；sc_back：L04 從左後斜看灰質
+const VIEWS = { front: [0, 0.05, 1], back: [0, 0.05, -1], left: [1, 0.05, 0], right: [-1, 0.05, 0], top: [0, 1, 0.02], bottom: [0, -1, 0.02], oblique: [-0.55, 0.3, 0.78], dorsolat: [0.6, 0.6, -0.55], sc_top: [0.3, 0.85, 0.45], sc_back: [0.5, 0.3, -0.8], sc_t6: [0.3, 0.8, 0.52], towne: [0, 0.57, 0.82] };   // towne：L19 血管攝影 Towne（從前上方約 35 度往下看，V145）   // sc_top：L04 從前上方看 C1 平切斷面（畫面上方＝背側）；sc_back：L04 從左後斜看灰質
 // 開著有 fit 的視角（側腦室各壁等）：工具列方向照視角的框，不回全腦中心（V129.1）
 document.querySelectorAll("#views [data-v]").forEach(b => b.onclick = () => { const V = !activeSec && presetV();
   if (V && V.fit) return flyToDir(V.fit, VIEWS[b.dataset.v], V.fity, V.pad);
