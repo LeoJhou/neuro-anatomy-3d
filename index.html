@@ -32,12 +32,13 @@ button, input { font: inherit; color: inherit; }
 button { cursor: pointer; }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 #app { height: 100%; display: grid; --lw: 290px; --bw: 360px; grid-template-columns: var(--lw) minmax(0,1fr) var(--bw); grid-template-rows: auto minmax(0,1fr); }
-/* 桌機：左右面板可收合（header 的「圖層」「切面」按鈕）；切面面板預設收起 */
+/* 桌機：左右欄可收合（V150：欄邊的收合鈕 .pfold；收起後留 30px 直條 .rail，點直條展開）；右欄預設收起 */
 @media (min-width: 821px) {
-  #layers { grid-column: 1; } #stage { grid-column: 2; } #bench { grid-column: 3; }
-  #app.hide-layers { --lw: 0px; } #app.hide-layers #layers { display: none; }
-  #app.hide-bench { --bw: 0px; } #app.hide-bench #bench { display: none; }
+  #layers, #railL { grid-column: 1; } #stage { grid-column: 2; } #bench, #railR { grid-column: 3; }
+  #app.hide-layers { --lw: 30px; } #app.hide-layers #layers { display: none; }
+  #app.hide-bench { --bw: 30px; } #app.hide-bench #bench { display: none; }
   #app.wide-bench:not(.hide-bench) { --bw: min(480px, 42vw); }
+  #app.hide-layers #railL, #app.hide-bench #railR { display: flex; }
 }
 header { grid-column: 1 / -1; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 8px 16px; background: var(--panel); border-bottom: 1px solid var(--line); }
 header h1 { font: 600 18px/1.2 var(--f-display); margin: 0; letter-spacing: .02em; }
@@ -50,6 +51,31 @@ header .sp { flex: 1; }
 .btn { border: 1px solid var(--line); background: var(--panel); border-radius: 6px; padding: 4px 10px; font-size: 13px; }
 .btn[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
 .mobile-only { display: none; }
+.hsep { flex: none; width: 1px; height: 18px; background: var(--line); }   /* V150：頁首兩組之間的分隔線 */
+/* V150 兩欄收合：收合鈕 24×26 有框；收起後的直條直排欄名（右欄直條＝四個分頁名，點哪個開哪個）；手機不顯示 */
+.pfold { flex: none; width: 24px; height: 26px; padding: 0; border: 1px solid var(--line); border-radius: 5px; background: var(--panel); color: var(--ink); font-size: 15px; line-height: 1; display: inline-grid; place-items: center; cursor: pointer; }
+.pfold:hover, #railL:hover > .pfold { background: var(--chip); border-color: var(--mute); }
+.rail { display: none; grid-row: 2; flex-direction: column; align-items: center; gap: 4px; min-height: 0; overflow: hidden; margin: 0; padding: 10px 0; border: 0; border-radius: 0; background: var(--panel); color: var(--mute); font: inherit; font-size: 12.5px; cursor: pointer; }
+#railL { border-right: 1px solid var(--line); } #railR { border-left: 1px solid var(--line); }
+#railL:hover { color: var(--ink); }
+.rail .rname { writing-mode: vertical-rl; letter-spacing: .14em; }
+#railL .rname { margin-top: 8px; }
+.rail [data-rtab] { width: 100%; border: 0; background: none; color: inherit; font: inherit; padding: 9px 0; cursor: pointer; display: grid; place-items: center; }
+.rail .pfold + [data-rtab] { margin-top: 4px; }
+.rail [data-rtab]:hover:not(:disabled) { background: var(--chip); color: var(--ink); }
+.rail [data-rtab][aria-current="true"] { color: var(--ink); font-weight: 600; box-shadow: inset 2px 0 0 var(--accent); }
+.rail [data-rtab]:disabled { opacity: .4; cursor: default; }
+/* V150 課程列：收成一行「課程：○○ ▾」，點開才展開 #lecChips */
+.lhead { display: flex; align-items: center; gap: 6px; }
+#lecBar { flex: 1 1 auto; min-width: 0; height: 26px; display: flex; align-items: center; gap: 4px; padding: 0 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--panel); font-size: 13px; text-align: left; cursor: pointer; }
+#lecBar:hover { background: var(--chip); }
+#lecBar[aria-expanded="true"] { border-color: var(--accent); }
+#lecBar .k { flex: none; color: var(--mute); }
+#lecBar b { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+#lecBar .car { flex: none; color: var(--mute); font-size: 11px; }
+#lecChips { margin-top: 8px; } #lecChips[hidden] { display: none; }
+/* V150：四顆分頁貼在清單上方，捲清單時黏在左欄頂端 */
+.lstick { position: sticky; top: 0; z-index: 3; background: var(--panel); margin: 2px -14px 0; padding: 8px 14px 6px; }
 aside { background: var(--panel); overflow-y: auto; min-width: 0; padding-block: 10px; }
 #layers { border-right: 1px solid var(--line); padding-inline: 14px; }
 #bench { border-left: 1px solid var(--line); padding-inline: 14px; }
@@ -99,9 +125,7 @@ details.subgrp[open] > summary.subh::before { transform: rotate(90deg); }
 #flowTags span { position: absolute; transform: translate(-50%, -50%); font-size: 11px; line-height: 15px; padding: 0 4px; border-radius: 3px; white-space: nowrap;
   background: color-mix(in srgb, var(--panel) 82%, transparent); border-left: 3px solid #7fd8f0; color: var(--mute); font-style: italic; }
 #labels span b { font: 600 10px var(--f-mono); color: var(--kg-ink); background: var(--kg); border-radius: 3px; padding: 0 4px; margin-left: 4px; }
-.resetrow { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 8px; }
-.resetrow .wide { grid-column: 1 / -1; }
-#bSag { grid-column: 1 / -1; }
+#bSag { margin-left: 6px; }   /* V150：矢狀切面搬到模型上方視角鈕那排（和六個方向隔一點） */
 .modes { display: grid; gap: 6px; margin-top: 8px; }
 .modesel { display: grid; grid-template-columns: 70px minmax(0,1fr); gap: 8px; align-items: center; font-size: 12px; color: var(--mute); }
 .modesel select { min-width: 0; border: 1px solid var(--line); background: var(--panel); color: var(--ink); border-radius: 6px; padding: 4px 6px; font-size: 13px; }
@@ -124,6 +148,8 @@ details.subgrp[open] > summary.subh::before { transform: rotate(90deg); }
 #views { position: absolute; top: 10px; left: 10px; display: flex; flex-wrap: wrap; gap: 4px; max-width: calc(100% - 92px); }   /* 右上角讓給 ↺ ▾（V147） */
 #views .btn { padding: 2px 8px; font-size: 12px; background: color-mix(in srgb, var(--panel) 88%, transparent); }
 #views .btn[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
+/* V150：多了「矢狀切面」；視窗不夠寬、兩欄都展開而且右欄是寬版時，按鈕收窄一點維持一行 */
+@media (min-width: 821px) and (max-width: 1320px) { #app.wide-bench:not(.hide-bench):not(.hide-layers) #views .btn { padding-inline: 5px; } }
 #vcams { display: flex; gap: 4px; align-items: center; margin-left: 6px; font-size: 12px; color: var(--mute); }
 #vcams[hidden] { display: none; }
 #gizmo { position: absolute; left: 8px; bottom: 8px; width: 112px; height: 112px; pointer-events: none; }
@@ -193,6 +219,7 @@ details.subgrp[open] > summary.subh::before { transform: rotate(90deg); }
 .tabs .btn { flex: 1 1 auto; padding-inline: 6px; white-space: nowrap; }
 .tabs .btn[data-tab] { min-width: 0; }
 .tabs .tabx { flex: none; padding-inline: 9px; color: var(--mute); }
+.tabs .btn:disabled { opacity: .42; cursor: default; }   /* V150：沒內容的分頁變灰、不能點 */
 #paneGuide h3 { margin: 2px 0 4px; font: 600 15px/1.3 var(--f-display); }
 #paneGuide .en { color: var(--mute); font-size: 12.5px; margin: -2px 0 6px; }
 #paneGuide .gnote { font-size: 12.5px; color: var(--mute); margin: 0 0 8px; }
@@ -409,9 +436,9 @@ dialog:modal { overscroll-behavior: contain; }
 .fflash { outline: 3px solid transparent; outline-offset: 3px; animation: fflash .55s ease-in-out 2; }
 @keyframes fflash { 0%, 100% { outline-color: transparent; box-shadow: none; } 50% { outline-color: #ffd27a; box-shadow: 0 0 0 7px rgb(255 210 122 / .28); } }
 @media (prefers-reduced-motion: reduce) { .fflash { animation: none !important; outline-color: #ffd27a; } }
-/* V148 頂部模式列（構造｜課本視角｜路徑｜顱神經）：切換左欄內容；有選中項目的模式右上角一個小點 */
-#modebar { display: flex; flex: none; border: 1px solid var(--line); border-radius: 7px; overflow: hidden; }
-#modebar button { position: relative; border: 0; background: var(--panel); padding: 4px 12px; font-size: 13px; white-space: nowrap; }
+/* 左欄四顆分頁（構造｜課本視角｜路徑｜顱神經；V148 在頁首，V150 搬進左欄）：切換下方清單；有選中項目的模式右上角一個小點 */
+#modebar { display: flex; border: 1px solid var(--line); border-radius: 7px; overflow: hidden; }
+#modebar button { position: relative; flex: 1 1 auto; border: 0; background: var(--panel); padding: 5px 4px; font-size: 13px; white-space: nowrap; }
 #modebar button + button { border-left: 1px solid var(--line); }
 #modebar button:hover { background: var(--chip); }
 #modebar button[aria-selected="true"] { background: var(--accent); color: var(--accent-ink); font-weight: 600; }
@@ -420,7 +447,6 @@ dialog:modal { overscroll-behavior: contain; }
 #modebar button.act i { display: block; }
 #modebar button[aria-selected="true"].act i { background: var(--accent-ink); }
 #modebar button:focus-visible { outline-offset: -3px; }
-#layers > .lbl:first-child { margin-top: 2px; }
 .modes[hidden], .lpane[hidden] { display: none; }
 .lpane > #search, .lpane > .mq { margin-top: 10px; }
 .mq { width: 100%; box-sizing: border-box; padding: 6px 9px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); }
@@ -436,17 +462,19 @@ details.mgrp[open] > summary::before { transform: rotate(90deg); }
 details.mgrp > .mrow { padding-left: 18px; }
 @media (max-width: 1440px) and (min-width: 821px) { header .sub { display: none; } }
 @media (max-width: 1180px) and (min-width: 821px) { #app { --lw: 250px; --bw: 310px; } }
-@media (max-width: 560px) { header h1 { display: none; } header #modebar button { padding-inline: 7px; } }   /* 手機窄：標題讓位給模式列 */
 @media (max-width: 820px) {
   #app { grid-template-columns: minmax(0,1fr); grid-template-rows: auto minmax(0,1fr); }
   .mobile-only { display: inline-block; }
   header .sub { display: none; }
   #author { order: -2; margin-left: auto; } header h1 { order: -2; } header .sp { order: -1; flex-basis: 100%; }
-  #modebar { order: -2; } #modebar button { padding: 5px 10px; }   /* V148：模式列和標題、署名同一排 */
+  #modebar button { padding-block: 7px; }
+  .pfold { display: none; }   /* 手機是底部抽屜，沒有收合鈕與直條；頁首「清單」「說明欄」拉出抽屜 */
+  .lstick { margin-inline: -16px; padding-inline: 16px; }
   .mrow { padding-block: 9px; }
   .hbtns { display: flex; flex: 1 1 100%; min-width: 0; gap: 8px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; -webkit-mask-image: linear-gradient(to right, #000 88%, transparent); mask-image: linear-gradient(to right, #000 88%, transparent); }   /* 右緣淡出＝提示還能往右滑 */
   .hbtns::-webkit-scrollbar { display: none; }
   .hbtns > .btn { flex: none; }
+  .hbtns > .hsep { align-self: center; }
   aside { position: fixed; left: 0; right: 0; bottom: 0; max-height: 62%; z-index: 20; border: 0; border-top: 1px solid var(--line); box-shadow: 0 -8px 24px rgba(0,0,0,.2); padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px)); border-radius: 12px 12px 0 0; }
   #layers, #bench { padding-inline: 16px; }
   aside:not(.open) { display: none; }
@@ -468,15 +496,15 @@ details.mgrp > .mrow { padding-left: 18px; }
   <header>
     <h1>B9 神解 3D 模型</h1>
     <span class="sub">腦幹、顱神經核與傳導束</span>
-    <div id="modebar" role="tablist" aria-label="左欄內容"><button type="button" role="tab" data-lm="obj" aria-controls="paneObj" aria-selected="true" title="左欄：構造清單、搜尋、透明度">構造<i></i></button><button type="button" role="tab" data-lm="view" aria-controls="paneView" aria-selected="false" tabindex="-1" title="左欄：課本視角清單（依課堂分組）">課本視角<i></i></button><button type="button" role="tab" data-lm="path" aria-controls="panePath" aria-selected="false" tabindex="-1" title="左欄：路徑與反射清單（依分類分組）">路徑<i></i></button><button type="button" role="tab" data-lm="cn" aria-controls="paneCn" aria-selected="false" tabindex="-1" title="左欄：單一顱神經清單">顱神經<i></i></button></div>
     <span class="sp"></span>
     <div class="hbtns">
-    <button class="btn" id="bLayers" aria-pressed="false" title="顯示／收起圖層面板">圖層</button>
-    <button class="btn" id="bBench" aria-pressed="false" title="顯示／收起切面面板">切面</button>
-    <button class="btn" id="bFc" aria-pressed="false" title="顯示／收起顱神經 × 功能成分對照表">對照表</button>
+    <button class="btn mobile-only" id="mLayers" aria-pressed="false" title="拉出／收起左欄（課程、構造、課本視角、路徑、顱神經）">清單</button>
+    <button class="btn mobile-only" id="mBench" aria-pressed="false" title="拉出／收起基礎概念、切面、核團對照表與導覽">說明欄</button>
+    <span class="hsep mobile-only" aria-hidden="true"></span>
     <button class="btn" id="bTags" aria-pressed="false" title="顯示地標名稱">地標名稱</button>
     <button class="btn" id="bLab" aria-pressed="false" title="在模型上標出看得到的構造名稱（快捷鍵 N）">圖上名稱</button>
     <button class="btn" id="bKg" aria-pressed="false" title="國考標記（快捷鍵 K）">國考</button>
+    <span class="hsep" aria-hidden="true"></span>
     <button class="btn" id="bShare" hidden title="複製本頁網址">分享</button>
     <button class="btn" id="bAbout">資料來源</button>
     <button class="btn" id="bFeat" title="功能目錄：所有功能一行說明＋帶我去（⌘K／Ctrl+K）" aria-label="功能目錄">功能<kbd></kbd></button>
@@ -486,12 +514,14 @@ details.mgrp > .mrow { padding-left: 18px; }
     <div id="author"><small>作者</small>INMU_KING_2026</div>
   </header>
 
+  <button type="button" class="rail" id="railL" aria-label="展開左欄" title="展開左欄（[）"><span class="pfold" aria-hidden="true">›</span><span class="rname">清單</span></button>
   <aside id="layers" aria-label="左欄">
-    <div class="lbl">課程</div>
-    <div class="chips" id="lecChips"></div>
-    <div class="resetrow">
-      <button class="btn" id="bSag" aria-pressed="false" title="沿正中矢狀面切開，移除病人左半、從左側看切面（可與一般顯示或腦幹外觀並用；核團圖會先關閉）">矢狀切面</button>
+    <div class="lhead">
+      <button type="button" class="pfold" id="bLayFold" aria-label="收起左欄" title="收起左欄（[）">‹</button>
+      <button type="button" id="lecBar" aria-expanded="false" aria-controls="lecChips" title="選課程：點開後可連續點好幾堂；再點這一行或點左欄其他地方收回"><span class="k">課程：</span><b id="lecSum"></b><span class="car" aria-hidden="true">▾</span></button>
     </div>
+    <div class="chips" id="lecChips" hidden></div>
+    <div class="lstick"><div id="modebar" role="tablist" aria-label="左欄內容"><button type="button" role="tab" data-lm="obj" aria-controls="paneObj" aria-selected="true" title="左欄：構造清單、搜尋、透明度">構造<i></i></button><button type="button" role="tab" data-lm="view" aria-controls="paneView" aria-selected="false" tabindex="-1" title="左欄：課本視角清單（依課堂分組）">課本視角<i></i></button><button type="button" role="tab" data-lm="path" aria-controls="panePath" aria-selected="false" tabindex="-1" title="左欄：路徑與反射清單（依分類分組）">路徑<i></i></button><button type="button" role="tab" data-lm="cn" aria-controls="paneCn" aria-selected="false" tabindex="-1" title="左欄：單一顱神經清單">顱神經<i></i></button></div></div>
     <div class="lpane" data-pane="obj" id="paneObj" role="tabpanel" aria-label="構造">
     <input id="search" type="search" placeholder="搜尋構造（中／英）" autocomplete="off">
     <div class="lbl">外形殼透明度</div>
@@ -531,6 +561,7 @@ details.mgrp > .mrow { padding-left: 18px; }
       <button class="btn" data-v="right">右側</button>
       <button class="btn" data-v="top">由上往下</button>
       <button class="btn" data-v="oblique">斜前方</button>
+      <button class="btn" id="bSag" aria-pressed="false" title="沿正中矢狀面切開，移除病人左半、從左側看切面（可與一般顯示或腦幹外觀並用；核團圖會先關閉）">矢狀切面</button>
       <div id="vcams" hidden><span>鏡頭：</span><button class="btn" data-c="oblique">前斜</button><button class="btn" data-c="front">前面</button><button class="btn" data-c="towne">Towne</button><button class="btn" data-c="left">外側</button><button class="btn" data-c="top">上面</button><button class="btn" data-c="medial">內側</button><button class="btn" data-c="bottom">底面</button><button class="btn" data-c="back">後面</button><button class="btn" data-c="dorsolat">後外上</button></div>
     </div>
     <canvas id="gizmo" width="224" height="224"></canvas>
@@ -554,7 +585,7 @@ details.mgrp > .mrow { padding-left: 18px; }
   </main>
 
   <aside id="bench" aria-label="基礎概念、切面、核團對照表與導覽">
-    <div class="tabs" role="tablist"><button class="btn" data-tab="basics" aria-pressed="false">基礎概念</button><button class="btn" data-tab="sec" aria-pressed="true">切面</button><button class="btn" data-tab="fc" aria-pressed="false">核團對照表</button><button class="btn" data-tab="guide" aria-pressed="false">導覽</button><button class="btn tabx" id="bBenchX" aria-label="收起右側面板" title="收起右側面板">✕</button></div>
+    <div class="tabs" role="tablist"><button class="btn" data-tab="basics" aria-pressed="false">基礎概念</button><button class="btn" data-tab="sec" aria-pressed="true">切面</button><button class="btn" data-tab="fc" aria-pressed="false">核團對照表</button><button class="btn" data-tab="guide" aria-pressed="false">導覽</button><button type="button" class="pfold" id="bBenchFold" aria-label="收起右欄" title="收起右欄（]）">›</button><button class="btn tabx mobile-only" id="bBenchX" aria-label="收起右側面板" title="收起右側面板">✕</button></div>
     <div id="paneBasics" hidden></div>
     <div id="paneGuide" hidden></div>
     <div id="paneFc" hidden>
@@ -583,6 +614,7 @@ details.mgrp > .mrow { padding-left: 18px; }
     <div class="note" id="secIntro" style="margin-top:10px">選一層：模型會從那個平面切開，切面上以各構造的顏色填色；小圖可以直接對照投影片（畫面右邊＝病人左側）。腦幹橫切面是背側在上、從吻側往下看；大腦冠狀切片是從前面看。</div>
     </div>
   </aside>
+  <div class="rail" id="railR" role="group" aria-label="右欄分頁（點了展開）"><button type="button" class="pfold" id="bBenchOpen" aria-label="展開右欄" title="展開右欄（]）">‹</button><button type="button" data-rtab="basics"><span class="rname">基礎概念</span></button><button type="button" data-rtab="sec"><span class="rname">切面</span></button><button type="button" data-rtab="fc"><span class="rname">核團對照表</span></button><button type="button" data-rtab="guide"><span class="rname">導覽</span></button></div>
 </div>
 
 <dialog id="about">
@@ -599,44 +631,36 @@ details.mgrp > .mrow { padding-left: 18px; }
   <table>
     <tr><td>旋轉／平移／縮放</td><td>拖曳 3D 旋轉；右鍵拖曳或兩指拖曳平移；滾輪或捏合縮放。下方「前（腹側）」「左側」「由上往下」等按鈕轉到固定方向，左下角的小座標顯示目前方向</td></tr>
     <tr><td>看構造說明</td><td>點 3D 上的構造，或點左欄清單裡的名稱，會出現說明卡。卡片下方「畫面」可選全部顯示、其他變淡、只留大體＋它、只留它；「關掉它」（H）把它隱藏，下方提示列可以復原或全部打開</td></tr>
-    <tr><td>選課程</td><td>左欄「課程」點一堂或多堂：一進來開啟那幾堂的構造，課本視角、路徑清單與切面只列那幾堂的；清單裡別堂的構造標灰字與老師名。都不選＝全部構造。選擇會記住</td></tr>
-    <tr><td>頂部模式列</td><td>頁首「構造｜課本視角｜路徑｜顱神經」換左欄的內容；正在用的模式（選了課本視角、路徑或顱神經）按鈕右上角有小點。手機按了會拉出左欄，再按一次收起</td></tr>
+    <tr><td>選課程</td><td>左欄最上面「課程：○○ ▾」點開，點一堂或多堂（可連續點）：一進來開啟那幾堂的構造，課本視角、路徑清單與切面只列那幾堂的；清單裡別堂的構造標灰字與老師名。都不選＝全部構造。再點那一行或點左欄其他地方收回。選擇會記住</td></tr>
+    <tr><td>左欄四顆分頁</td><td>左欄「構造｜課本視角｜路徑｜顱神經」換下方清單的內容；正在用的模式（選了課本視角、路徑或顱神經）按鈕右上角有小點</td></tr>
     <tr><td>開關構造</td><td>「構造」模式的左欄分組勾選；每組、每層有「全開／全關」「只留這組／這層」。「外形殼透明度」調外殼的淡度；「選取方式」決定點大腦皮質時選整個腦葉或單一腦迴。各組收合狀態會記住</td></tr>
     <tr><td>回到預設</td><td>舞台右上 ↺（R）：鏡頭回到目前模式的預設角度、關掉切面，構造開關與課本視角、路徑不動。旁邊 ▾「全部重設」：開關、課本視角、路徑、切面、搜尋、鏡頭都回到開頁，8 秒內可按「復原」</td></tr>
     <tr><td>深淺色</td><td>右上半圓鈕：跟系統→淺色→深色循環，選擇會記住</td></tr>
-    <tr><td>課本視角</td><td>頁首「課本視角」：左欄依課堂列出，點一項，構造、顏色、鏡頭照課本或投影片的圖排好；有的視角下方會多出「鏡頭」按鈕，可換角度看</td></tr>
-    <tr><td>路徑與反射</td><td>頁首「路徑」：左欄依分類列出（可收合，會記住），點一條，3D 只留路徑上的構造；右欄「導覽」分頁有路徑圖、步驟、表與模擬病灶，點步驟或病灶時 3D 同步標出</td></tr>
-    <tr><td>單一顱神經</td><td>頁首「顱神經」：左欄點一條，核、神經節、出腦處與周邊段，以及切得到的切面</td></tr>
+    <tr><td>課本視角</td><td>左欄「課本視角」：依課堂列出，點一項，構造、顏色、鏡頭照課本或投影片的圖排好；有的視角下方會多出「鏡頭」按鈕，可換角度看</td></tr>
+    <tr><td>路徑與反射</td><td>左欄「路徑」：依分類列出（可收合，會記住），點一條，3D 只留路徑上的構造；右欄「導覽」分頁有路徑圖、步驟、表與模擬病灶，點步驟或病灶時 3D 同步標出</td></tr>
+    <tr><td>單一顱神經</td><td>左欄「顱神經」：點一條，核、神經節、出腦處與周邊段，以及切得到的切面</td></tr>
     <tr><td>基礎概念</td><td>右欄第一顆分頁「基礎概念」：8 節入門，上方數字鈕或「上一節／下一節」換節，會記住看到哪一節。每節的「▶ 模型上看」把中間的 3D 切到對應的課本視角或路徑，下方出現「回一般顯示」</td></tr>
-    <tr><td>切面</td><td>上方「切面」打開右欄，選一層：模型從那層切開，小圖可對照投影片。「改看上半段」換保留的一側，「轉到切面」把鏡頭轉正，「關閉切面」還原。左欄「矢狀切面」沿正中切開、從左側看</td></tr>
-    <tr><td>對照表</td><td>上方「對照表」：顱神經 × 功能成分。點圓點看是哪個核，點左邊 CN 看整列</td></tr>
+    <tr><td>切面</td><td>右欄「切面」分頁選一層：模型從那層切開，小圖可對照投影片。「改看上半段」換保留的一側，「轉到切面」把鏡頭轉正，「關閉切面」還原。模型上方「矢狀切面」沿正中切開、從左側看</td></tr>
+    <tr><td>對照表</td><td>右欄「核團對照表」分頁：顱神經 × 功能成分。點圓點看是哪個核，點左邊 CN 看整列</td></tr>
     <tr><td>搜尋</td><td>「構造」模式左欄的搜尋框（/ 鍵），中英文都可以，清單只留符合的構造；課本視角、路徑清單上方另有篩選框</td></tr>
     <tr><td>圖上名稱</td><td>「圖上名稱」（N）在模型上標出看得到的構造；「地標名稱」顯示固定的地標名稱</td></tr>
     <tr><td>國考</td><td>「國考」（K）打開後，說明卡、路徑、步驟與病灶會標出國考考過的題數，點開看題目</td></tr>
     <tr class="shareRow"><td>分享</td><td>「分享」複製本頁網址；網址會記住打開的切面</td></tr>
-    <tr><td>手機</td><td>上方「圖層」「切面」「對照表」從底部拉出面板，再按一次收起</td></tr>
+    <tr><td>收起左右欄</td><td>左欄、右欄邊上的 ‹ › 收起，留一條直條，點直條展開（[ ] 鍵），會記住。右欄直條上有四個分頁名，點哪個開哪個。所選課程沒有切面、或還沒選路徑與顱神經時，「切面」「導覽」分頁是灰的、不能點</td></tr>
+    <tr><td>手機</td><td>上方「清單」「說明欄」從底部拉出左欄、右欄，再按一次收起</td></tr>
   </table>
   <h3>快捷鍵</h3>
   <table id="keyTbl"></table>
   <!-- 本版更新：只放這次一起上線的版本，舊的不留 -->
   <details id="newsBox">
     <summary>本版更新</summary>
-    <p class="newsVer">Version 149　基礎概念</p>
+    <p class="newsVer">Version 150　版面重整</p>
     <ul>
-      <li>右欄第一顆分頁「基礎概念」共 8 節：方位與座標、中樞分區、灰質與白質、顱神經成分與核柱、傳導路徑、腦室與腦脊髓液、血管供應、腦膜</li>
-      <li>每節有文字和示意圖；按「▶ 模型上看」會切到對應的課本視角或路徑，舞台右下「‹ 回基礎概念」可以回到原本那一節</li>
-      <li>有上一節、下一節，會記住上次看到哪一節</li>
-    </ul>
-    <p class="newsVer">Version 148　頂部模式列</p>
-    <ul>
-      <li>頁首新增「構造｜課本視角｜路徑｜顱神經」，左欄依模式換內容</li>
-      <li>課本視角依課堂分組、路徑依分類分組，分組可收合並記住</li>
-    </ul>
-    <p class="newsVer">Version 147　功能目錄與重設</p>
-    <ul>
-      <li>功能目錄：⌘K／Ctrl+K 或頁首「功能」鈕，可搜尋功能與構造，按「帶我去」會打開對的面板；頂端列最近新增</li>
-      <li>重設分兩層：右上 ↺ 或 R 鍵只重設鏡頭與切面；▾ 裡的「全部重設」8 秒內可復原</li>
-      <li>深色、淺色可手動切換；左右欄收合會記住；Safari 觸控板捏合縮放修正</li>
+      <li>「構造｜課本視角｜路徑｜顱神經」四顆分頁從頁首移到左欄，緊貼清單上方</li>
+      <li>課程鈕收成一行「課程：○○ ▾」，點開才展開，可連續點好幾堂</li>
+      <li>「矢狀切面」移到模型上方視角鈕那排</li>
+      <li>頁首「圖層」「切面」「對照表」三顆拿掉：左欄、右欄邊上各有收合鈕，收起後留直條，右欄直條可直接點分頁名</li>
+      <li>右欄分頁沒內容時變灰（所選課程沒有切面、還沒選路徑或顱神經）</li>
     </ul>
   </details>
 </dialog>
@@ -1212,7 +1236,7 @@ function linkG(w, gs) {
   return h;
 }
 function buildFc() {
-  const T = (D.tables || []).find(t => t.id === "fc"); if (!T) { $("#bFc").hidden = true; return; }
+  const T = (D.tables || []).find(t => t.id === "fc"); if (!T) return;   // 沒有對照表時分頁由 syncTabs() 變灰
   const col = c => (D.structures.find(s => s.comp === c) || {}).color || "#999";
   const g = $("#fcgrid"); let h = `<span></span><span class="gh" style="grid-column:span 4">感覺（二級核）</span><span></span><span class="gh" style="grid-column:span 4">運動（一級核）</span>`;
   h += `<span class="ch">CN</span>` + T.cols.map((c, i) => (i === 4 ? `<span></span>` : "") + `<span class="ch" style="color:${col(c[1])}">${c[0]}</span>`).join("");
@@ -1593,11 +1617,12 @@ function vfApply() {
   }
   invalidate();
 }
+let tabsReady = false;   // secs 宣告在後面：開頁跑到 buildSecList() 之後才開始算分頁灰不灰
 function renderGuide() {
-  const g = $("#paneGuide"); vfApply(); microBtn();
+  const g = $("#paneGuide"); vfApply(); microBtn(); if (tabsReady) syncTabs();
   if ((!focus || focus.kind !== "path") && $("#pathDlg").open) $("#pathDlg").close();
   if (!focus && vGuide(presetV())) { viewGuide(g, presetV()); return; }
-  if (!focus) { g.innerHTML = `<div class="note">在頁首「路徑」或「顱神經」選一項，或在「課本視角」選「顱神經節與中樞核」，這裡會出現對應的路徑圖或清單，3D 只留相關構造。</div>`; return; }
+  if (!focus) { g.innerHTML = `<div class="note">在左欄「路徑」或「顱神經」選一項，或在「課本視角」選「顱神經節與中樞核」，這裡會出現對應的路徑圖或清單，3D 只留相關構造。</div>`; return; }
   if (focus.kind === "path") {
     const P = PATHS.find(p => p.id === focus.id);
     const L = (P.lesions || []).find(l => l[0] === lesionKey);
@@ -1704,7 +1729,7 @@ function buildModeLists() {
       h = [...by].map(([l, os]) => { const c = lecById[l]; return mGroup("v:" + l, c ? `${c.short}${c.teacher ? "（" + c.teacher + "）" : ""}` : "其他", os.map(o => mRow(sel, o)).join(""), os.length); }).join("");
     } else h = [...S.options].filter(o => o.value).map(o => mRow(sel, o)).join("");
     L.innerHTML = `<button type="button" class="mrow moff" data-sel="${sel}" data-v="" hidden>✕ ${LM_OFF[m]}</button>` +
-      (h || `<div class="note">目前選的課程沒有${LM_NONE[m]}；左欄上方「課程」可多選幾堂</div>`);
+      (h || `<div class="note">目前選的課程沒有${LM_NONE[m]}；左欄最上面「課程」可多選幾堂</div>`);
   }
   document.querySelectorAll("#layers .mq").forEach(mFilter);
   syncModeLists();
@@ -1732,13 +1757,7 @@ function setLeftMode(m, save) {
   document.querySelectorAll("#modebar [data-lm]").forEach(b => { b.setAttribute("aria-selected", b.dataset.lm === m); b.tabIndex = b.dataset.lm === m ? 0 : -1; });
   if (save) try { localStorage.setItem("b9neuro.lmode", m); } catch (e) {}
 }
-document.querySelectorAll("#modebar [data-lm]").forEach(b => b.onclick = () => {
-  const same = b.dataset.lm === leftMode;
-  setLeftMode(b.dataset.lm, true);
-  if (isDesk()) setPanel("layers", true);
-  else if (!same || !$("#layers").classList.contains("open")) { if (!$("#layers").classList.contains("open")) openSheet("layers"); }
-  else openSheet("");   // 手機：再按一次目前的模式＝收起抽屜
-});
+document.querySelectorAll("#modebar [data-lm]").forEach(b => b.onclick = () => setLeftMode(b.dataset.lm, true));   // V150：四顆在左欄裡，不再兼開關左欄
 $("#modebar").addEventListener("keydown", e => {   // 方向鍵在分頁間移動
   if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
   const T = [...document.querySelectorAll("#modebar [data-lm]")].filter(b => !b.hidden), i = T.indexOf(document.activeElement); if (i < 0) return;
@@ -1834,7 +1853,21 @@ function buildPanel() {
     G.append(det);
   }
 }
-function chipNote() { $("#lecChips .chipnote").hidden = lecOn.size > 0; }
+function chipNote() {
+  $("#lecChips .chipnote").hidden = lecOn.size > 0;
+  const nm = [...lecOn].map(i => (lecById[i] || {}).short || i);   // V150 課程列收起時的文字：0 堂＝全部構造、1 堂＝短名、多堂＝N 堂
+  $("#lecSum").textContent = !nm.length ? "全部構造" : nm.length === 1 ? nm[0] : nm.length + " 堂";
+  $("#lecBar").title = (nm.length > 1 ? nm.join("、") + "。" : "") + "選課程：點開後可連續點好幾堂；再點這一行或點左欄其他地方收回";
+}
+// V150 課程列展開／收回：使用者點才記；⌘K 帶我去展開的不記。點左欄其他地方收回（點課程鈕不收，可連續點）
+let lecOpen = false;
+function setLecOpen(on, save) {
+  lecOpen = on; $("#lecChips").hidden = !on; $("#lecBar").setAttribute("aria-expanded", on); $("#lecBar .car").textContent = on ? "▴" : "▾";
+  if (save) try { localStorage.setItem("b9neuro.lecOpen", on ? "1" : "0"); } catch (e) {}
+}
+$("#lecBar").onclick = () => setLecOpen(!lecOpen, true);
+$("#layers").addEventListener("click", e => { if (lecOpen && !e.target.closest("#lecBar, #lecChips")) setLecOpen(false, true); });
+try { if (localStorage.getItem("b9neuro.lecOpen") === "1") setLecOpen(true, false); } catch (e) {}
 // 只保留某一組／某一層：把它全部打開，其餘構造全部關掉（用「回到預設」可復原）
 function keepOnly(items) {
   const keep = new Set(items.map(x => x.id));
@@ -2009,7 +2042,7 @@ addEventListener("keydown", e => {
   if (e.key === "?" && !e.metaKey && !e.ctrlKey) { e.preventDefault(); $("#bHelp").click(); return; }
   if (e.key === "/" && plain) { e.preventDefault(); setLeftMode("obj", false); if (isDesk()) setPanel("layers", true); else if (!$("#layers").classList.contains("open")) openSheet("layers"); $("#search").focus(); return; }
   if ((e.key === "[" || e.key === "]") && plain && isDesk()) { e.preventDefault();
-    if (e.key === "[") setPanel("layers", $("#app").classList.contains("hide-layers")); else setPanel("bench", !benchOpen()); return; }
+    if (e.key === "[") setPanel("layers", $("#app").classList.contains("hide-layers"), true); else setPanel("bench", !benchOpen(), true); return; }
   if (microOn) return;   // 顯微模式沒有這些快捷鍵的對象
   if ((e.key === "h" || e.key === "H") && selId && !e.metaKey && !e.ctrlKey) { e.preventDefault(); turnOff(selId); }
   if ((e.key === "k" || e.key === "K") && !e.metaKey && !e.ctrlKey && !e.altKey) setKg(!kgOn);
@@ -2568,6 +2601,13 @@ function buildSecList() {
     }
     W.append(lb, L);
   }
+  if (tabsReady) syncTabs();
+}
+// V150：右欄分頁沒內容時變灰、不能點（切面跟所選課程走、導覽跟有沒有選路徑／顱神經／有說明的課本視角走）。
+// 停在變灰的分頁時留在原分頁、顯示原本的說明，不自動跳
+function syncTabs() {
+  const has = { basics: true, sec: secs.some(s => lecsOf(s).some(lecAny)), fc: (D.tables || []).some(t => t.id === "fc"), guide: !!(focus || vGuide(presetV())) };
+  document.querySelectorAll("#bench [data-tab], #railR [data-rtab]").forEach(b => { const off = !has[b.dataset.tab || b.dataset.rtab]; b.disabled = off; b.setAttribute("aria-disabled", off); });
 }
 function openSection(s) {
   leaveMicro();
@@ -2722,22 +2762,21 @@ function setTab(tab) {
 }
 document.querySelectorAll("#bench [data-tab]").forEach(b => b.onclick = () => setTab(b.dataset.tab));
 const benchOpen = () => isDesk() ? !$("#app").classList.contains("hide-bench") : $("#bench").classList.contains("open");
-function toggleBenchTab(tab) {
-  const close = benchOpen() && benchTab === tab;
-  if (!close) setTab(tab);
-  if (isDesk()) setPanel("bench", !close); else openSheet(close ? "" : "bench");
-}
-// 桌機：切換面板收合；手機：底部抽屜（一次只開一個）
+// 桌機：兩欄收合（收起留直條）；手機：底部抽屜（一次只開一個）
+// save＝使用者自己點收合鈕、直條或按 [ ] 才記（b9neuro.fold，只改被點的那一欄）；選路徑自動開導覽、⌘K 帶我去、/ 鍵都不記
 const isDesk = () => innerWidth > 820;
-function setPanel(w, on) {
+const FOLD_KEY = "b9neuro.fold";
+function setPanel(w, on, save) {
   $("#app").classList.toggle(w === "layers" ? "hide-layers" : "hide-bench", !on);
+  if (save) try { const f = JSON.parse(localStorage.getItem(FOLD_KEY) || "{}") || {}; f[w === "layers" ? "l" : "r"] = on ? 1 : 0; localStorage.setItem(FOLD_KEY, JSON.stringify(f)); } catch (e) {}
   syncPanelButtons();
 }
 function syncPanelButtons() {
-  const lay = isDesk() ? !$("#app").classList.contains("hide-layers") : $("#layers").classList.contains("open");
-  $("#bLayers").setAttribute("aria-pressed", lay);
-  const b = benchOpen();
-  $("#bBench").setAttribute("aria-pressed", b && benchTab === "sec"); $("#bFc").setAttribute("aria-pressed", b && benchTab === "fc");
+  const lay = isDesk() ? !$("#app").classList.contains("hide-layers") : $("#layers").classList.contains("open"), b = benchOpen();
+  $("#mLayers").setAttribute("aria-pressed", lay); $("#mBench").setAttribute("aria-pressed", b);
+  $("#bLayFold").setAttribute("aria-expanded", lay); $("#railL").setAttribute("aria-expanded", lay);
+  $("#bBenchFold").setAttribute("aria-expanded", b); $("#bBenchOpen").setAttribute("aria-expanded", b);
+  document.querySelectorAll("#railR [data-rtab]").forEach(x => x.setAttribute("aria-current", x.dataset.rtab === benchTab));
   syncBack();
 }
 // 基礎概念「▶ 模型上看」切過去之後，右欄不在基礎概念（手機抽屜收起、或換到別的分頁）時，畫面上給一顆回去的鈕
@@ -2783,10 +2822,20 @@ function basicsDemo(kind, id) {
   return { name, guide };
 }
 if (window.BASICS) BASICS.init($("#paneBasics"), { demo: basicsDemo, has: basicsHas, tab: setTab, changed: syncBack, scroller: $("#bench") });
-$("#bLayers").onclick = () => isDesk() ? setPanel("layers", $("#app").classList.contains("hide-layers")) : openSheet("layers");
-$("#bBench").onclick = () => toggleBenchTab("sec");
-$("#bFc").onclick = () => toggleBenchTab("fc");
-$("#bBenchX").onclick = () => isDesk() ? setPanel("bench", false) : openSheet("");   // 不管在哪個分頁都收起
+// V150：頁首三顆面板開關拿掉。桌面＝欄邊收合鈕＋收起後的直條；手機＝頁首「清單」「說明欄」拉出抽屜（再按一次收起）
+$("#bLayFold").onclick = () => setPanel("layers", false, true);
+$("#railL").onclick = () => setPanel("layers", true, true);
+$("#bBenchFold").onclick = () => setPanel("bench", false, true);
+$("#railR").onclick = e => {   // 點分頁名＝開到那個分頁；點直條其他地方＝照原分頁展開；變灰的分頁不反應
+  const t = e.target.closest("[data-rtab]");
+  if (t) { if (t.disabled) return; setTab(t.dataset.rtab); }
+  setPanel("bench", true, true);
+};
+$("#mLayers").onclick = () => openSheet("layers");
+$("#mBench").onclick = () => openSheet("bench");
+$("#bBenchX").onclick = () => isDesk() ? setPanel("bench", false, true) : openSheet("");   // 手機抽屜的 ✕
+{ let f = {}; try { f = JSON.parse(localStorage.getItem(FOLD_KEY) || "{}") || {}; } catch (e) {}
+  if (f.l === 0) $("#app").classList.add("hide-layers"); if (f.r === 1) $("#app").classList.remove("hide-bench"); }
 addEventListener("resize", syncPanelButtons);
 syncPanelButtons();
 
@@ -2802,7 +2851,7 @@ function keyRows() {
   const mac = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
   const rows = [["R", "回到預設：鏡頭回到目前模式的預設角度、關掉切面（顯微模式回到起始鏡頭）"], [mac ? "⌘K" : "Ctrl K", "功能目錄：所有功能一行說明＋帶我去"],
     ["H", "關掉選取的構造（下方提示列可以復原）"], ["K", "國考標記（考過幾題、題目）"], ["N", "圖上名稱（標出看得到的構造）"],
-    ["/", "跳到左欄搜尋框"], ["[ ]", "收起／打開左欄、右欄（桌面）"], ["?", "這個說明"], ["Esc", "關掉對話框、選單"]];
+    ["/", "跳到左欄搜尋框"], ["[ ]", "收起／打開左欄、右欄（桌面；收起後留直條，點直條也能打開）"], ["?", "這個說明"], ["Esc", "關掉對話框、選單"]];
   return rows.map(([k, v]) => `<tr><td><kbd>${k}</kbd></td><td>${v}</td></tr>`).join("");
 }
 $("#bHelp").onclick = () => { $("#keyTbl").innerHTML = keyRows(); $("#helpDlg .shareRow").hidden = $("#bShare").hidden; $("#helpDlg").showModal(); $("#helpDlg").scrollTop = 0; };
@@ -2903,7 +2952,7 @@ $("#rsAll").addEventListener("click", () => { $("#rsMenu").hidePopover?.(); rese
 }
 
 // ---------- V147 功能目錄＋帶我去（⌘K／Ctrl+K） ----------
-// 每筆：id、g 組、v 版、n 名稱、d 說明、kw 搜尋別名、t 目標（選擇器）、fl 要閃的外框（往上找）、run 先做的事
+// 每筆：id、g 組、v 版、n 名稱、d 說明、kw 搜尋別名、t 目標（選擇器）、tm 手機上的目標、fl 要閃的外框（往上找）、run 先做的事
 // 帶我去只展開面板、捲到控制項閃兩下，不替使用者按下去
 const FG = [["cam", "鏡頭與畫面"], ["obj", "構造開關與選取"], ["mode", "課本視角・路徑・顱神經"], ["bench", "切面・對照表・導覽"], ["info", "名稱・國考・說明"]];
 const FEATS = [
@@ -2913,18 +2962,19 @@ const FEATS = [
   { id: "views", g: "cam", v: "", n: "視角鈕", d: "前、後、左、右、上、下、斜等固定方向", kw: "視角 鏡頭 方向 camera", t: "#views" },
   { id: "gizmo", g: "cam", v: "", n: "方位小方塊", d: "右下角方位指示，看目前從哪個方向看", kw: "方位 座標 gizmo", t: "#gizmo" },
   { id: "theme", g: "cam", v: "V147", n: "深淺色", d: "頁首半圓鈕：跟系統、淺色、深色輪流切換，會記住", kw: "深色 淺色 dark light 主題", t: "#bTheme" },
+  { id: "fold", g: "cam", v: "V150", n: "收起左欄、右欄", d: "欄邊的 ‹ › 收起後留一條直條，點直條展開（[ ] 鍵），會記住；右欄直條上直接點分頁名。手機是頁首「清單」「說明欄」", kw: "收合 收起 展開 直條 面板 圖層 左欄 右欄 清單 說明欄 fold v150", t: "#bLayFold", tm: "#mLayers" },
   { id: "search", g: "obj", v: "", n: "搜尋構造", d: "「構造」模式左欄的搜尋框（中英文），/ 鍵直接跳過去", kw: "搜尋 search 找", t: "#search" },
-  { id: "lec", g: "obj", v: "", n: "課程篩選", d: "左欄課程小鈕：只開某一堂課的構造", kw: "課程 lecture 堂 篩選", t: "#lecChips" },
+  { id: "lec", g: "obj", v: "V150", n: "課程篩選", d: "左欄最上面「課程：○○ ▾」：點開選一堂或多堂（可連續點），只開那幾堂的構造；再點那一行或點左欄其他地方收回", kw: "課程 lecture 堂 篩選 課程列 v150", t: "#lecBar" },
   { id: "shell", g: "obj", v: "", n: "外形殼透明度", d: "左欄滑桿調外殼透明", kw: "透明 外殼 shell 不透明度", t: "#shellOp" },
   { id: "unit", g: "obj", v: "V111", n: "整塊／細分", d: "大腦皮質整塊看腦葉，或細分看各腦迴", kw: "腦葉 腦迴 lobe gyrus 整塊 細分", t: "#unitSeg" },
   { id: "groups", g: "obj", v: "", n: "構造清單與隱藏", d: "左欄各組勾選開關；選取後 H 隱藏，下方提示列可復原", kw: "清單 勾選 隱藏 hide h 復原", t: "#groups" },
   { id: "grpmem", g: "obj", v: "V147", n: "清單收合記住", d: "左欄各組與小分類點標題收合或展開，下次開頁照上次", kw: "收合 展開 記住 分組", t: "#groups" },
-  { id: "sag", g: "mode", v: "", n: "矢狀切開", d: "沿正中矢狀面切開、從左側看切面", kw: "矢狀 正中 切開 sagittal", t: "#bSag" },
-  { id: "modebar", g: "mode", v: "V148", n: "頂部模式列", d: "頁首「構造｜課本視角｜路徑｜顱神經」換左欄內容；正在用的模式右上角有小點", kw: "模式 分頁 左欄 構造 課本視角 路徑 顱神經 tab", t: "#modebar" },
-  { id: "modeSel", g: "mode", v: "V148", n: "課本視角清單", d: "頁首「課本視角」：左欄依課堂列出，點一項就開好課本那張圖的構造、透明度與鏡頭", kw: "課本視角 場景 preset 視角", t: "#viewList" },
+  { id: "sag", g: "mode", v: "V150", n: "矢狀切開", d: "模型上方視角鈕那排的「矢狀切面」：沿正中矢狀面切開、從左側看切面", kw: "矢狀 正中 切開 sagittal v150", t: "#bSag" },
+  { id: "modebar", g: "mode", v: "V150", n: "左欄四顆分頁", d: "左欄清單上方「構造｜課本視角｜路徑｜顱神經」換下方清單；正在用的模式右上角有小點（V148 在頁首，V150 搬進左欄）", kw: "模式 模式列 分頁 左欄 構造 課本視角 路徑 顱神經 tab v148 v150", t: "#modebar" },
+  { id: "modeSel", g: "mode", v: "V148", n: "課本視角清單", d: "左欄「課本視角」：依課堂列出，點一項就開好課本那張圖的構造、透明度與鏡頭", kw: "課本視角 場景 preset 視角", t: "#viewList" },
   { id: "vcams", g: "mode", v: "", n: "視角鏡頭切換", d: "有多個鏡頭的課本視角（腦溝、血管攝影）在畫面上方換鏡頭", kw: "鏡頭 vcam towne 內側", t: "#vcams" },
-  { id: "pathSel", g: "mode", v: "V148", n: "路徑與反射清單", d: "頁首「路徑」：左欄依分類列出（可收合、會記住），點一條逐步亮起、模擬病灶；小腦皮質迴路有顯微模式", kw: "路徑 反射 傳導 病灶 顯微 pathway", t: "#pathList" },
-  { id: "cnSel", g: "mode", v: "V148", n: "單一顱神經清單", d: "頁首「顱神經」：左欄列十二對，點一條核、神經節、出腦位置一起亮", kw: "顱神經 cranial nerve 神經節 核", t: "#cnList" },
+  { id: "pathSel", g: "mode", v: "V148", n: "路徑與反射清單", d: "左欄「路徑」：依分類列出（可收合、會記住），點一條逐步亮起、模擬病灶；小腦皮質迴路有顯微模式", kw: "路徑 反射 傳導 病灶 顯微 pathway", t: "#pathList" },
+  { id: "cnSel", g: "mode", v: "V148", n: "單一顱神經清單", d: "左欄「顱神經」：列十二對，點一條核、神經節、出腦位置一起亮", kw: "顱神經 cranial nerve 神經節 核", t: "#cnList" },
   { id: "sec", g: "bench", v: "", n: "切面", d: "右欄「切面」：腦幹、脊髓橫切與冠狀切片，對照 2D 切面圖", kw: "切面 橫切 冠狀 section", t: "#bench [data-tab=sec]" },
   { id: "fc", g: "bench", v: "", n: "核團對照表", d: "右欄「核團對照表」：顱神經核依功能成分排列", kw: "對照表 核團 功能成分 gse gve", t: "#bench [data-tab=fc]" },
   { id: "guide", g: "bench", v: "", n: "導覽", d: "右欄「導覽」：選了路徑或課本視角時的步驟與說明", kw: "導覽 步驟 說明 guide", t: "#bench [data-tab=guide]" },
@@ -2936,7 +2986,7 @@ const FEATS = [
   { id: "help", g: "info", v: "", n: "操作說明與快捷鍵", d: "滑鼠、觸控、鍵盤快捷鍵與更新紀錄（? 鍵）", kw: "說明 快捷鍵 help 鍵盤", run: () => $("#bHelp").click() },
   { id: "feat", g: "info", v: "V147", n: "功能目錄", d: "就是這個：所有功能一行說明＋帶我去（⌘K／Ctrl+K）", kw: "功能 目錄 搜尋 ctrl k", t: "#bFeat" },
 ];
-const FNEW = ["basics", "modebar", "feat"];   // 最近新增
+const FNEW = ["modebar", "lec", "sag", "fold"];   // 最近新增（V150 版面重整）
 const FID = Object.fromEntries(FEATS.map(f => [f.id, f]));
 function featSearch(q, n = 6) {
   q = q.trim().toLowerCase(); if (!q) return [];
@@ -2975,13 +3025,14 @@ function featGo(f) {
   const d = $("#dFeat"); if (d.open) d.close();
   if (f.run) f.run();
   if (!f.t) return;
-  const el = document.querySelector(f.t); if (!el) return;
+  const el = document.querySelector(!isDesk() && f.tm || f.t); if (!el) return;
+  if (el.id === "lecBar" && !lecOpen) setLecOpen(true, false);   // V150：課程列收著就先展開（不記）
   const lp = el.closest(".lpane"); if (lp && lp.hidden) setLeftMode(lp.dataset.pane, false);   // V148：先切到該模式的左欄（不記住）
   for (let p = el.parentElement; p; p = p.parentElement) if (p.tagName === "DETAILS" && !p.open) p.open = true;
   if (el.closest("#layers")) { if (isDesk()) setPanel("layers", true); else if (!$("#layers").classList.contains("open")) openSheet("layers"); }
   else if (el.closest("#bench")) {
     const tab = el.dataset.tab || (el.closest("#paneFc") ? "fc" : el.closest("#paneGuide") ? "guide" : el.closest("#paneSec") ? "sec" : null);
-    if (tab) setTab(tab);
+    if (tab && !(el.dataset.tab && el.disabled)) setTab(tab);   // V150：變灰的分頁只帶到分頁鈕，不切過去
     if (isDesk()) setPanel("bench", true); else if (!$("#bench").classList.contains("open")) openSheet("bench");
   } else if (!isDesk() && el.closest("#stage, .stage, main")) openSheet("");   // 手機：收起抽屜才看得到畫面上的鈕
   const fl = (f.fl && el.parentElement && el.parentElement.closest(f.fl)) || el;
@@ -3221,7 +3272,7 @@ import("three-mesh-bvh").then(M => {
   const step = d => { const q = todo(); while (q.length && d.timeRemaining() > 4) q.pop().geometry.computeBoundsTree(); if (q.length) idle(step); };
   idle(step);
 }).catch(e => console.warn("three-mesh-bvh", e));
-buildPanel(); buildSecList(); refreshVis(); resize(); requestAnimationFrame(tick);
+buildPanel(); buildSecList(); tabsReady = true; syncTabs(); refreshVis(); resize(); requestAnimationFrame(tick);
 $("#loading").remove();
 // ---------- 顯微模式：小腦皮質迴路（苔狀纖維活動）。同一個 renderer 換場景，路徑 P.micro＝"mossy"；示意尺寸，不是實際比例 ----------
 // 紅光點＝興奮、藍光點＝抑制；第 n 步時前 n−1 步在背景用淡光點繼續跑；爬行纖維只當對照（第 7 段，不在六步驟裡）
