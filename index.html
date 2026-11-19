@@ -660,13 +660,13 @@ details.mgrp > .mrow { padding-left: 18px; }
   <!-- 本版更新：只放這次一起上線的版本，舊的不留 -->
   <details id="newsBox">
     <summary>本版更新</summary>
-    <p class="newsVer">Version 151　血管分段分色</p>
+    <p class="newsVer">Version 152　嗅覺與邊緣系統</p>
     <ul>
-      <li>分段視角每段一色、附圖例：內頸動脈 C1–C7、前大腦動脈 A1–A5、中大腦動脈 M1／M2／M3–M5、後大腦動脈 P1–P4</li>
-      <li>新視角「椎動脈四段」：V1–V4 四色，頸椎與枕骨半透明</li>
-      <li>「前後循環總覽」分前循環、後循環兩色；「後循環」四條分支分色；淺層、深層靜脈分組上色</li>
-      <li>路徑「內頸動脈七段」「ACA」「MCA」「PCA」接上各段：走到哪一段亮哪一段</li>
-      <li>「Willis 環」的「前斜」鏡頭改成從前下方斜看</li>
+      <li>新課堂「嗅覺與邊緣系統」：預設只開邊緣系統構造與半邊腦外形</li>
+      <li>新示意構造：外側嗅紋、梨狀皮質、內嗅皮質、齒狀迴、腹側杏仁傳出路徑、內側前腦束、視丘扣帶纖維</li>
+      <li>新課本視角：嗅覺腦底面、海馬冠狀面、穹窿走向、杏仁核與兩條傳出、皮質下核與連結</li>
+      <li>新路徑：嗅球傳出與嗅皮質投射、海馬傳出：穹窿、杏仁核傳入與傳出；附 CA1 缺血、內側顳葉硬化、Klüver-Bucy 病灶</li>
+      <li>嗅溝腦膜瘤、隔區病變補在「嗅覺 → 邊緣系統 → 腦幹」；四條 Papez 迴路的「視丘前核 → 扣帶迴」一步都亮視丘扣帶纖維</li>
     </ul>
   </details>
 </dialog>
@@ -2985,6 +2985,7 @@ const FEATS = [
   { id: "theme", g: "cam", v: "V147", n: "深淺色", d: "頁首半圓鈕：跟系統、淺色、深色輪流切換，會記住", kw: "深色 淺色 dark light 主題", t: "#bTheme" },
   { id: "fold", g: "cam", v: "V150", n: "收起左欄、右欄", d: "欄邊的 ‹ › 收起後留一條直條，點直條展開（[ ] 鍵），會記住；右欄直條上直接點分頁名。手機是頁首「清單」「說明欄」", kw: "收合 收起 展開 直條 面板 圖層 左欄 右欄 清單 說明欄 fold v150", t: "#bLayFold", tm: "#mLayers" },
   { id: "search", g: "obj", v: "", n: "搜尋構造", d: "「構造」模式左欄的搜尋框（中英文），/ 鍵直接跳過去", kw: "搜尋 search 找", t: "#search" },
+  { id: "l11", g: "obj", v: "V152", n: "嗅覺與邊緣系統", d: "左欄「課程」選「邊緣系統」：開這堂的構造、5 個課本視角（嗅覺腦底面、海馬冠狀面、穹窿走向、杏仁核與兩條傳出、皮質下核與連結）與 3 條新路徑", kw: "嗅覺 邊緣系統 海馬 穹窿 杏仁核 梨狀皮質 內嗅皮質 齒狀迴 papez 中隔 l11 v152", t: "#lecBar" },
   { id: "lec", g: "obj", v: "V150", n: "課程篩選", d: "左欄最上面「課程：○○ ▾」：點開選一堂或多堂（可連續點），只開那幾堂的構造；再點那一行或點左欄其他地方收回", kw: "課程 lecture 堂 篩選 課程列 v150", t: "#lecBar" },
   { id: "shell", g: "obj", v: "", n: "外形殼透明度", d: "左欄滑桿調外殼透明", kw: "透明 外殼 shell 不透明度", t: "#shellOp" },
   { id: "unit", g: "obj", v: "V111", n: "整塊／細分", d: "大腦皮質整塊看腦葉，或細分看各腦迴", kw: "腦葉 腦迴 lobe gyrus 整塊 細分", t: "#unitSeg" },
@@ -3011,7 +3012,7 @@ const FEATS = [
   { id: "help", g: "info", v: "", n: "操作說明與快捷鍵", d: "滑鼠、觸控、鍵盤快捷鍵與更新紀錄（? 鍵）", kw: "說明 快捷鍵 help 鍵盤", run: () => $("#bHelp").click() },
   { id: "feat", g: "info", v: "V147", n: "功能目錄", d: "就是這個：所有功能一行說明＋帶我去（⌘K／Ctrl+K）", kw: "功能 目錄 搜尋 ctrl k", t: "#bFeat" },
 ];
-const FNEW = ["segcolor", "vaview", "wilcam", "legfold"];   // 最近新增（V151 血管分段分色）
+const FNEW = ["l11", "segcolor", "vaview", "legfold"];   // 最近新增（V152 嗅覺與邊緣系統、V151 血管分段分色）
 const FID = Object.fromEntries(FEATS.map(f => [f.id, f]));
 function featSearch(q, n = 6) {
   q = q.trim().toLowerCase(); if (!q) return [];
