@@ -162,6 +162,12 @@ details.subgrp[open] > summary.subh::before { transform: rotate(90deg); }
 .steps.vdir button { padding-left: 8px; }
 .steps.vdir button::before { content: none; }
 #legend i { display: inline-block; width: 18px; height: 5px; border-radius: 1px; margin-right: 5px; vertical-align: middle; }
+/* V151：圖例標題可點收起（Leo 11/19：圖例太高蓋到模型）；預設展開、不記狀態，換視角或步驟重建後回到展開 */
+#legend b { pointer-events: auto; cursor: pointer; user-select: none; }
+#legend b::after { content: " ▾"; }
+#legend .fold b::after { content: " ▸"; }
+#legend .fold > :not(b) { display: none; }
+@media (pointer: coarse) { #legend b { display: block; padding: 6px 0; margin: -6px 0; } }
 #hint { position: absolute; right: 10px; bottom: 8px; font-size: 11px; color: var(--mute); text-align: right; }
 @media (max-width: 1099px) { #hint { display: none; } }   /* 寬度不夠、右欄開著時不顯示操作提示：會撞方向小座標、說明卡、圖例（V142） */
 #app:not(.hide-bench) #hint { display: none; }
@@ -562,7 +568,7 @@ details.mgrp > .mrow { padding-left: 18px; }
       <button class="btn" data-v="top">由上往下</button>
       <button class="btn" data-v="oblique">斜前方</button>
       <button class="btn" id="bSag" aria-pressed="false" title="沿正中矢狀面切開，移除病人左半、從左側看切面（可與一般顯示或腦幹外觀並用；核團圖會先關閉）">矢狀切面</button>
-      <div id="vcams" hidden><span>鏡頭：</span><button class="btn" data-c="oblique">前斜</button><button class="btn" data-c="front">前面</button><button class="btn" data-c="towne">Towne</button><button class="btn" data-c="left">外側</button><button class="btn" data-c="top">上面</button><button class="btn" data-c="medial">內側</button><button class="btn" data-c="bottom">底面</button><button class="btn" data-c="back">後面</button><button class="btn" data-c="dorsolat">後外上</button></div>
+      <div id="vcams" hidden><span>鏡頭：</span><button class="btn" data-c="oblique">前斜</button><button class="btn" data-c="willis">前斜</button><button class="btn" data-c="front">前面</button><button class="btn" data-c="towne">Towne</button><button class="btn" data-c="left">外側</button><button class="btn" data-c="top">上面</button><button class="btn" data-c="medial">內側</button><button class="btn" data-c="bottom">底面</button><button class="btn" data-c="back">後面</button><button class="btn" data-c="dorsolat">後外上</button></div>
     </div>
     <canvas id="gizmo" width="224" height="224"></canvas>
     <div id="hint">拖曳旋轉 · 右鍵／雙指平移 · 滾輪／捏合縮放 · 點構造看名稱</div>
@@ -654,13 +660,13 @@ details.mgrp > .mrow { padding-left: 18px; }
   <!-- 本版更新：只放這次一起上線的版本，舊的不留 -->
   <details id="newsBox">
     <summary>本版更新</summary>
-    <p class="newsVer">Version 150　版面重整</p>
+    <p class="newsVer">Version 151　血管分段分色</p>
     <ul>
-      <li>「構造｜課本視角｜路徑｜顱神經」四顆分頁從頁首移到左欄，緊貼清單上方</li>
-      <li>課程鈕收成一行「課程：○○ ▾」，點開才展開，可連續點好幾堂</li>
-      <li>「矢狀切面」移到模型上方視角鈕那排</li>
-      <li>頁首「圖層」「切面」「對照表」三顆拿掉：左欄、右欄邊上各有收合鈕，收起後留直條，右欄直條可直接點分頁名</li>
-      <li>右欄分頁沒內容時變灰（所選課程沒有切面、還沒選路徑或顱神經）</li>
+      <li>分段視角每段一色、附圖例：內頸動脈 C1–C7、前大腦動脈 A1–A5、中大腦動脈 M1／M2／M3–M5、後大腦動脈 P1–P4</li>
+      <li>新視角「椎動脈四段」：V1–V4 四色，頸椎與枕骨半透明</li>
+      <li>「前後循環總覽」分前循環、後循環兩色；「後循環」四條分支分色；淺層、深層靜脈分組上色</li>
+      <li>路徑「內頸動脈七段」「ACA」「MCA」「PCA」接上各段：走到哪一段亮哪一段</li>
+      <li>「Willis 環」的「前斜」鏡頭改成從前下方斜看</li>
     </ul>
   </details>
 </dialog>
@@ -1075,8 +1081,8 @@ let preset = null, presetSaved = null, tagSide = 0;   // tagSide：側面視角�
 const presetV = () => preset ? (D.views || []).find(v => v.id === preset) : null;
 // 視角換色（V117.4）：V.paint {id: 色，切兩塊的腦迴給 [前塊, 後塊]}，離開時換回原色；V.legend 色塊說明；
 // V.labs 圖上名稱只標這幾個（進視角時自動打開圖上名稱，離開還原）；V.vtags 沒有 3D 的位置名稱（底視丘），跟著圖上名稱
-let painted = [];
-const paintOf = (id, pc) => { const c = ((presetV() || {}).paint || {})[id]; return Array.isArray(c) ? c[pc || 0] : c; };
+let painted = [], FVCUR = null;   // FVCUR：路徑連到的課本視角（V151：路徑也套那個視角的 paint、op）
+const paintOf = (id, pc) => { const c = ((presetV() || FVCUR || {}).paint || {})[id]; return Array.isArray(c) ? c[pc || 0] : c; };
 function paintView(V) {
   for (const [m, c] of painted) m.color.copy(c);
   painted = [];
@@ -1131,7 +1137,8 @@ function viewGuide(g, V) {
 }
 const sulTags = () => vcam && (presetV() || {}).rims;   // 腦溝名稱：只在「腦溝（整顆）」這類有溝口細帶的多鏡頭視角標
 // 課本視角「腦溝（整顆）」的四個鏡頭：[鏡頭方向, 標名稱的半球（+1 病人左）]。內側＝正中矢狀切開（保留病人右半），從左側看右半球內側面
-const VCAM = { left: ["left", 1], top: ["top", 1], medial: ["left", -1], bottom: ["bottom", 1], oblique: ["oblique", 1], front: ["front", 1], back: ["back", 1], dorsolat: ["dorsolat", 1], towne: ["towne", 1] };   // oblique：基底核視角（V119.2）；front：L05 中腦視角（V120）；back：L06 硬膜竇（V122）；dorsolat：L03 視丘後外上（V128）
+const VCAM = { left: ["left", 1], top: ["top", 1], medial: ["left", -1], bottom: ["bottom", 1], oblique: ["oblique", 1], front: ["front", 1], back: ["back", 1], dorsolat: ["dorsolat", 1], towne: ["towne", 1], willis: ["willis", 1] };
+const fvDir = FV => VIEWS[(VCAM[FV.cam] || [FV.cam])[0]];   // 路徑連到的視角：cam 是 medial 時鏡頭方向＝left（V151）   // oblique：基底核視角（V119.2）；front：L05 中腦視角（V120）；back：L06 硬膜竇（V122）；dorsolat：L03 視丘後外上（V128）
 let vcam = null, vcamSag = false;
 function setVcam(k) {
   const V = presetV(); if (!V || !V.cams) return;
@@ -1197,6 +1204,7 @@ function sulcusTags(s, k) {
 function setShell(k) { shellScale = k; $("#shellOp").value = Math.round(k * 100); }
 function setPinTags(on) { showPinTags = on; $("#bTags").setAttribute("aria-pressed", on); }
 function flyToDir(ids, dir, fy, pad = 1) {
+  let lift = 0; if (Array.isArray(pad)) [pad, lift] = pad;   // V151：pad 可給 [拉遠倍數, 中心上移幾成高度]（v09_ica 頂端不被鏡頭鈕列蓋到）
   const box = new THREE.Box3();
   ids.forEach(id => { const o = OBJ[id]; if (o && o.root.visible) box.expandByObject(o.root); });
   if (box.isEmpty()) return;
@@ -1210,7 +1218,8 @@ function flyToDir(ids, dir, fy, pad = 1) {
     if (!seg.isEmpty()) ctr = seg.getCenter(new THREE.Vector3());
   }
   const sz = box.getSize(new THREE.Vector3()), tall = sz.y * 0.62 / Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));   // 脊髓全長（L04）這種細長的，照高度算才框得進
-  flyTo(ctr || box.getCenter(new THREE.Vector3()), new THREE.Vector3(...dir), pad * Math.max(60, tall, sz.length() * 1.6 * Math.max(1, 0.75 / camera.aspect)));   // pad：視角拉遠倍數（近端切口離畫面上緣太近時用）
+  const c0 = ctr || box.getCenter(new THREE.Vector3()); c0.y += lift * sz.y;
+  flyTo(c0, new THREE.Vector3(...dir), pad * Math.max(60, tall, sz.length() * 1.6 * Math.max(1, 0.75 / camera.aspect)));   // pad：視角拉遠倍數（近端切口離畫面上緣太近時用）
 }
 function buildLegend() {
   const name = { GSE: "GSE 一般軀體運動", SVE: "SVE 鰓弓運動", GVE: "GVE 內臟運動（副交感）", SE: "SE 副神經脊髓根（頸髓）", GVA: "GVA／SVA 內臟感覺、味覺", SSA: "SSA 特殊感覺（聽、平衡）", GSA: "GSA 一般軀體感覺" };
@@ -1328,12 +1337,16 @@ function setFocus(f) {
   const FV0 = focusV();
   focus = f; stepIdx = -1; lesionKey = ""; stepSet = null; stepGang = ""; stepPaint(null);
   const FV = focusV();
+  FVCUR = FV || null;
+  if (FV || FV0) paintView(FV);   // V151：路徑連到課本視角時，分段色與供應區淡色照那個視角；離開還原
+  if (FV && FV.cam === "medial") { if (!sagOn) setSag(true); vcamSag = true; }   // 內側面視角的路徑（ACA、PCA）：一起開矢狀切面
+  else if (FV0 && FV0.cam === "medial" && vcamSag) { if (sagOn) setSag(false); vcamSag = false; }
   const lab = v => { labOn = v; $("#bLab").setAttribute("aria-pressed", labOn); if (!labOn) clearLabs(); };   // 和課本視角的 labs 一樣不寫進 localStorage
   if (FV0 && !FV) { $("#legend").hidden = true; if (focusLab != null) { lab(focusLab); focusLab = null; } }
   if (FV) {
     if (focusLab == null) focusLab = labOn;
     lab(true);
-    if (FV.legend) { $("#legend").innerHTML = `<div><b>${FV.zh}</b>${FV.legend.map(([c, t]) => `<span><i style="background:${c}"></i>${t}</span>`).join("")}</div>`; $("#legend").hidden = false; }
+    if (FV.legend) { $("#legend").innerHTML = `<div><b>${FV.zh}</b>${fvLeg(FV).map(([c, t]) => `<span><i style="background:${c}"></i>${t}</span>`).join("")}</div>`; $("#legend").hidden = false; } else $("#legend").hidden = true;
   }
   if (f) {
     select(null);
@@ -1343,16 +1356,21 @@ function setFocus(f) {
     if (isDesk()) setPanel("bench", true); else if (!$("#bench").classList.contains("open")) openSheet("bench");
   }
   syncModeSel(); refreshVis(); renderGuide(); flowSync();
-  if (f) requestAnimationFrame(() => FV ? flyToDir(FV.fit, VIEWS[FV.cam], FV.fity, FV.pad) : flyToIds([...f.ids]));
+  if (f) requestAnimationFrame(() => FV ? flyToDir(FV.fit, fvDir(FV), FV.fity, FV.pad) : flyToIds([...f.ids]));
   if (f && f.kind === "path" && isMicro(PATHS.find(p => p.id === f.id))) microStep(-1);   // 小腦皮質迴路：直接進顯微模式
 }
+// V151：路徑自己有 legend 時優先用（a09_mca 路徑四色；視角本身的圖例不動）
+function fvLeg(FV) { const P = focus && focus.kind === "path" && PATHS.find(p => p.id === focus.id); return (P && P.legend) || FV.legend; }
+$("#legend").addEventListener("click", e => { const b = e.target.closest("b"); if (b) b.parentElement.classList.toggle("fold"); });
 // 路徑步驟換色（V128）：step 第 4 個元素 {paint: {id: 色}, legend: [[色, 文字]…]}（L03 視丘各核的「總覽」）；換步驟、病灶、離開路徑時還原
 let stepPainted = false;
 function stepPaint(st) {
   const o = st && st[3] && (st[3].paint || st[3].legend) ? st[3] : null;   // 只有 fit 的步驟不換色
   if (!o && !stepPainted) return;
-  paintView(o); stepPainted = !!o;
-  if (o && o.legend) { $("#legend").innerHTML = `<div>${o.legend.map(([c, t]) => `<span><i style="background:${c}"></i>${t}</span>`).join("")}</div>`; $("#legend").hidden = false; }
+  const FV = focusV();
+  paintView(o || FV); stepPainted = !!o;   // 步驟換色結束後回到路徑所連視角的顏色（V151）
+  if (o && o.legend) { $("#legend").innerHTML = `<div><b>圖例</b>${o.legend.map(([c, t]) => `<span><i style="background:${c}"></i>${t}</span>`).join("")}</div>`; $("#legend").hidden = false; }
+  else if (FV && FV.legend) { $("#legend").innerHTML = `<div><b>${FV.zh}</b>${fvLeg(FV).map(([c, t]) => `<span><i style="background:${c}"></i>${t}</span>`).join("")}</div>`; $("#legend").hidden = false; }
   else $("#legend").hidden = true;
 }
 function setStep(i, fly = true) {
@@ -1363,7 +1381,9 @@ function setStep(i, fly = true) {
   stepPaint(i >= 0 && P.steps[i]);
   refreshVis(); renderGuide();
   if (i >= 0) $(`#paneGuide [data-s="${i}"]`)?.scrollIntoView({ block: "nearest" });   // 長路徑按「下一步」：目前步驟捲進右欄（抽屜）看得到的範圍（V142）
-  if (fly && !focusV()) flyToIds(i >= 0 && (P.steps[i][3] || {}).fit || [...(stepSet || focus.ids)]);   // 連到課本視角的路徑（L09 Willis 環）：換步驟不動鏡頭，整個環一直在畫面裡   // s[3].fit：這一步鏡頭只框這些（V129.1，CSF 楔形切面）
+  const sf = i >= 0 && (P.steps[i][3] || {}).fit, FV = focusV();
+  if (fly && FV && P.steps.some(s => (s[3] || {}).fit)) flyToDir(sf || FV.fit, fvDir(FV), FV.fity, FV.pad);   // V151：連到視角的路徑，有哪一步帶 fit 才動鏡頭（內頸七段的頸部兩步）
+  if (fly && !FV) flyToIds(sf || [...(stepSet || focus.ids)]);   // 連到課本視角的路徑（L09 Willis 環）：換步驟不動鏡頭，整個環一直在畫面裡   // s[3].fit：這一步鏡頭只框這些（V129.1，CSF 楔形切面）
 }
 // 病灶構造＋（病灶構造就是節點的構造時）那個節點一起亮的構造＋L[6]
 const lesIds = (P, L) => { const n = P.nodes.find(n => n[0] === L[2]); return new Set([...(n && n[2] === L[4] ? ndIds(n) : [L[4]]), ...(L[6] || [])]); };
@@ -1776,7 +1796,7 @@ buildModeSelects(); renderGuide();
 // 大腦皮質（腦迴、腦溝）也跟外殼透明度走；同時開兩堂以上又不在課本視角時再淡到 0.3（腦溝 0.12），裡面的腦幹核團才看得到
 const cortexK = s => !preset && (lecOn.size || LEC_IDS.length) > 1 ? (s.sub === "sulcus" ? 0.12 : 0.3) : 1;   // 薄片在腦迴底下，疊起來較濃，淡得更多
 function applyOpacity() {
-  const VOP = (preset && presetV() || {}).op || {};   // 課本視角各構造的透明度覆寫
+  const VOP = (preset && presetV() || FVCUR || {}).op || {};   // 課本視角各構造的透明度覆寫
   for (const id in OBJ) {
     const o = OBJ[id];
     for (const m of o.mats) {
@@ -1897,7 +1917,8 @@ $("#modeSel").onchange = e => {
   else { setPreset(null); setSolid(false); setDors(false); if (focus && focus.kind === "gang") setFocus(null); }
 };
 function resetAllCore() {
-  const hadVG = vGuide(presetV());
+  const hadVG = vGuide(presetV()), hadPV = !!presetV();
+  if (hadPV) { paintView(null); $("#legend").hidden = true; }   // V151：全部重設時視角的上色與圖例一起還原（原本會殘留）
   preset = null; presetSaved = null; tagSide = 0; setPinTags(false); vcam = null; vcamSag = false; $("#vcams").hidden = true;
   solidMode = false; solidSaved = null;
   if (dorsMode) { dorsSaved = null; setDors(false); }
@@ -2251,7 +2272,7 @@ const HOME = new THREE.Vector3(0, 4, 0);
 const lecHome = () => D.lectures.filter(l => lecAny(l.id) && l.home && (!l.home.solo || lecOn.size === 1)).pop()?.home;
 const setHome = () => HOME.set(...(lecHome()?.c || [0, 4, 0]));
 setHome();
-const VIEWS = { front: [0, 0.05, 1], back: [0, 0.05, -1], left: [1, 0.05, 0], right: [-1, 0.05, 0], top: [0, 1, 0.02], bottom: [0, -1, 0.02], oblique: [-0.55, 0.3, 0.78], dorsolat: [0.6, 0.6, -0.55], sc_top: [0.3, 0.85, 0.45], sc_back: [0.5, 0.3, -0.8], sc_t6: [0.3, 0.8, 0.52], towne: [0, 0.57, 0.82] };   // towne：L19 血管攝影 Towne（從前上方約 35 度往下看，V145）   // sc_top：L04 從前上方看 C1 平切斷面（畫面上方＝背側）；sc_back：L04 從左後斜看灰質
+const VIEWS = { front: [0, 0.05, 1], back: [0, 0.05, -1], left: [1, 0.05, 0], right: [-1, 0.05, 0], top: [0, 1, 0.02], bottom: [0, -1, 0.02], oblique: [-0.55, 0.3, 0.78], dorsolat: [0.6, 0.6, -0.55], sc_top: [0.3, 0.85, 0.45], sc_back: [0.5, 0.3, -0.8], sc_t6: [0.3, 0.8, 0.52], towne: [0, 0.57, 0.82], willis: [0.3, -0.72, 0.62] };   // towne：L19 血管攝影 Towne（從前上方約 35 度往下看，V145）   // sc_top：L04 從前上方看 C1 平切斷面（畫面上方＝背側）；sc_back：L04 從左後斜看灰質
 // 開著有 fit 的視角（側腦室各壁等）：工具列方向照視角的框，不回全腦中心（V129.1）
 document.querySelectorAll("#views [data-v]").forEach(b => b.onclick = () => { const V = !activeSec && presetV();
   if (V && V.fit) return flyToDir(V.fit, VIEWS[b.dataset.v], V.fity, V.pad);
@@ -2863,7 +2884,7 @@ function resetView() {
   const V = presetV(), FV = focusV();
   if (V && vcam) return setVcam(vcam);
   if (V) return flyToDir(V.fit, VIEWS[V.cam], V.fity, V.pad);
-  if (focus) { if (FV) return flyToDir(FV.fit, VIEWS[FV.cam], FV.fity, FV.pad); return flyToIds([...(stepSet || focus.ids)]); }
+  if (focus) { if (FV) return flyToDir(FV.fit, fvDir(FV), FV.fity, FV.pad); return flyToIds([...(stepSet || focus.ids)]); }
   if (dorsMode) return flyTo(HOME.clone(), new THREE.Vector3(...(nucView === "side" ? VIEWS.left : VIEWS.back)), 200 * Math.max(1, 0.75 / camera.aspect));
   if (solidMode) return flyTo(HOME.clone(), new THREE.Vector3(...VIEWS.front), homeDist());
   setHome(); flyTo(HOME, new THREE.Vector3(...homeDir()), homeDist());
@@ -2973,6 +2994,10 @@ const FEATS = [
   { id: "modebar", g: "mode", v: "V150", n: "左欄四顆分頁", d: "左欄清單上方「構造｜課本視角｜路徑｜顱神經」換下方清單；正在用的模式右上角有小點（V148 在頁首，V150 搬進左欄）", kw: "模式 模式列 分頁 左欄 構造 課本視角 路徑 顱神經 tab v148 v150", t: "#modebar" },
   { id: "modeSel", g: "mode", v: "V148", n: "課本視角清單", d: "左欄「課本視角」：依課堂列出，點一項就開好課本那張圖的構造、透明度與鏡頭", kw: "課本視角 場景 preset 視角", t: "#viewList" },
   { id: "vcams", g: "mode", v: "", n: "視角鏡頭切換", d: "有多個鏡頭的課本視角（腦溝、血管攝影）在畫面上方換鏡頭", kw: "鏡頭 vcam towne 內側", t: "#vcams" },
+  { id: "segcolor", g: "mode", v: "V151", n: "血管分段分色", d: "分段視角（內頸七段、前／中／後大腦動脈分段、椎動脈四段、前後循環總覽）每段一色、附圖例；對應的路徑走到哪一段亮哪一段", kw: "分段 分色 圖例 c1 c7 a1 m1 p1 內頸 aca mca pca v151", t: "#viewList" },
+  { id: "legfold", g: "mode", v: "V151", n: "圖例可收起", d: "課本視角與路徑左下角的圖例：點標題（▾）收成一列，再點展開；換視角或步驟會回到展開", kw: "圖例 收起 收合 展開 legend v151", t: "#viewList" },
+  { id: "vaview", g: "mode", v: "V151", n: "椎動脈四段", d: "課本視角「椎動脈四段」：V1–V4 四色，頸椎與枕骨半透明，可換前面、後面", kw: "椎動脈 v1 v2 v3 v4 vertebral 橫突孔 v151", t: "#viewList" },
+  { id: "wilcam", g: "mode", v: "V151", n: "Willis 環前斜鏡頭", d: "課本視角「Willis 環」的「前斜」：從前下方斜看整個環", kw: "willis 前斜 鏡頭 環 v151", t: "#vcams" },
   { id: "pathSel", g: "mode", v: "V148", n: "路徑與反射清單", d: "左欄「路徑」：依分類列出（可收合、會記住），點一條逐步亮起、模擬病灶；小腦皮質迴路有顯微模式", kw: "路徑 反射 傳導 病灶 顯微 pathway", t: "#pathList" },
   { id: "cnSel", g: "mode", v: "V148", n: "單一顱神經清單", d: "左欄「顱神經」：列十二對，點一條核、神經節、出腦位置一起亮", kw: "顱神經 cranial nerve 神經節 核", t: "#cnList" },
   { id: "sec", g: "bench", v: "", n: "切面", d: "右欄「切面」：腦幹、脊髓橫切與冠狀切片，對照 2D 切面圖", kw: "切面 橫切 冠狀 section", t: "#bench [data-tab=sec]" },
@@ -2986,7 +3011,7 @@ const FEATS = [
   { id: "help", g: "info", v: "", n: "操作說明與快捷鍵", d: "滑鼠、觸控、鍵盤快捷鍵與更新紀錄（? 鍵）", kw: "說明 快捷鍵 help 鍵盤", run: () => $("#bHelp").click() },
   { id: "feat", g: "info", v: "V147", n: "功能目錄", d: "就是這個：所有功能一行說明＋帶我去（⌘K／Ctrl+K）", kw: "功能 目錄 搜尋 ctrl k", t: "#bFeat" },
 ];
-const FNEW = ["modebar", "lec", "sag", "fold"];   // 最近新增（V150 版面重整）
+const FNEW = ["segcolor", "vaview", "wilcam", "legfold"];   // 最近新增（V151 血管分段分色）
 const FID = Object.fromEntries(FEATS.map(f => [f.id, f]));
 function featSearch(q, n = 6) {
   q = q.trim().toLowerCase(); if (!q) return [];
@@ -3025,7 +3050,8 @@ function featGo(f) {
   const d = $("#dFeat"); if (d.open) d.close();
   if (f.run) f.run();
   if (!f.t) return;
-  const el = document.querySelector(!isDesk() && f.tm || f.t); if (!el) return;
+  let el = document.querySelector(!isDesk() && f.tm || f.t); if (!el) return;
+  if (el.id === "vcams" && el.hidden) el = $("#viewList") || el;   // V151：還沒進課本視角時鏡頭鈕不在畫面上，改帶到課本視角清單
   if (el.id === "lecBar" && !lecOpen) setLecOpen(true, false);   // V150：課程列收著就先展開（不記）
   const lp = el.closest(".lpane"); if (lp && lp.hidden) setLeftMode(lp.dataset.pane, false);   // V148：先切到該模式的左欄（不記住）
   for (let p = el.parentElement; p; p = p.parentElement) if (p.tagName === "DETAILS" && !p.open) p.open = true;
