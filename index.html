@@ -1652,11 +1652,11 @@ let dermSide = (() => { try { return localStorage.getItem("b9neuro.dermSide") ||
 const DERM_COLW = 104;
 const dermCol = s => s === "V" ? "var(--dv)" : `var(--d${s[0].toLowerCase()}${[3, 1, 2][parseInt(s.slice(1), 10) % 3]})`;
 const DERM_DESC = {
-  C2: "C2：後腦勺、下頜角（C1 沒有皮節）", C3: "C3：頸部", C4: "C4：肩頸交界（披肩區，鎖骨上、肩上方）。口訣第一個 4",
-  C5: "C5：肩、上臂外側", C6: "C6：前臂外側、拇指、食指（國考：右手拇指感覺喪失＝C6）", C7: "C7：中指（師曰：比中指＝C7）",
+  C2: "C2：後腦勺、下頜角（C1 沒有皮節）", C3: "C3：頸部", C4: "C4：頸側下段、肩頸交界（披肩區，鎖骨上、肩上方）。口訣第一個 4",
+  C5: "C5：肩、上臂外側", C6: "C6：前臂外側、拇指、食指（國考：右手拇指感覺喪失＝C6）", C7: "C7：前臂背面中間、中指（師曰：比中指＝C7）",
   C8: "C8：前臂內側、無名指、小指", T1: "T1：上臂內側下段、前臂內側上段", T2: "T2：上臂內側上段、腋窩；軀幹前面緊接 C4",
   T4: "T4：乳頭", T7: "T7：劍突", T10: "T10：肚臍（國考兩題：肚臍皮節、闌尾炎初期肚臍周圍痛）", T12: "T12：腹股溝上方",
-  L1: "L1：腹股溝", L4: "L4：膝下、小腿內側", L5: "L5：小腿外側、腳背（師曰）", S1: "S1：足外側、足跟（師曰）", S2: "S2：大腿後面",
+  L1: "L1：腹股溝", L4: "L4：膝下、小腿內側到內踝", L5: "L5：小腿前外側、腳背到大腳趾（師曰）", S1: "S1：小腿後面、足外側到小趾、足底、足跟（師曰）", S2: "S2：大腿後面",
   S3: "S3–5：肛門周圍（同心圈）", S4: "S3–5：肛門周圍（同心圈）", S5: "S3–5：肛門周圍（同心圈）", V: "臉：三叉神經（V）支配，不是脊神經皮節"
 };
 const DERM_BASE = "口訣「4、4、7、10、12」：C4 披肩、T4 乳頭、T7 劍突、T10 肚臍、T12 腹股溝。";
@@ -1674,10 +1674,26 @@ function dermSvg(view) {
   for (const k in V.segs) s += `<path class="rg" data-seg="${k}" fill="${dermCol(k)}" fill-rule="evenodd" d="${V.segs[k]}"/>`;
   s += `</g><image class="shd" href="${V.shade}" x="0" y="0" width="${W}" height="${H}" preserveAspectRatio="none"/><path class="ol" d="${V.outline}"/>`;
   s += `<path class="hif" fill-rule="evenodd" d=""/><path class="hil" fill-rule="evenodd" d=""/><g class="${side ? "" : "segs"}">`;
+  const tags = [];
   for (const k in V.anchors) {
     if (k === "V" || (side && !DERM_SIDE_TAGS.includes(k))) continue;
-    (side ? V.anchors[k].slice(0, 1) : V.anchors[k]).forEach(([x, y, r]) => { if (r >= 4.5) s += `<text class="seg${side ? " big" : ""}" x="${x}" y="${y}">${k}</text>`; });
+    (side ? V.anchors[k].slice(0, 1) : V.anchors[k]).forEach(([x, y, r]) => { if (r >= 4.5) tags.push({ k, x, y, tx: x, ty: y }); });
   }
+  if (side) {   // 四足標籤太近（例：上肢 C6、T1）→ 沿兩點連線推開，再拉引線回原位
+    for (let i = 0; i < tags.length; i++) for (let j = i + 1; j < tags.length; j++) {
+      const a = tags[i], b = tags[j], dx = b.x - a.x, dy = b.y - a.y, d = Math.hypot(dx, dy);
+      if (d >= 34) continue;
+      const ux = d ? dx / d : 1, uy = d ? dy / d : 0, push = (80 - d) / 2;
+      a.tx = a.x - ux * push; a.ty = a.y - uy * push; b.tx = b.x + ux * push; b.ty = b.y + uy * push;
+    }
+  }
+  tags.forEach(t => {
+    if (t.tx !== t.x || t.ty !== t.y) {
+      const dx = t.tx - t.x, dy = t.ty - t.y, d = Math.hypot(dx, dy), e = Math.max(0, d - 13) / d;
+      s += `<polyline class="ld" points="${t.x},${t.y} ${t.x + dx * e},${t.y + dy * e}"/><circle class="lm" cx="${t.x}" cy="${t.y}" r="2.5"/>`;
+    }
+    s += `<text class="seg${side ? " big" : ""}" x="${t.tx}" y="${t.ty}">${t.k}</text>`;
+  });
   s += "</g>";
   if (!side) {
     const items = DERM_CALL[view].map(([t, k, sub, sub2]) => ({ t, sub, sub2, p: V.lm[k] })).filter(it => it.p).sort((a, b) => a.p[1] - b.p[1]);
