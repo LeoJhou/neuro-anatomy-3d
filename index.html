@@ -261,6 +261,48 @@ details.subgrp[open] > summary.subh::before { transform: rotate(90deg); }
 #pathDlg form { float: right; }
 #pathDlg h2 { font-size: 15px; margin: 4px 0 8px; }
 #pathBig .pathsvg { width: auto; max-width: 100%; height: auto; margin: 0 auto; }   /* 放大＝固定 1.6 倍（pathSvg 的 width／height），窄螢幕縮到視窗寬 */
+/* 皮節示意（L20；色票只給皮節卡片，不用紅藍） */
+.derm, #dermDlg { --dc1:#e3a43a; --dc2:#f6d68e; --dc3:#c47c1e; --dt1:#66ad72; --dt2:#abd7a3; --dt3:#3e8a50; --dl1:#9479c9; --dl2:#c8b8ea; --dl3:#6d51a8;
+  --ds1:#b0804f; --ds2:#e0c098; --ds3:#87592e; --dv:#d3d0ca; --dbody:#f4f1ec; --dedge:#4a4744; --dshade:1; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .derm, :root:not([data-theme="light"]) #dermDlg {
+  --dc1:#c08a2c; --dc2:#dcb563; --dc3:#a0631a; --dt1:#4f8f5b; --dt2:#7fb377; --dt3:#346f42; --dl1:#7a62ad; --dl2:#a294cc; --dl3:#5a4190;
+  --ds1:#93683f; --ds2:#bf9e74; --ds3:#6e4825; --dv:#8f8c86; --dbody:#3a3a3e; --dedge:#d4d0c8; --dshade:.85; } }
+:root[data-theme="dark"] .derm, :root[data-theme="dark"] #dermDlg {
+  --dc1:#c08a2c; --dc2:#dcb563; --dc3:#a0631a; --dt1:#4f8f5b; --dt2:#7fb377; --dt3:#346f42; --dl1:#7a62ad; --dl2:#a294cc; --dl3:#5a4190;
+  --ds1:#93683f; --ds2:#bf9e74; --ds3:#6e4825; --dv:#8f8c86; --dbody:#3a3a3e; --dedge:#d4d0c8; --dshade:.85; }
+.derm { margin: 12px 0 4px; border: 1px solid var(--line); border-radius: 8px; padding: 8px; background: var(--panel); }
+.derm .dhd { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 4px; }
+.derm .dhd b { font-size: 13.5px; margin-right: auto; }
+.dtabs { display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.dtabs button, .dbtn { border: 0; background: transparent; padding: 3px 8px; min-height: 30px; font-size: 12.5px; }
+.dbtn { border: 1px solid var(--line); border-radius: 6px; }
+.dtabs button[aria-pressed="true"], .dbtn[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
+.dsvg { width: 100%; height: auto; display: block; touch-action: manipulation; }
+.dsvg .base { fill: var(--dbody); }
+.dsvg .dbox { fill: var(--line); stroke: var(--dedge); stroke-width: 1.2; opacity: .8; }
+.dsvg .rg { cursor: pointer; stroke: var(--dbody); stroke-width: .6; }
+.dsvg .shd { mix-blend-mode: multiply; pointer-events: none; opacity: var(--dshade); }
+.dsvg .ol { fill: none; stroke: var(--dedge); stroke-width: 1.6; stroke-linejoin: round; pointer-events: none; }
+.dsvg .hil { fill: none; stroke: var(--dedge); stroke-width: 3; pointer-events: none; }
+.dsvg .hif { pointer-events: none; mix-blend-mode: normal; }
+.dsvg .lab { font-size: 21px; fill: var(--ink); font-weight: 700; paint-order: stroke; stroke: var(--panel); stroke-width: 4px; stroke-linejoin: round; }
+.dsvg .lab2 { font-size: 16px; fill: var(--ink); paint-order: stroke; stroke: var(--panel); stroke-width: 4px; stroke-linejoin: round; }
+.dsvg .ld { stroke: var(--dedge); stroke-width: 1; fill: none; opacity: .75; }
+.dsvg .lm { fill: var(--panel); stroke: var(--dedge); stroke-width: 1.4; }
+.dsvg .seg { font-size: 12px; font-weight: 600; fill: #1d1c1a; pointer-events: none; text-anchor: middle; dominant-baseline: central; paint-order: stroke; stroke: rgba(255,255,255,.7); stroke-width: 2.5px; }
+.dsvg .seg.big { font-size: 17px; font-weight: 700; }
+.dsvg .segs { visibility: hidden; } .dall .dsvg .segs { visibility: visible; }
+.dinfo { min-height: 2.6em; margin: 6px 0 4px; font-size: 13px; border-left: 3px solid var(--line); padding: 2px 8px; }
+.dleg { display: flex; flex-wrap: wrap; gap: 4px 10px; font-size: 12px; color: var(--mute); margin-top: 4px; }
+.dleg i { display: inline-block; width: 20px; height: 11px; border-radius: 2px; vertical-align: -1px; margin-right: 3px; }
+.dnote { font-size: 12px; color: var(--mute); margin: 6px 0 0; }
+.dcap { text-align: center; font-size: 12px; color: var(--mute); margin: 2px 0 0; }
+#dermDlg { width: min(1100px, calc(100vw - 24px)); max-height: calc(100vh - 24px); box-sizing: border-box; padding: 10px 12px 12px; background: var(--panel); color: var(--ink); border: 1px solid var(--line); border-radius: 10px; }
+#dermDlg form { float: right; }
+#dermDlg h2 { font-size: 15px; margin: 4px 0 8px; }
+#dermDlg .drow { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+#dermDlg .dside { max-width: 760px; margin: 8px auto 0; }
+@media (max-width: 640px) { #dermDlg .drow { grid-template-columns: 1fr; } }
 .gctl { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; margin: 8px 0 6px; }
 .steps { margin: 0; padding: 0; list-style: none; display: grid; gap: 3px; counter-reset: st; }
 .steps button { width: 100%; text-align: left; border: 1px solid var(--line); background: var(--panel); border-radius: 6px; padding: 4px 8px 4px 28px; font-size: 12.5px; position: relative; counter-increment: st; }
@@ -660,10 +702,11 @@ details.mgrp > .mrow { padding-left: 18px; }
   <!-- 本版更新：只放這次一起上線的版本，舊的不留 -->
   <details id="newsBox">
     <summary>本版更新</summary>
-    <p class="newsVer">Version 153　血管供應：深部供應區、Willis 環</p>
+    <p class="newsVer">Version 154　脊椎脊髓（李昆興、劉安祥）</p>
     <ul>
-      <li>「深部供應區」拿掉皮質與小腦，只留深部構造、穿通支、大血管和腦幹；補基底動脈；預設鏡頭改外側，圖例剩 4 列</li>
-      <li>「Willis 環」加小腦上動脈（SCA）灰色短段和名稱，從基底動脈頂端、P1 下方發出</li>
+      <li>新課程「脊椎脊髓」：頸椎盤與根（C5–C6）、腰椎盤與根（L4–L5）、顱頸交界三個課本視角；椎間盤分纖維環與髓核</li>
+      <li>右欄表格：神經根與肌節、反射節段、皮節記法、顱頸交界</li>
+      <li>皮節示意圖：真人身形正面、背面，加四足姿勢（從左側看），點節段看分布；可放大</li>
     </ul>
   </details>
 </dialog>
@@ -682,6 +725,12 @@ details.mgrp > .mrow { padding-left: 18px; }
   <form method="dialog"><button class="btn" aria-label="關閉">✕</button></form>
   <h2 id="pathDlgH"></h2>
   <div id="pathBig"></div>
+</dialog>
+
+<dialog id="dermDlg" aria-labelledby="dermDlgH" closedby="any">
+  <form method="dialog"><button class="btn" aria-label="關閉">✕</button></form>
+  <h2 id="dermDlgH">皮節示意（李昆興）</h2>
+  <div id="dermBig"></div>
 </dialog>
 
 <dialog id="photoDlg"><img id="photoBig" alt=""><form method="dialog" style="margin-top:8px;text-align:right"><button class="btn">關閉</button></form></dialog>
@@ -1127,7 +1176,8 @@ function viewGuide(g, V) {
   const cn = V.camnote || {}, cams = (V.cams || [V.cam]).filter(k => cn[k]);
   g.innerHTML = `<h3>${esc(V.zh)}</h3>${V.title ? `<p class="gfn">${esc(V.title)}</p>` : ""}` +
     (cams.length ? `<div class="lbl">看的方向</div><ol class="steps vdir">${cams.map(k => `<li><button data-vc="${k}" aria-pressed="${k === (vcam || V.cam)}"><b>${esc(camName(V, k))}</b>　${esc(cn[k])}</button></li>`).join("")}</ol>` : "") +
-    (V.note ? `<p class="gnote" style="margin-top:8px">${esc(V.note).replace(/\n/g, "<br>")}</p>` : "") + pathTable(V.table, "v:" + V.id);
+    (V.note ? `<p class="gnote" style="margin-top:8px">${esc(V.note).replace(/\n/g, "<br>")}</p>` : "") + pathTable(V.table, "v:" + V.id) + (V.fig === "derm" ? dermCard() : "");
+  if (V.fig === "derm") dermMount(g);
   if (V.cams) g.querySelectorAll("[data-vc]").forEach(b => b.onclick = () => setVcam(b.dataset.vc));
   g.querySelectorAll("details.ptabw").forEach(d => d.ontoggle = () => { d.open ? tabOpen.add(+d.dataset.t) : tabOpen.delete(+d.dataset.t); fitTabs(); });
   fitTabs();
@@ -1594,6 +1644,92 @@ function pathNodeGo(P, k) {   // 點路徑圖節點：跳到那一步＋選構�
   const n = P.nodes.find(n => n[0] === k), si = P.steps.findIndex(st => st[1].includes(k));
   if (isMicro(P) && microOn) { if (si >= 0) M.play(si); return; }   // 顯微模式：播那一步
   if (si >= 0 && si !== stepIdx) setStep(si); pick(n[2]);
+}
+// ---------- 皮節示意（L20；資料 D.derm 由 tools/derm_build.py 產生，人體表面＝Z-Anatomy）----------
+// 卡片：正面／背面／四足（課本姿勢：站直前彎、雙手撐箱的側面，看皮節像動物一樣一圈一圈排）。點色塊＝該節段在每張圖一起亮（只換疊加框，不增刪可點元素）
+const DERM = D.derm;
+let dermSide = (() => { try { return localStorage.getItem("b9neuro.dermSide") || "front"; } catch (e) { return "front"; } })(), dermCur = null;
+const DERM_COLW = 104;
+const dermCol = s => s === "V" ? "var(--dv)" : `var(--d${s[0].toLowerCase()}${[3, 1, 2][parseInt(s.slice(1), 10) % 3]})`;
+const DERM_DESC = {
+  C2: "C2：後腦勺、下頜角（C1 沒有皮節）", C3: "C3：頸部", C4: "C4：肩頸交界（披肩區，鎖骨上、肩上方）。口訣第一個 4",
+  C5: "C5：肩、上臂外側", C6: "C6：前臂外側、拇指、食指（國考：右手拇指感覺喪失＝C6）", C7: "C7：中指（師曰：比中指＝C7）",
+  C8: "C8：前臂內側、無名指、小指", T1: "T1：上臂內側下段、前臂內側上段", T2: "T2：上臂內側上段、腋窩；軀幹前面緊接 C4",
+  T4: "T4：乳頭", T7: "T7：劍突", T10: "T10：肚臍（國考兩題：肚臍皮節、闌尾炎初期肚臍周圍痛）", T12: "T12：腹股溝上方",
+  L1: "L1：腹股溝", L4: "L4：膝下、小腿內側", L5: "L5：小腿外側、腳背（師曰）", S1: "S1：足外側、足跟（師曰）", S2: "S2：大腿後面",
+  S3: "S3–5：肛門周圍（同心圈）", S4: "S3–5：肛門周圍（同心圈）", S5: "S3–5：肛門周圍（同心圈）", V: "臉：三叉神經（V）支配，不是脊神經皮節"
+};
+const DERM_BASE = "口訣「4、4、7、10、12」：C4 披肩、T4 乳頭、T7 劍突、T10 肚臍、T12 腹股溝。";
+const DERM_CALL = {
+  front: [["C4", "cape", "披肩"], ["T4", "nip", "乳頭"], ["T7", "xiph", "劍突"], ["T10", "umb", "肚臍"], ["T12", "t12", "腹股溝"],
+          ["C6", "thumb", "拇指"], ["C7", "mid", "中指"], ["C8", "little", "小指"], ["L5", "dfoot", "腳背"], ["S1", "lfoot", "足外側"]],
+  back: [["C2", "occ", "後腦勺", "C1 無皮節"], ["S3–5", "anus", "肛周"], ["S1", "heel", "足跟"]]
+};
+const DERM_SIDE_TAGS = ["C2", "C4", "C6", "C8", "T1", "T4", "T10", "L1", "L3", "L5", "S1", "S2"];   // 四足直接標在色塊上
+const DERM_CAP = { front: "正面", back: "背面（畫面右＝病人右）", side: "四足（課本姿勢：站直前彎、雙手撐箱；從病人左側看，頭在左）" };
+const dermGrp = s => /^S[345]$/.test(s) ? "S3-5" : s;
+function dermSvg(view) {
+  const V = DERM[view], W = V.w || DERM.w, H = V.h || DERM.h, side = view === "side", VW = side ? W : W + DERM_COLW;
+  let s = `<svg class="dsvg" data-dv="${view}" viewBox="0 0 ${VW} ${H}" role="img" aria-label="${DERM_CAP[view]}皮節示意">${V.box ? `<rect class="dbox" x="${V.box[0]}" y="${V.box[1]}" width="${V.box[2]}" height="${V.box[3]}" rx="2"/>` : ""}<path class="base" d="${V.outline}"/><g>`;
+  for (const k in V.segs) s += `<path class="rg" data-seg="${k}" fill="${dermCol(k)}" fill-rule="evenodd" d="${V.segs[k]}"/>`;
+  s += `</g><image class="shd" href="${V.shade}" x="0" y="0" width="${W}" height="${H}" preserveAspectRatio="none"/><path class="ol" d="${V.outline}"/>`;
+  s += `<path class="hif" fill-rule="evenodd" d=""/><path class="hil" fill-rule="evenodd" d=""/><g class="${side ? "" : "segs"}">`;
+  for (const k in V.anchors) {
+    if (k === "V" || (side && !DERM_SIDE_TAGS.includes(k))) continue;
+    (side ? V.anchors[k].slice(0, 1) : V.anchors[k]).forEach(([x, y, r]) => { if (r >= 4.5) s += `<text class="seg${side ? " big" : ""}" x="${x}" y="${y}">${k}</text>`; });
+  }
+  s += "</g>";
+  if (!side) {
+    const items = DERM_CALL[view].map(([t, k, sub, sub2]) => ({ t, sub, sub2, p: V.lm[k] })).filter(it => it.p).sort((a, b) => a.p[1] - b.p[1]);
+    let last = -99;
+    items.forEach(it => {
+      const ty = Math.max(it.p[1] + 6, last + (it.sub2 ? 54 : 38)), tx = W + 14; last = ty + (it.sub2 ? 18 : 0);
+      const tw = [...it.t].reduce((w, ch) => w + (ch.charCodeAt(0) < 128 ? 12.5 : 14), 0) + 7;
+      s += `<polyline class="ld" points="${it.p[0]},${it.p[1]} ${tx - 4},${ty - 7}"/><circle class="lm" cx="${it.p[0]}" cy="${it.p[1]}" r="3"/>` +
+        `<text class="lab" x="${tx}" y="${ty}">${esc(it.t)}</text><text class="lab2" x="${tx + tw}" y="${ty}">${esc(it.sub)}</text>` +
+        (it.sub2 ? `<text class="lab2" x="${tx}" y="${ty + 20}">${esc(it.sub2)}</text>` : "");
+    });
+  }
+  return s + "</svg>";
+}
+const DERM_LEG = `<div class="dleg"><span><i style="background:linear-gradient(90deg,var(--dc1) 33%,var(--dc2) 33% 66%,var(--dc3) 66%)"></i>頸 C</span><span><i style="background:linear-gradient(90deg,var(--dt1) 33%,var(--dt2) 33% 66%,var(--dt3) 66%)"></i>胸 T</span><span><i style="background:linear-gradient(90deg,var(--dl1) 33%,var(--dl2) 33% 66%,var(--dl3) 66%)"></i>腰 L</span><span><i style="background:linear-gradient(90deg,var(--ds1) 33%,var(--ds2) 33% 66%,var(--ds3) 66%)"></i>薦 S</span><span><i style="background:var(--dv)"></i>臉＝三叉神經</span></div>`;
+const DERM_NOTE = `<p class="dnote">示意分區，非精確邊界。C1 沒有皮節；S3–5 在肛門周圍。四足姿勢下皮節由頭往尾一圈一圈排，上肢的 C5–C7 在前緣（頭側）、C8–T1 在後緣。出處：李昆興講義 p22–24、p45；人體表面 Z-Anatomy（CC BY-SA 4.0）。</p>`;
+function dermCard() {
+  if (!DERM) return "";
+  const tab = k => `<button data-ds="${k}" aria-pressed="${dermSide === k}">${{ front: "正面", back: "背面", side: "四足" }[k]}</button>`;
+  return `<div class="derm" id="dermCard"><div class="dhd"><b>皮節示意（李昆興）</b><span class="dtabs" role="group" aria-label="皮節圖方向">${tab("front")}${tab("back")}${tab("side")}</span>` +
+    `<button class="dbtn" data-dall aria-pressed="false">全部節段</button><button class="dbtn" data-dbig>放大</button></div>` +
+    `<div class="dfig">${dermSvg(dermSide)}</div><p class="dcap">${DERM_CAP[dermSide]}</p><div class="dinfo">${esc(dermCur ? DERM_DESC[dermCur] || dermCur : DERM_BASE)}</div>${DERM_LEG}${DERM_NOTE}</div>`;
+}
+function dermHi() {   // 選取：每張圖只改疊加的 path（填色加亮＋粗框），不動可點的色塊
+  document.querySelectorAll(".dsvg").forEach(svg => {
+    const V = DERM[svg.dataset.dv], d = dermCur ? Object.keys(V.segs).filter(k => dermGrp(k) === dermGrp(dermCur)).map(k => V.segs[k]).join("") : "";
+    const f = svg.querySelector(".hif"); f.setAttribute("d", d); f.setAttribute("fill", dermCur ? dermCol(dermCur) : "none");
+    svg.querySelector(".hil").setAttribute("d", d);
+  });
+  document.querySelectorAll(".dinfo").forEach(e => e.textContent = dermCur ? DERM_DESC[dermCur] || dermCur : DERM_BASE);
+}
+function dermPick(seg) { dermCur = dermCur != null && dermGrp(dermCur) === dermGrp(seg) ? null : seg; dermHi(); }
+function dermMount(g) {
+  const c = g.querySelector("#dermCard"); if (!c) return;
+  c.addEventListener("click", e => {
+    const t = e.target.closest("[data-seg],[data-ds],[data-dall],[data-dbig]"); if (!t) return;
+    if (t.dataset.seg) return dermPick(t.dataset.seg);
+    if (t.dataset.ds) {
+      dermSide = t.dataset.ds; try { localStorage.setItem("b9neuro.dermSide", dermSide); } catch (e) {}
+      c.querySelectorAll("[data-ds]").forEach(b => b.setAttribute("aria-pressed", b.dataset.ds === dermSide));
+      c.querySelector(".dfig").innerHTML = dermSvg(dermSide); c.querySelector(".dcap").textContent = DERM_CAP[dermSide]; dermHi(); return;
+    }
+    if (t.hasAttribute("data-dall")) { const on = t.getAttribute("aria-pressed") !== "true"; t.setAttribute("aria-pressed", on); c.classList.toggle("dall", on); return; }
+    if (t.hasAttribute("data-dbig")) openDermBig();
+  });
+  dermHi();
+}
+function openDermBig() {
+  $("#dermBig").innerHTML = `<div class="drow"><div>${dermSvg("front")}<p class="dcap">${DERM_CAP.front}</p></div><div>${dermSvg("back")}<p class="dcap">${DERM_CAP.back}</p></div></div>` +
+    `<div class="dside">${dermSvg("side")}<p class="dcap">${DERM_CAP.side}</p></div><div class="dinfo"></div>${DERM_LEG}${DERM_NOTE}`;
+  $("#dermDlg").classList.toggle("dall", !!document.querySelector("#dermCard.dall"));
+  $("#dermDlg").showModal(); $("#dermDlg").scrollTop = 0; dermHi();
 }
 function openPathBig() {   // 放大的路徑圖：dialog 固定在 HTML 裡，只換內容；節點點按用事件委派
   const P = focus && focus.kind === "path" && PATHS.find(p => p.id === focus.id); if (!P) return;
@@ -2983,6 +3119,8 @@ const FEATS = [
   { id: "fold", g: "cam", v: "V150", n: "收起左欄、右欄", d: "欄邊的 ‹ › 收起後留一條直條，點直條展開（[ ] 鍵），會記住；右欄直條上直接點分頁名。手機是頁首「清單」「說明欄」", kw: "收合 收起 展開 直條 面板 圖層 左欄 右欄 清單 說明欄 fold v150", t: "#bLayFold", tm: "#mLayers" },
   { id: "search", g: "obj", v: "", n: "搜尋構造", d: "「構造」模式左欄的搜尋框（中英文），/ 鍵直接跳過去", kw: "搜尋 search 找", t: "#search" },
   { id: "l11", g: "obj", v: "V152", n: "嗅覺與邊緣系統", d: "左欄「課程」選「邊緣系統」：開這堂的構造、5 個課本視角（嗅覺腦底面、海馬冠狀面、穹窿走向、杏仁核與兩條傳出、皮質下核與連結）與 3 條新路徑", kw: "嗅覺 邊緣系統 海馬 穹窿 杏仁核 梨狀皮質 內嗅皮質 齒狀迴 papez 中隔 l11 v152", t: "#lecBar" },
+  { id: "l20", g: "obj", v: "V154", n: "脊椎脊髓", d: "左欄「課程」選「脊椎脊髓」：開這堂的構造（椎間盤分纖維環與髓核、顱頸交界韌帶）與 3 個課本視角（頸椎盤與根、腰椎盤與根、顱頸交界），右欄附根、肌節、反射、皮節表", kw: "脊椎 脊髓 椎間盤 髓核 纖維環 神經根 肌節 反射 顱頸交界 齒突 寰椎 十字韌帶 覆膜 l20 v154", t: "#lecBar" },
+  { id: "derm", g: "mode", v: "V154", n: "皮節示意圖", d: "課本視角「頸椎：盤與根」或「腰椎：盤與根」的導覽分頁：正面、背面、四足三種姿勢，點節段看分布與記法，「放大」三張並排", kw: "皮節 dermatome 四足 動物 c6 t4 t10 l1 s1 v154", t: "#viewList" },
   { id: "lec", g: "obj", v: "V150", n: "課程篩選", d: "左欄最上面「課程：○○ ▾」：點開選一堂或多堂（可連續點），只開那幾堂的構造；再點那一行或點左欄其他地方收回", kw: "課程 lecture 堂 篩選 課程列 v150", t: "#lecBar" },
   { id: "shell", g: "obj", v: "", n: "外形殼透明度", d: "左欄滑桿調外殼透明", kw: "透明 外殼 shell 不透明度", t: "#shellOp" },
   { id: "unit", g: "obj", v: "V111", n: "整塊／細分", d: "大腦皮質整塊看腦葉，或細分看各腦迴", kw: "腦葉 腦迴 lobe gyrus 整塊 細分", t: "#unitSeg" },
@@ -3009,7 +3147,7 @@ const FEATS = [
   { id: "help", g: "info", v: "", n: "操作說明與快捷鍵", d: "滑鼠、觸控、鍵盤快捷鍵與更新紀錄（? 鍵）", kw: "說明 快捷鍵 help 鍵盤", run: () => $("#bHelp").click() },
   { id: "feat", g: "info", v: "V147", n: "功能目錄", d: "就是這個：所有功能一行說明＋帶我去（⌘K／Ctrl+K）", kw: "功能 目錄 搜尋 ctrl k", t: "#bFeat" },
 ];
-const FNEW = ["l11", "segcolor", "vaview", "legfold"];   // 最近新增（V152 嗅覺與邊緣系統、V151 血管分段分色）
+const FNEW = ["l20", "derm", "l11", "segcolor"];   // 最近新增（V154 脊椎脊髓與皮節示意、V152 嗅覺與邊緣系統、V151 血管分段分色）
 const FID = Object.fromEntries(FEATS.map(f => [f.id, f]));
 function featSearch(q, n = 6) {
   q = q.trim().toLowerCase(); if (!q) return [];
@@ -3117,6 +3255,7 @@ $("#helpDlg").addEventListener("click", e => {   // 點對話框外面（backdro
   if (e.target === d && (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom)) d.close();
 });
 
+$("#dermDlg").addEventListener("click", e => { const t = e.target.closest("[data-seg]"); if (t) dermPick(t.dataset.seg); });
 $("#pathDlg").addEventListener("click", e => {   // 點外面關閉；節點用事件委派（內容每次重畫，不綁在元素上）
   const d = e.currentTarget, r = d.getBoundingClientRect();
   if (e.target === d && (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom)) { d.close(); return; }
