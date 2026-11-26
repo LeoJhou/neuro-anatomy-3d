@@ -910,7 +910,13 @@ let M = null, microOn = false, FL = null;   // 顯微場景（小腦皮質迴路
 let dirty = 3, labDirty = true; function invalidate() { dirty = Math.max(dirty, 3); labDirty = true; }   // labDirty：圖上名稱要重挑
 function applyTheme() { scene.background = new THREE.Color(css("--stage")); flowRecolor(); invalidate(); if (M) { M.scene.background = new THREE.Color(css("--stage")); M.wake(); } }
 applyTheme();
-const onTheme = () => { applyTheme(); if (focus && focus.kind === "path") renderGuide(); };   // 路徑圖畫的時候用 css() 寫死顏色，換主題要重畫
+// 路徑圖、切面圖 SVG、切面外殼、3D 線條都是畫的時候用 css() 寫死顏色，換主題要重畫／重設
+const onTheme = () => {
+  applyTheme(); if (focus && focus.kind === "path") renderGuide();
+  for (const id in OBJ) if (OBJ[id].lineMat) OBJ[id].lineMat.color.set(lineCol(id));
+  if (sagOn) drawCaps(D.sagittal, 1); else if (activeSec) { drawCaps(activeSec); drawSvg(); }
+  invalidate();
+};
 matchMedia("(prefers-color-scheme: dark)").addEventListener("change", onTheme);
 new MutationObserver(onTheme).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
 
@@ -918,6 +924,7 @@ const clipPlane = new THREE.Plane(new THREE.Vector3(0, -1, 0), 1e6);  // inactiv
 const clipArr = [clipPlane];
 
 // ---------- build structures ----------
+const lineCol = id => css(id === "level_ticks" ? "--accent" : id === "bony_levels" ? "--bone" : "--mute");   // 3D 線條色（換主題時 onTheme 重設）
 const OBJ = {};              // id -> {s, root, mats[], meshes[], pins[], userOn}
 const pickables = [];
 const pinGeo = new THREE.SphereGeometry(0.45, 14, 10), EMPTY = new THREE.BufferGeometry();
@@ -980,7 +987,7 @@ for (const s of D.structures) {
     root.add(mesh); o.mats.push(m); o.meshes.push(mesh); o.pins.push(mesh); pickables.push(mesh);
   }
   if (s.lines.length) {
-    const lm = new THREE.LineBasicMaterial({ color: s.id === "level_ticks" ? css("--accent") : s.id === "bony_levels" ? css("--bone") : css("--mute"), transparent: true, opacity: 0.85, clippingPlanes: clipArr });
+    const lm = new THREE.LineBasicMaterial({ color: lineCol(s.id), transparent: true, opacity: 0.85, clippingPlanes: clipArr });
     for (const l of s.lines) { const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.BufferAttribute(lineOf(l), 3)); root.add(new THREE.Line(g, lm)); }
     o.lineMat = lm;
   }
@@ -2877,6 +2884,7 @@ function drawSvg() {
     }
   }
   W.append(svg);
+  svg.querySelectorAll("text[data-id]").forEach(e => e.classList.toggle("selp", inSel(e.dataset.id)));   // 名稱也反白（和 select() 一致；重畫時才不會掉）
   const o = (txt, st) => { const e = document.createElement("div"); e.className = "o"; e.textContent = txt; Object.assign(e.style, st); W.append(e); };
   const hc = LAB(s) && !sag;   // 水平、CAT：前方在上
   o(hc ? "前 A" : cor || sag ? "上 S" : "背側 D", { top: "4px", left: "50%", transform: "translateX(-50%)" }); o(hc ? "後 P" : cor || sag ? "下 I" : "腹側 V", { bottom: "4px", left: "50%", transform: "translateX(-50%)" });
