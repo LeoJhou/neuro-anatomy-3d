@@ -702,11 +702,11 @@ details.mgrp > .mrow { padding-left: 18px; }
   <!-- 本版更新：只放這次一起上線的版本，舊的不留 -->
   <details id="newsBox">
     <summary>本版更新</summary>
-    <p class="newsVer">Version 155　自主週邊神經（賴秋蓮、李昆興）</p>
+    <p class="newsVer">Version 156　腦幹視角與顱神經節視角修正</p>
     <ul>
-      <li>新課程「自主週邊」：交感幹整條（左右兩條，示意），標頸段（上頸、中頸、星狀）、胸段、腰段、薦段神經節與尾骨前的奇神經節</li>
-      <li>T1–L2 交通枝接中間外側核與脊神經；課本視角「交感幹全長」，右欄附交感幹分段、白灰交通枝兩張表</li>
-      <li>上頸神經節說明卡補一句：節後纖維也沿 ICA 到腦大血管使其收縮，副交感使其擴張</li>
+      <li>腦幹外觀、背面核團圖、側面核團圖固定對準腦幹，同時開大腦或脊髓課程也不再跑到全腦或脊髓；腦幹外觀距離固定</li>
+      <li>在這三個視角裡按 ↺ 或工具列方向鈕，一樣對準腦幹</li>
+      <li>顱神經節與中樞核只框顱神經的神經節，不再把交感幹一起框進來而拉遠到整條脊柱</li>
     </ul>
   </details>
 </dialog>
@@ -1097,7 +1097,7 @@ function setSolid(on) {
   if (on && focus) setFocus(null);
   solidMode = on; syncModeSel();
   if (on) { solidSaved = snapOn(); for (const id in OBJ) OBJ[id].userOn = SOLID.has(id);
-            if (!activeSec) $('#views [data-v="front"]').click(); }
+            if (!activeSec) flyTo(BS_C.clone(), new THREE.Vector3(...VIEWS.front), bsDist()); }
   else if (solidSaved) { restoreOn(solidSaved); solidSaved = null; }
   refreshVis();
 }
@@ -1123,7 +1123,7 @@ function setDors(on, view) {
   else if (!on && dorsSaved) { restoreOn(dorsSaved); dorsSaved = null; }
   dorsMode = on; nucView = view;
   syncModeSel();
-  if (on && !activeSec) flyTo(HOME.clone(), new THREE.Vector3(...(view === "side" ? VIEWS.left : VIEWS.back)), 200 * Math.max(1, 0.75 / camera.aspect));
+  if (on && !activeSec) flyTo(BS_C.clone(), new THREE.Vector3(...(view === "side" ? VIEWS.left : VIEWS.back)), 200 * Math.max(1, 0.75 / camera.aspect));
   for (const s of D.structures) if (s.group === "cn_nucleus")
     for (const m of OBJ[s.id].mats) { m.clippingPlanes = !on ? clipArr : view === "side" || MOTOR.has(s.comp) ? clipMotor : clipSens; m.needsUpdate = true; }
   buildLegend(); $("#legend").hidden = !on;
@@ -1365,7 +1365,7 @@ function focusIds(f) {
     (P.lesions || []).forEach(l => { LES_SUB(l[4]) || s.add(l[4]); (l[6] || []).forEach(i => s.add(i)); });   // 紅色病灶切片只在點那個病灶時開（lesSlices）；l[6]：病灶一起亮的構造
   } else if (f.kind === "gang") {
     for (const g of GANG) { s.add(g.id); g.pairs.forEach(p => s.add(p[0])); }
-    D.structures.forEach(x => { if (x.group === "ganglion") s.add(x.id); });
+    D.structures.forEach(x => { if (x.group === "ganglion" && (x.cn || x.cns)) s.add(x.id); });   // V156：只收有顱神經的（排除 gon、scg、L21 交感類，不然會框到整條脊柱）
     ["III", "V", "VII", "VIII", "IX", "X"].forEach(c => s.add("cn_" + c)); OBJ.eyeball && s.add("eyeball");
   } else {
     const C = CNV.find(c => c.cn === f.id), row = FC && FC.rows.find(r => r.cn === f.id);
@@ -2432,10 +2432,12 @@ const VIEWS = { front: [0, 0.05, 1], back: [0, 0.05, -1], left: [1, 0.05, 0], ri
 // 開著有 fit 的視角（側腦室各壁等）：工具列方向照視角的框，不回全腦中心（V129.1）
 document.querySelectorAll("#views [data-v]").forEach(b => b.onclick = () => { const V = !activeSec && presetV();
   if (V && V.fit) return flyToDir(V.fit, VIEWS[b.dataset.v], V.fity, V.pad);
-  flyTo(activeSec ? new THREE.Vector3(...activeSec.c) : HOME, new THREE.Vector3(...VIEWS[b.dataset.v]), camera.position.distanceTo(controls.target)); });
+  flyTo(activeSec ? new THREE.Vector3(...activeSec.c) : solidMode || dorsMode ? BS_C.clone() : HOME, new THREE.Vector3(...VIEWS[b.dataset.v]), camera.position.distanceTo(controls.target)); });
 // 舞台 0 尺寸（背景分頁、App 面板還沒排好）時比例當 1：以前 0.8 / 0 → 距離 Infinity → 鏡頭 NaN → three 報「firstElem.toArray is not a function」全黑
-const homeDist = () => { const r = stage.getBoundingClientRect(), a = r.width / r.height;
-  return (lecHome()?.d || 240) * (a > 0 && Number.isFinite(a) ? Math.max(1, 0.8 / a) : 1); };
+const homeDist = (d) => { const r = stage.getBoundingClientRect(), a = r.width / r.height;
+  return (d || lecHome()?.d || 240) * (a > 0 && Number.isFinite(a) ? Math.max(1, 0.8 / a) : 1); };
+// V156：腦幹外觀、背面／側面核團圖（含其中的 ↺ 與工具列方向鈕）固定對準腦幹中心，不跟 L02、L04 的課程 home；腦幹外觀距離固定 240（窄畫面照比例拉遠）
+const BS_C = new THREE.Vector3(0, 4, 0), bsDist = () => homeDist(240);
 const homeDir = () => lecHome()?.dir || VIEWS.oblique;   // home.dir（L16 從左前斜）：起始方向，省略＝預設右前斜
 const camStart = () => camera.position.copy(new THREE.Vector3(...homeDir()).normalize().multiplyScalar(homeDist()).add(HOME));
 const camHome = () => { anim = null; controls.target.copy(HOME); camStart(); camera.lookAt(HOME); };   // 朝向也要重設：NaN 位置時 OrbitControls 的 lookAt 已讓 quaternion 變 NaN
@@ -3042,8 +3044,8 @@ function resetView() {
   if (V && vcam) return setVcam(vcam);
   if (V) return flyToDir(V.fit, VIEWS[V.cam], V.fity, V.pad);
   if (focus) { if (FV) return flyToDir(FV.fit, fvDir(FV), FV.fity, FV.pad); return flyToIds([...(stepSet || focus.ids)]); }
-  if (dorsMode) return flyTo(HOME.clone(), new THREE.Vector3(...(nucView === "side" ? VIEWS.left : VIEWS.back)), 200 * Math.max(1, 0.75 / camera.aspect));
-  if (solidMode) return flyTo(HOME.clone(), new THREE.Vector3(...VIEWS.front), homeDist());
+  if (dorsMode) return flyTo(BS_C.clone(), new THREE.Vector3(...(nucView === "side" ? VIEWS.left : VIEWS.back)), 200 * Math.max(1, 0.75 / camera.aspect));
+  if (solidMode) return flyTo(BS_C.clone(), new THREE.Vector3(...VIEWS.front), bsDist());
   setHome(); flyTo(HOME, new THREE.Vector3(...homeDir()), homeDist());
 }
 let rsSnap = null;
